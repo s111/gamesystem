@@ -6,10 +6,9 @@ import org.newdawn.slick.SlickException;
 
 public class Main {
     public static void main(String[] args) {
-        Server server = new Server();
-
         try {
-            AppGameContainer app = new AppGameContainer(new Pong("Pong"));
+            AppGameContainer app = new AppGameContainer(Pong.getGame());
+            app.setAlwaysRender(true);
             app.start();
         } catch (SlickException e) {
             e.printStackTrace();
