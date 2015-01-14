@@ -15,11 +15,6 @@
             <version>4.11</version>
         </dependency>
         <dependency>
-            <groupId>org.slick2d</groupId>
-            <artifactId>slick2d-core</artifactId>
-            <version>1.0.1</version>
-        </dependency>
-        <dependency>
             <groupId>javax.websocket</groupId>
             <artifactId>javax.websocket-api</artifactId>
             <version>1.0</version>
@@ -40,6 +35,5 @@
             <version>1.0</version>
         </dependency>
     </dependencies>
-
 
 </project>
