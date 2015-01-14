@@ -1,1 +1,1 @@
-Bachelore
+Bachelor
