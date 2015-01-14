@@ -1,3 +1,5 @@
+package com.github.s111.bachelor.pong;
+
 import static org.junit.Assert.assertTrue;
 
 public class ExampleTest {

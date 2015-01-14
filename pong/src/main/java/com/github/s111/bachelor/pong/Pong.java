@@ -1,3 +1,5 @@
+package com.github.s111.bachelor.pong;
+
 import org.newdawn.slick.BasicGame;
 import org.newdawn.slick.GameContainer;
 import org.newdawn.slick.Graphics;
