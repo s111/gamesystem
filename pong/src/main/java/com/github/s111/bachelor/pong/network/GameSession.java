@@ -7,6 +7,7 @@ import javax.websocket.DeploymentException;
 import javax.websocket.RemoteEndpoint;
 import javax.websocket.Session;
 import java.io.IOException;
+import java.nio.ByteBuffer;
 
 public class GameSession {
     private final Pong game;
@@ -17,39 +18,48 @@ public class GameSession {
     public GameSession(Pong game) throws DeploymentException {
         this.game = game;
 
-        Server server = new Server("localhost", 1234, "/", WebsocketServer.class);
+        Server server = new Server("localhost", 1234, "/", null, WebsocketServer.class);
         server.start();
     }
 
-    public void onOpen(Session session) {
-        boolean player1Active = player1 == null || !player1.isOpen();
-        boolean player2Active = player2 == null || !player2.isOpen();
+    public void onOpen(Session session) throws IOException {
+        boolean player1NotActive = player1 == null || !player1.isOpen();
+        boolean player2NotActive = player2 == null || !player2.isOpen();
 
-        if (player1Active) {
+        if (player1NotActive) {
             player1 = session;
-        } else if (player2Active) {
+        } else if (player2NotActive) {
             player2 = session;
         } else {
             closeConnection(session);
+
+            return;
         }
+
+        RemoteEndpoint.Basic remote = session.getBasicRemote();
+        remote.sendPing(ByteBuffer.wrap("".getBytes()));
     }
 
-    public void closeConnection(Session session) {
-        try {
+    public void closeConnection(Session session) throws IOException {
             RemoteEndpoint.Basic remote = session.getBasicRemote();
             remote.sendText("Already got 2 players");
 
             session.close();
-        } catch (IOException e) {
-            // Just ignore the exception as we are dropping the client
-        }
     }
 
-    public void onMessage(Session session, float message) throws IOException {
+    public void onMessage(Session session, String message) throws IOException {
+        float position;
+
+        try {
+            position = Float.parseFloat(message);
+        } catch (NumberFormatException e) {
+            position = -1;
+        }
+
         if (player1.equals(session)) {
-            game.movePlayer1(message);
+            game.movePlayer1(position);
         } else {
-            game.movePlayer2(message);
+            game.movePlayer2(position);
         }
     }
 

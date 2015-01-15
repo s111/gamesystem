@@ -22,17 +22,22 @@
         <dependency>
             <groupId>org.glassfish.tyrus</groupId>
             <artifactId>tyrus-client</artifactId>
-            <version>1.1</version>
+            <version>1.9</version>
         </dependency>
         <dependency>
             <groupId>org.glassfish.tyrus</groupId>
             <artifactId>tyrus-server</artifactId>
-            <version>1.1</version>
+            <version>1.9</version>
         </dependency>
         <dependency>
             <groupId>org.glassfish.tyrus</groupId>
             <artifactId>tyrus-container-grizzly</artifactId>
-            <version>1.1</version>
+            <version>1.2.1</version>
+        </dependency>
+        <dependency>
+            <groupId>org.glassfish.tyrus</groupId>
+            <artifactId>tyrus-container-grizzly-server</artifactId>
+            <version>1.9</version>
         </dependency>
         <dependency>
             <groupId>javax.json</groupId>
