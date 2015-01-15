@@ -49,13 +49,13 @@ public class GameSession {
         }
     }
 
-    public void onMessage(Session session, String message) throws IOException {
+    public void onMessage(Session session, float message) throws IOException {
         RemoteEndpoint.Basic remote = session.getBasicRemote();
 
         if (player1.equals(session)) {
-            remote.sendText("Hello, Player1!");
+            game.movePlayer1(message);
         } else {
-            remote.sendText("Hello, Player2!");
+            game.movePlayer2(message);
         }
     }
 }

@@ -49,6 +49,22 @@ public class Pong extends BasicGame {
         super(title);
     }
 
+    public void movePlayer1(float position) {
+        movePlayer(player2, position);
+    }
+
+    public void movePlayer2(float position) {
+        movePlayer(player2, position);
+    }
+
+    private void movePlayer(Rectangle player, float position) {
+        if (Math.abs(position) > 1) {
+            return;
+        }
+
+        player.setCenterY(MARGIN + position * (height - MARGIN * 2));
+    }
+
     @Override
     public void init(GameContainer container) throws SlickException {
         awtFont = new Font(Font.MONOSPACED, Font.BOLD, 48);
@@ -76,7 +92,7 @@ public class Pong extends BasicGame {
         player1.setCenterY(verticalCenter);
 
         player2 = new Rectangle(right, 0, PADDLE_WIDTH, PADDLE_HEIGHT);
-        player2.setCenterY(verticalCenter + 64);
+        player2.setCenterY(verticalCenter);
     }
 
     private void instantiateBall() {
@@ -105,12 +121,16 @@ public class Pong extends BasicGame {
 
     private void movePaddles(Input input, int delta) {
         if (input.isKeyDown(Input.KEY_W)) {
-            player1.setCenterY(player1.getCenterY() - 0.25f * delta);
+            player1.setCenterY(player1.getCenterY() - 0.5f * delta);
         } else if (input.isKeyDown(Input.KEY_S)) {
-            player1.setCenterY(player1.getCenterY() + 0.25f * delta);
+            player1.setCenterY(player1.getCenterY() + 0.5f * delta);
         }
 
-        player2.setCenterY(ball.getCenterY());
+        if (input.isKeyDown(Input.KEY_UP)) {
+            player2.setCenterY(player2.getCenterY() - 0.5f * delta);
+        } else if (input.isKeyDown(Input.KEY_DOWN)) {
+            player2.setCenterY(player2.getCenterY() + 0.5f * delta);
+        }
     }
 
     private void checkBallCollision() {
@@ -131,7 +151,7 @@ public class Pong extends BasicGame {
             if (ballHittingPlayer1 || ballHittingPlayer2) {
                 bounceBallOfPaddle(bounceAngle);
             } else {
-                if (ballHittingPlayer1) {
+                if (ballHittingLeft) {
                     player1Score++;
                 } else {
                     player2Score++;
