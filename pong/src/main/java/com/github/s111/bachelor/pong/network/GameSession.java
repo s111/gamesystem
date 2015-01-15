@@ -57,12 +57,12 @@ public class GameSession {
         String score = "[" + player1score + ", " + player2score + "]";
 
         try {
-            if (player1 != null) {
+            if (player1 != null && player1.isOpen()) {
                 RemoteEndpoint.Basic remote1 = player1.getBasicRemote();
                 remote1.sendText(score);
             }
 
-            if (player2 != null) {
+            if (player2 != null && player2.isOpen()) {
                 RemoteEndpoint.Basic remote2 = player2.getBasicRemote();
                 remote2.sendText(score);
             }

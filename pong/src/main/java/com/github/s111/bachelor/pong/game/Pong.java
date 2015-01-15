@@ -58,7 +58,8 @@ public class Pong extends BasicGame {
     }
 
     private void movePlayer(Rectangle player, float position) {
-        if (Math.abs(position) > 1) {
+        System.out.println(position);
+        if (position < 0 || position > 1) {
             return;
         }
 
