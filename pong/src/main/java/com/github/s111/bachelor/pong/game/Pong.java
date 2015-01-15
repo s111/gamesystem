@@ -3,9 +3,12 @@ package com.github.s111.bachelor.pong.game;
 import com.github.s111.bachelor.pong.Application;
 import com.github.s111.bachelor.pong.network.GameSession;
 import org.newdawn.slick.*;
+import org.newdawn.slick.Graphics;
 import org.newdawn.slick.geom.Circle;
 import org.newdawn.slick.geom.Rectangle;
 import org.newdawn.slick.geom.Vector2f;
+
+import java.awt.Font;
 
 public class Pong extends BasicGame {
     private static final int MARGIN = 32;
@@ -36,15 +39,25 @@ public class Pong extends BasicGame {
     private int ballHorizontalDirection;
     private int ballVerticalDirection;
 
+    private int player1Score;
+    private int player2Score;
+
+    private Font awtFont;
+    private TrueTypeFont font;
+
     public Pong(String title) {
         super(title);
     }
 
     @Override
     public void init(GameContainer container) throws SlickException {
+        awtFont = new Font(Font.MONOSPACED, Font.BOLD, 48);
+        font = new TrueTypeFont(awtFont, true);
+
         setBoundaries(container);
         instantiatePlayers();
         instantiateBall();
+        resetScore();
     }
 
     private void setBoundaries(GameContainer container) {
@@ -72,9 +85,18 @@ public class Pong extends BasicGame {
         resetBall();
     }
 
+    private void resetScore() {
+        player1Score = 0;
+        player2Score = 0;
+    }
+
     @Override
     public void update(GameContainer container, int delta) throws SlickException {
         Input input = container.getInput();
+
+        if (input.isKeyPressed(Input.KEY_Q)) {
+            container.exit();
+        }
 
         movePaddles(input, delta);
         checkBallCollision();
@@ -109,6 +131,12 @@ public class Pong extends BasicGame {
             if (ballHittingPlayer1 || ballHittingPlayer2) {
                 bounceBallOfPaddle(bounceAngle);
             } else {
+                if (ballHittingPlayer1) {
+                    player1Score++;
+                } else {
+                    player2Score++;
+                }
+
                 resetBall();
             }
         }
@@ -169,11 +197,22 @@ public class Pong extends BasicGame {
 
     @Override
     public void render(GameContainer container, Graphics g) throws SlickException {
+        drawScore(g);
+
         g.fill(player1);
         g.fill(player2);
 
         g.fill(ball);
 
         g.drawLine(horizontalCenter, 0, horizontalCenter, height);
+    }
+
+    private void drawScore(Graphics g) {
+        int score1Width = font.getWidth("" + player1Score);
+        int score2Width = font.getWidth("" + player2Score);
+
+        g.setFont(font);
+        g.drawString("" + player1Score, horizontalCenter - score1Width / 2 - MARGIN * 2, MARGIN);
+        g.drawString("" + player2Score, horizontalCenter - score2Width / 2 + MARGIN * 2, MARGIN);
     }
 }
