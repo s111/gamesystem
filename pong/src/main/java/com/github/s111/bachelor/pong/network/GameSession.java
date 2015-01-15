@@ -1,6 +1,6 @@
 package com.github.s111.bachelor.pong.network;
 
-import com.github.s111.bachelor.pong.Pong;
+import com.github.s111.bachelor.pong.game.Pong;
 import org.glassfish.tyrus.server.Server;
 
 import javax.websocket.DeploymentException;

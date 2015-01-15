@@ -2,7 +2,9 @@ package com.github.s111.bachelor.pong.network;
 
 import com.github.s111.bachelor.pong.Application;
 
-import javax.websocket.*;
+import javax.websocket.OnMessage;
+import javax.websocket.OnOpen;
+import javax.websocket.Session;
 import javax.websocket.server.ServerEndpoint;
 import java.io.IOException;
 

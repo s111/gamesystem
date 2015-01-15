@@ -1,5 +1,6 @@
-package com.github.s111.bachelor.pong;
+package com.github.s111.bachelor.pong.game;
 
+import com.github.s111.bachelor.pong.Application;
 import com.github.s111.bachelor.pong.network.GameSession;
 import org.newdawn.slick.BasicGame;
 import org.newdawn.slick.GameContainer;
