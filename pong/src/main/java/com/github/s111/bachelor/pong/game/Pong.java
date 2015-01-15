@@ -27,7 +27,7 @@ public class Pong extends BasicGame {
     private int verticalCenter;
     private int horizontalCenter;
 
-    private GameSession gameSession = Application.getGameSession();
+    private GameSession gameSession;
 
     private Rectangle player1;
     private Rectangle player2;
@@ -50,7 +50,7 @@ public class Pong extends BasicGame {
     }
 
     public void movePlayer1(float position) {
-        movePlayer(player2, position);
+        movePlayer(player1, position);
     }
 
     public void movePlayer2(float position) {
@@ -67,6 +67,8 @@ public class Pong extends BasicGame {
 
     @Override
     public void init(GameContainer container) throws SlickException {
+        gameSession = Application.getGameSession();
+
         awtFont = new Font(Font.MONOSPACED, Font.BOLD, 48);
         font = new TrueTypeFont(awtFont, true);
 
@@ -152,11 +154,12 @@ public class Pong extends BasicGame {
                 bounceBallOfPaddle(bounceAngle);
             } else {
                 if (ballHittingLeft) {
-                    player1Score++;
-                } else {
                     player2Score++;
+                } else {
+                    player1Score++;
                 }
 
+                gameSession.broadcastScore(player1Score, player2Score);
                 resetBall();
             }
         }

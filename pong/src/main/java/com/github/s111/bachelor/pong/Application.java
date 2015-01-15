@@ -18,11 +18,6 @@ public class Application {
         startGame();
     }
 
-    private static void exit() {
-        System.out.println("Unable to recover; exiting...");
-        System.exit(1);
-    }
-
     public static GameSession getGameSession() {
         return gameSession;
     }
@@ -33,8 +28,9 @@ public class Application {
         exit();
     }
 
-    public static void main(String[] args) {
-        Application application = new Application();
+    private static void exit() {
+        System.out.println("Unable to recover; exiting...");
+        System.exit(1);
     }
 
     private void createGameSession() {
@@ -53,5 +49,9 @@ public class Application {
         } catch (SlickException e) {
             fatalError("Could not start game: " + e.getMessage());
         }
+    }
+
+    public static void main(String[] args) {
+        new Application();
     }
 }

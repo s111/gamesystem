@@ -21,10 +21,6 @@ public class GameSession {
         server.start();
     }
 
-    public Pong getGame() {
-        return game;
-    }
-
     public void onOpen(Session session) {
         boolean player1Active = player1 == null || !player1.isOpen();
         boolean player2Active = player2 == null || !player2.isOpen();
@@ -50,12 +46,28 @@ public class GameSession {
     }
 
     public void onMessage(Session session, float message) throws IOException {
-        RemoteEndpoint.Basic remote = session.getBasicRemote();
-
         if (player1.equals(session)) {
             game.movePlayer1(message);
         } else {
             game.movePlayer2(message);
+        }
+    }
+
+    public void broadcastScore(int player1score, int player2score) {
+        String score = "[" + player1score + ", " + player2score + "]";
+
+        try {
+            if (player1 != null) {
+                RemoteEndpoint.Basic remote1 = player1.getBasicRemote();
+                remote1.sendText(score);
+            }
+
+            if (player2 != null) {
+                RemoteEndpoint.Basic remote2 = player2.getBasicRemote();
+                remote2.sendText(score);
+            }
+        } catch (IOException e) {
+            // Ignore exception, the score is updated next time and is also displayed on the game screen
         }
     }
 }
