@@ -13,7 +13,7 @@ public class Pong extends BasicGame {
     private static final int PADDLE_HEIGHT = 128;
     private static final int BALL_RADIUS = 8;
     private static final float BALL_SPEED = 1.0f;
-    private static final double MAX_BOUNCE_ANGLE = Math.PI / 3;
+    private static final double MAX_BOUNCE_ANGLE = 5 * Math.PI / 12;
 
     private int width;
     private int height;
@@ -69,23 +69,57 @@ public class Pong extends BasicGame {
     private void instantiateBall() {
         ball = new Circle(horizontalCenter, verticalCenter, BALL_RADIUS);
 
-        ballHorizontalDirection = Math.random() > 0.5 ? 1 : -1;
-        ballVerticalDirection = 0;
-        ballSpeed = new Vector2f(ballHorizontalDirection * BALL_SPEED, ballVerticalDirection);
+        resetBall();
     }
 
     @Override
     public void update(GameContainer container, int delta) throws SlickException {
         Input input = container.getInput();
 
+        movePaddles(input, delta);
+        checkBallCollision();
+        moveBall(delta);
+    }
+
+    private void movePaddles(Input input, int delta) {
         if (input.isKeyDown(Input.KEY_W)) {
-            player1.setCenterY(player1.getCenterY() - 0.25f);
+            player1.setCenterY(player1.getCenterY() - 0.25f * delta);
         } else if (input.isKeyDown(Input.KEY_S)) {
-            player1.setCenterY(player1.getCenterY() + 0.25f);
+            player1.setCenterY(player1.getCenterY() + 0.25f * delta);
         }
 
         player2.setCenterY(ball.getCenterY());
+    }
 
+    private void checkBallCollision() {
+        double bounceAngle = calculateBounceAngle();
+
+        boolean ballHittingRight = ball.getMaxX() > right && ballHorizontalDirection != -1;
+        boolean ballHittingLeft = ball.getX() < left && ballHorizontalDirection != 1;
+        boolean ballHittingTop = ball.getY() < MARGIN && ballVerticalDirection != 1;
+        boolean ballHittingBottom = ball.getMaxY() > height - MARGIN && ballVerticalDirection != -1;
+        boolean ballHittingPlayer1 = ball.getMaxY() > player1.getY() && ball.getY() < player1.getMaxY() && ballHorizontalDirection == -1;
+        boolean ballHittingPlayer2 = ball.getMaxY() > player2.getY() && ball.getY() < player2.getMaxY() && ballHorizontalDirection == 1;
+
+        if (ballHittingTop || ballHittingBottom) {
+            bounceBallOfWall();
+        }
+
+        if (ballHittingLeft || ballHittingRight) {
+            if (ballHittingPlayer1 || ballHittingPlayer2) {
+                bounceBallOfPaddle(bounceAngle);
+            } else {
+                resetBall();
+            }
+        }
+    }
+
+    private void moveBall(int delta) {
+        ball.setCenterX(ballSpeed.getX() * delta + ball.getCenterX());
+        ball.setCenterY(ballSpeed.getY() * delta + ball.getCenterY());
+    }
+
+    private double calculateBounceAngle() {
         float ballPositionRelativeToPaddleCenter;
 
         if (ballSpeed.getX() > 0) {
@@ -99,33 +133,38 @@ public class Pong extends BasicGame {
 
         bounceAngle = Math.max(Math.min(bounceAngle, MAX_BOUNCE_ANGLE), -MAX_BOUNCE_ANGLE);
 
-        float ballRight = ball.getCenterX() + BALL_RADIUS;
-        float ballLeft = ball.getCenterX() - BALL_RADIUS;
+        return bounceAngle;
+    }
 
-        boolean ballHittingRightPaddle = ballRight > right && ballHorizontalDirection != -1;
-        boolean ballHittingLeftPaddle = ballLeft < left && ballHorizontalDirection != 1;
-        boolean ballHittingTop = ball.getCenterY() - BALL_RADIUS < MARGIN && ballVerticalDirection != 1;
-        boolean ballHittingBottom = ball.getCenterY() + BALL_RADIUS > height - MARGIN && ballVerticalDirection != -1;
+    private void bounceBallOfPaddle(double bounceAngle) {
+        ballVerticalDirection = ballSpeed.getY() > 0 ? 1 : -1;
 
-        if (ballHittingTop || ballHittingBottom) {
-            ballVerticalDirection = -ballVerticalDirection;
-
-            ballSpeed.set(ballSpeed.getX(), -ballSpeed.getY());
+        if (ballSpeed.getY() == 0) {
+            ballVerticalDirection = bounceAngle > 0 ? -1 : 1;
         }
 
-        if (ballHittingLeftPaddle || ballHittingRightPaddle) {
-            ballVerticalDirection = ballSpeed.getY() > 0 ? 1 : -1;
+        ballHorizontalDirection = -ballHorizontalDirection;
 
-            if (ballSpeed.getY() == 0) {
-                ballVerticalDirection = normalizedRelativeBallPosition > 0 ? -1 : 1;
-            }
+        float horizontalBallSpeed = (float) (BALL_SPEED * Math.cos(bounceAngle));
+        float verticalBallSpeed = (float) Math.abs(BALL_SPEED * Math.sin(bounceAngle));
 
-            ballHorizontalDirection = -ballHorizontalDirection;
-            ballSpeed.set(ballHorizontalDirection * ((float) (BALL_SPEED * Math.cos(bounceAngle))), ballVerticalDirection * (float) Math.abs(BALL_SPEED * Math.sin(bounceAngle)));
-        }
+        ballSpeed.set(ballHorizontalDirection * horizontalBallSpeed, ballVerticalDirection * verticalBallSpeed);
+    }
 
-        ball.setCenterX(ballSpeed.getX() + ball.getCenterX());
-        ball.setCenterY(ballSpeed.getY() + ball.getCenterY());
+    private void bounceBallOfWall() {
+        ballVerticalDirection = -ballVerticalDirection;
+
+        ballSpeed.set(ballSpeed.getX(), -ballSpeed.getY());
+    }
+
+    private void resetBall() {
+        ball.setCenterX(horizontalCenter);
+        ball.setCenterY(verticalCenter);
+
+        ballHorizontalDirection = Math.random() > 0.5 ? 1 : -1;
+        ballVerticalDirection = 0;
+
+        ballSpeed = new Vector2f(ballHorizontalDirection * BALL_SPEED, ballVerticalDirection);
     }
 
     @Override
