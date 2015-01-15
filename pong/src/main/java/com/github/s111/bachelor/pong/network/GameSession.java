@@ -57,7 +57,5 @@ public class GameSession {
         } else {
             remote.sendText("Hello, Player2!");
         }
-
-        game.showMessage(message);
     }
 }
