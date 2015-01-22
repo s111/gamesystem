@@ -5,6 +5,8 @@ import org.newdawn.slick.geom.Rectangle;
 
 import java.util.Random;
 
+import java.awt.Font;
+
 public class Triggerhappy extends BasicGame {
 
     private int width;
@@ -18,6 +20,12 @@ public class Triggerhappy extends BasicGame {
     private Rectangle topLeft, topMiddle, topRight, botLeft, botMiddle, botRight;
 
     private Rectangle enemy;
+    private boolean enemyAlive = false;
+
+    private int player1Score;
+
+    private Font awtFont;
+    private TrueTypeFont font;
 
     public Triggerhappy(String title) {
         super(title);
@@ -25,10 +33,14 @@ public class Triggerhappy extends BasicGame {
 
     @Override
     public void init(GameContainer container) throws SlickException {
+        awtFont = new Font(Font.MONOSPACED, Font.BOLD, 48);
+        font = new TrueTypeFont(awtFont, true);
+
         width = container.getWidth();
         height = container.getHeight();
 
         initiateSpawnPoints();
+        resetScore();
     }
 
     public void initiateSpawnPoints() {
@@ -36,7 +48,7 @@ public class Triggerhappy extends BasicGame {
         int botY = height - ENEMY_HEIGHT * 2;
         int x1 = width / 4 - ENEMY_WIDTH / 2;
         int x2 = width / 2 - ENEMY_WIDTH / 2;
-        int x3 = width * 3 /4 - ENEMY_WIDTH / 2;
+        int x3 = width * 3 / 4 - ENEMY_WIDTH / 2;
 
         topLeft = new Rectangle(x1, topY, ENEMY_WIDTH, ENEMY_HEIGHT);
         topMiddle = new Rectangle(x2, topY, ENEMY_WIDTH, ENEMY_HEIGHT);
@@ -49,6 +61,10 @@ public class Triggerhappy extends BasicGame {
         spawnEnemy();
     }
 
+    private void resetScore() {
+        player1Score = 0;
+    }
+
     @Override
     public void update(GameContainer container, int delta) throws SlickException {
         time += delta;
@@ -58,7 +74,7 @@ public class Triggerhappy extends BasicGame {
             container.exit();
         }
 
-        if(time / 1000 >= 2) {
+        if (time / 1000 >= 2) {
             spawnEnemy();
             time = 0;
         }
@@ -67,9 +83,6 @@ public class Triggerhappy extends BasicGame {
     }
 
     private void spawnEnemy() {
-
-        // Random number between 1 and 6
-        // Chooses where to spawn
         Random rand = new Random();
         int randomNum = rand.nextInt((6 - 1) + 1) + 1;
 
@@ -94,54 +107,52 @@ public class Triggerhappy extends BasicGame {
                 break;
             default:
         }
-        // Spawn the enemy at a random time between 2-5 seconds
     }
 
     private void generateEnemy(Rectangle nextSpawn) {
         enemy = new Rectangle(nextSpawn.getX(), nextSpawn.getY(), ENEMY_WIDTH, ENEMY_HEIGHT);
+        enemyAlive = true;
     }
 
 
     private void shootEnemy(Input input, int delta) {
-        if (input.isKeyDown(Input.KEY_NUMPAD1)) {
-            if(hit(botLeft)) {
-                enemy.setSize(0,0);
-            }
-        }
-
-        if (input.isKeyDown(Input.KEY_NUMPAD2)) {
-            if(hit(botMiddle)) {
-                enemy.setSize(0,0);
-            }
-        }
-
-        if (input.isKeyDown(Input.KEY_NUMPAD3)) {
-            if(hit(botRight)) {
-                enemy.setSize(0,0);
-            }
-        }
-
-        if (input.isKeyDown(Input.KEY_NUMPAD4)) {
-            if(hit(topLeft)) {
-                enemy.setSize(0,0);
-            }
-        }
-
-        if (input.isKeyDown(Input.KEY_NUMPAD5)) {
-            if(hit(topMiddle)) {
-                enemy.setSize(0,0);
-            }
-        }
-
-        if (input.isKeyDown(Input.KEY_NUMPAD6)) {
-            if(hit(topRight)) {
-                enemy.setSize(0,0);
+        if (enemyAlive) {
+            if (input.isKeyDown(Input.KEY_NUMPAD1)) {
+                if (hit(botLeft)) {
+                    score();
+                }
+            } else if (input.isKeyDown(Input.KEY_NUMPAD2)) {
+                if (hit(botMiddle)) {
+                    score();
+                }
+            } else if (input.isKeyDown(Input.KEY_NUMPAD3)) {
+                if (hit(botRight)) {
+                    score();
+                }
+            } else if (input.isKeyDown(Input.KEY_NUMPAD4)) {
+                if (hit(topLeft)) {
+                    score();
+                }
+            } else if (input.isKeyDown(Input.KEY_NUMPAD5)) {
+                if (hit(topMiddle)) {
+                    score();
+                }
+            } else if (input.isKeyDown(Input.KEY_NUMPAD6)) {
+                if (hit(topRight)) {
+                    score();
+                }
             }
         }
     }
 
+    private void score() {
+        enemy.setSize(0, 0);
+        player1Score++;
+        enemyAlive = false;
+    }
+
     private boolean hit(Rectangle hit) {
-        return enemy.getX() == hit.getX() && enemy.getY() == hit.getY();
+        return (enemy.getX() == hit.getX() && enemy.getY() == hit.getY());
     }
 
     @Override
@@ -151,5 +162,13 @@ public class Triggerhappy extends BasicGame {
 
         g.setColor(new Color(231, 76, 60));
         g.fill(enemy);
+
+        drawScore(g);
     }
+
+    private void drawScore(Graphics g) {
+        g.setFont(font);
+        g.drawString("" + player1Score, 30, 30);
+    }
+
 }
