@@ -3,6 +3,8 @@ package com.github.s111.bachelor.triggerhappy.game;
 import org.newdawn.slick.*;
 import org.newdawn.slick.geom.Rectangle;
 
+import java.util.Random;
+
 public class Triggerhappy extends BasicGame {
 
     private int width;
@@ -11,7 +13,11 @@ public class Triggerhappy extends BasicGame {
     private final int ENEMY_WIDTH = 100;
     private final int ENEMY_HEIGHT = 100;
 
+    private float time = 0;
+
     private Rectangle topLeft, topMiddle, topRight, botLeft, botMiddle, botRight;
+
+    private Rectangle enemy;
 
     public Triggerhappy(String title) {
         super(title);
@@ -39,43 +45,103 @@ public class Triggerhappy extends BasicGame {
         botLeft = new Rectangle(x1, botY, ENEMY_WIDTH, ENEMY_HEIGHT);
         botMiddle = new Rectangle(x2, botY, ENEMY_WIDTH, ENEMY_HEIGHT);
         botRight = new Rectangle(x3, botY, ENEMY_WIDTH, ENEMY_HEIGHT);
+
+        spawnEnemy();
     }
 
     @Override
     public void update(GameContainer container, int delta) throws SlickException {
+        time += delta;
         Input input = container.getInput();
 
         if (input.isKeyPressed(Input.KEY_Q)) {
             container.exit();
         }
 
+        if(time / 1000 >= 2) {
+            spawnEnemy();
+            time = 0;
+        }
+
         shootEnemy(input, delta);
     }
 
+    private void spawnEnemy() {
+
+        // Random number between 1 and 6
+        // Chooses where to spawn
+        Random rand = new Random();
+        int randomNum = rand.nextInt((6 - 1) + 1) + 1;
+
+        switch (randomNum) {
+            case 1:
+                generateEnemy(topLeft);
+                break;
+            case 2:
+                generateEnemy(topMiddle);
+                break;
+            case 3:
+                generateEnemy(topRight);
+                break;
+            case 4:
+                generateEnemy(botLeft);
+                break;
+            case 5:
+                generateEnemy(botMiddle);
+                break;
+            case 6:
+                generateEnemy(botRight);
+                break;
+            default:
+        }
+        // Spawn the enemy at a random time between 2-5 seconds
+    }
+
+    private void generateEnemy(Rectangle nextSpawn) {
+        enemy = new Rectangle(nextSpawn.getX(), nextSpawn.getY(), ENEMY_WIDTH, ENEMY_HEIGHT);
+    }
+
+
     private void shootEnemy(Input input, int delta) {
         if (input.isKeyDown(Input.KEY_NUMPAD1)) {
-            botLeft.setSize(0, 0);
+            if(hit(botLeft)) {
+                enemy.setSize(0,0);
+            }
         }
 
         if (input.isKeyDown(Input.KEY_NUMPAD2)) {
-            botMiddle.setSize(0, 0);
+            if(hit(botMiddle)) {
+                enemy.setSize(0,0);
+            }
         }
 
         if (input.isKeyDown(Input.KEY_NUMPAD3)) {
-            botRight.setSize(0, 0);
+            if(hit(botRight)) {
+                enemy.setSize(0,0);
+            }
         }
 
         if (input.isKeyDown(Input.KEY_NUMPAD4)) {
-            topLeft.setSize(0, 0);
+            if(hit(topLeft)) {
+                enemy.setSize(0,0);
+            }
         }
 
         if (input.isKeyDown(Input.KEY_NUMPAD5)) {
-            topMiddle.setSize(0, 0);
+            if(hit(topMiddle)) {
+                enemy.setSize(0,0);
+            }
         }
 
         if (input.isKeyDown(Input.KEY_NUMPAD6)) {
-            topRight.setSize(0, 0);
+            if(hit(topRight)) {
+                enemy.setSize(0,0);
+            }
         }
+    }
+
+    private boolean hit(Rectangle hit) {
+        return enemy.getX() == hit.getX() && enemy.getY() == hit.getY();
     }
 
     @Override
@@ -84,12 +150,6 @@ public class Triggerhappy extends BasicGame {
         g.fillRect(0, 0, width, height);
 
         g.setColor(new Color(231, 76, 60));
-        g.fill(topLeft);
-        g.fill(topMiddle);
-        g.fill(topRight);
-
-        g.fill(botLeft);
-        g.fill(botMiddle);
-        g.fill(botRight);
+        g.fill(enemy);
     }
 }
