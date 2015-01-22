@@ -33,7 +33,7 @@ public class Triggerhappy extends BasicGame {
 
     @Override
     public void init(GameContainer container) throws SlickException {
-        awtFont = new Font(Font.MONOSPACED, Font.BOLD, 48);
+        awtFont = new Font(Font.MONOSPACED, Font.BOLD, 24);
         font = new TrueTypeFont(awtFont, true);
 
         width = container.getWidth();
