@@ -7,6 +7,9 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"strings"
+
+	"github.com/codegangsta/martini"
 )
 
 type Game struct {
@@ -16,11 +19,18 @@ type Game struct {
 
 const path = "games"
 
+var server *martini.ClassicMartini
 var games []Game
 
 func main() {
+	server = martini.Classic()
+
 	parseGames()
 	listGames()
+
+	go func() {
+		server.Run()
+	}()
 
 	for {
 		selectGame()
@@ -31,7 +41,8 @@ func parseGames() {
 	names, _ := ioutil.ReadDir(path)
 
 	for _, name := range names {
-		filename := filepath.Join(path, name.Name(), "game.json")
+		gamePath := filepath.Join(path, name.Name())
+		filename := filepath.Join(gamePath, "game.json")
 
 		if _, err := os.Stat(filename); os.IsNotExist(err) {
 			fmt.Println("Warning: Found directory without game.json:", filename)
@@ -46,7 +57,18 @@ func parseGames() {
 		json.Unmarshal(file, &game)
 
 		games = append(games, game)
+
+		addController(game.Name, gamePath)
 	}
+}
+
+func addController(gameName string, gamePath string) {
+	controllerPath := filepath.Join(gamePath, "controller")
+	prefix := strings.ToLower(gameName)
+
+	server.Use(martini.Static(controllerPath, martini.StaticOptions{
+		Prefix: prefix,
+	}))
 }
 
 func listGames() {
