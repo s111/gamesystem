@@ -103,9 +103,11 @@ function create() {
 
 function onDown(sprite, pointer) {
   if(pointer.y <= bttnHeight) {
-    console.log("Row 1);
+    console.log("Row 1");
     
     console.log("X: " + pointer.x + " Y: " + pointer.y);
+  } else {
+    console.log("Row 2");
   }
 }
 
