@@ -1,5 +1,6 @@
 package com.github.s111.bachelor.triggerhappy.game;
 
+import com.github.s111.bachelor.triggerhappy.network.GameSession;
 import org.newdawn.slick.*;
 import org.newdawn.slick.geom.Rectangle;
 
@@ -8,6 +9,8 @@ import java.util.Random;
 import java.awt.Font;
 
 public class Triggerhappy extends BasicGame {
+
+    private GameSession gameSession;
 
     private int width;
     private int height;
@@ -21,6 +24,7 @@ public class Triggerhappy extends BasicGame {
 
     private Rectangle enemy;
     private boolean enemyAlive = false;
+    private int enemyPosition = 0;
 
     private int player1Score;
 
@@ -29,6 +33,12 @@ public class Triggerhappy extends BasicGame {
 
     public Triggerhappy(String title) {
         super(title);
+    }
+
+    public void shootEnemy(int player, int position) {
+        if(position == enemyPosition) {
+            score();
+        }
     }
 
     @Override
@@ -88,29 +98,30 @@ public class Triggerhappy extends BasicGame {
 
         switch (randomNum) {
             case 1:
-                generateEnemy(topLeft);
+                generateEnemy(topLeft, 1);
                 break;
             case 2:
-                generateEnemy(topMiddle);
+                generateEnemy(topMiddle, 2);
                 break;
             case 3:
-                generateEnemy(topRight);
+                generateEnemy(topRight, 3);
                 break;
             case 4:
-                generateEnemy(botLeft);
+                generateEnemy(botLeft, 4);
                 break;
             case 5:
-                generateEnemy(botMiddle);
+                generateEnemy(botMiddle, 5);
                 break;
             case 6:
-                generateEnemy(botRight);
+                generateEnemy(botRight, 6);
                 break;
             default:
         }
     }
 
-    private void generateEnemy(Rectangle nextSpawn) {
+    private void generateEnemy(Rectangle nextSpawn, int position) {
         enemy = new Rectangle(nextSpawn.getX(), nextSpawn.getY(), ENEMY_WIDTH, ENEMY_HEIGHT);
+        enemyPosition = position;
         enemyAlive = true;
     }
 
