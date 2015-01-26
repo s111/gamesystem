@@ -12,7 +12,7 @@ var botRight;
 var bttnHeight;
 var bttnWidth;
 
-var shootEnemy = function(pos) {};
+var shootEnemy = function(pos) { console.log(pos) }
 
 
 function preload() {
@@ -20,7 +20,7 @@ function preload() {
 
   conn.onopen = function (e) {
     shootEnemy = function(pos) {
-      conn.send(pos);
+      conn.send(pos)
     }
   }
 
@@ -103,11 +103,21 @@ function create() {
 
 function onDown(sprite, pointer) {
   if(pointer.y <= bttnHeight) {
-    console.log("Row 1");
-    
-    console.log("X: " + pointer.x + " Y: " + pointer.y);
+      if(pointer.x <= bttnWidth) {
+        shootEnemy(1);
+      } else if (pointer.x > bttnWidth && pointer.x <= bttnWidth * 2) {
+        shootEnemy(2); 
+      } else if (pointer.x >= bttnWidth * 2) {
+        shootEnemy(3);
+      } 
   } else {
-    console.log("Row 2");
+    if(pointer.x <= bttnWidth) {
+        shootEnemy(4);
+    } else if (pointer.x > bttnWidth && pointer.x <= bttnWidth * 2) {
+        shootEnemy(5);
+    } else if (pointer.x >= bttnWidth * 2) {
+        shootEnemy(6);
+    }
   }
 }
 
