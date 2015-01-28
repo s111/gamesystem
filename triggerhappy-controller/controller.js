@@ -15,6 +15,7 @@ function preload() {
 
   conn.onopen = function (e) {
     shootEnemy = function(pos) {
+      window.navigator.vibrate(200);
       conn.send(pos)
     }
   }
