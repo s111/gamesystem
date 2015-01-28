@@ -4,12 +4,14 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
+	"net/http"
 	"os"
 	"os/exec"
 	"path/filepath"
 	"strings"
 
 	"github.com/codegangsta/martini"
+	"golang.org/x/net/websocket"
 )
 
 type Game struct {
@@ -23,6 +25,18 @@ var server *martini.ClassicMartini
 var games []Game
 
 func main() {
+	http.HandleFunc("/ws",
+		func(w http.ResponseWriter, req *http.Request) {
+			s := websocket.Server{Handler: websocket.Handler(wsHandler)}
+			s.ServeHTTP(w, req)
+		})
+
+	go func() {
+		if err := http.ListenAndServe(":3001", nil); err != nil {
+			panic(err.Error())
+		}
+	}()
+
 	server = martini.Classic()
 
 	parseGames()
@@ -34,6 +48,28 @@ func main() {
 
 	for {
 		selectGame()
+	}
+}
+
+func wsHandler(ws *websocket.Conn) {
+	var data int
+
+	for {
+		err := websocket.JSON.Receive(ws, &data)
+
+		if err != nil {
+			if err.Error() == "EOF" {
+				fmt.Println("Client closed connection")
+			} else {
+				fmt.Println("Dropping client: " + err.Error())
+			}
+
+			return
+		}
+
+		fmt.Printf("Receive: %s\n", data)
+
+		startGame(games[data])
 	}
 }
 
@@ -94,6 +130,9 @@ func selectGame() {
 }
 
 func startGame(game Game) {
-	exec.Command(game.Exec[0], game.Exec[1:]...).Run()
+	err := exec.Command(game.Exec[0], game.Exec[1:]...).Run()
 
+	if err != nil {
+		fmt.Println(err.Error())
+	}
 }
