@@ -1,23 +1,23 @@
 package com.github.s111.bachelor.triggerhappy.game;
 
+import com.github.s111.bachelor.triggerhappy.Application;
 import com.github.s111.bachelor.triggerhappy.network.GameSession;
 import org.newdawn.slick.*;
+import org.newdawn.slick.Color;
+import org.newdawn.slick.Graphics;
 import org.newdawn.slick.geom.Rectangle;
 
-import java.util.Random;
-
 import java.awt.Font;
+import java.util.List;
+import java.util.Random;
 
 public class Triggerhappy extends BasicGame {
 
-    private GameSession gameSession;
-
-    private int width;
-    private int height;
-
     private final int ENEMY_WIDTH = 100;
     private final int ENEMY_HEIGHT = 100;
-
+    private GameSession gameSession;
+    private int width;
+    private int height;
     private float time = 0;
 
     private Rectangle topLeft, topMiddle, topRight, botLeft, botMiddle, botRight;
@@ -26,8 +26,6 @@ public class Triggerhappy extends BasicGame {
     private boolean enemyAlive = false;
     private int enemyPosition = 0;
 
-    private int player1Score;
-
     private Font awtFont;
     private TrueTypeFont font;
 
@@ -35,16 +33,20 @@ public class Triggerhappy extends BasicGame {
         super(title);
     }
 
-    public void shootEnemy(int player, int position) {
-         if(enemyAlive) {
-             if(position == enemyPosition) {
-                 score();
-             }
-         }
+    public boolean checkIfHit(int position) {
+        if (enemyAlive) {
+            if (position == enemyPosition) {
+                resetEnemy();
+                return true;
+            }
+        }
+        return false;
     }
 
     @Override
     public void init(GameContainer container) throws SlickException {
+        gameSession = Application.getGameSession();
+
         awtFont = new Font(Font.MONOSPACED, Font.BOLD, 24);
         font = new TrueTypeFont(awtFont, true);
 
@@ -52,7 +54,6 @@ public class Triggerhappy extends BasicGame {
         height = container.getHeight();
 
         initiateSpawnPoints();
-        resetScore();
     }
 
     public void initiateSpawnPoints() {
@@ -71,10 +72,6 @@ public class Triggerhappy extends BasicGame {
         botRight = new Rectangle(x3, botY, ENEMY_WIDTH, ENEMY_HEIGHT);
 
         spawnEnemy();
-    }
-
-    private void resetScore() {
-        player1Score = 0;
     }
 
     @Override
@@ -132,35 +129,34 @@ public class Triggerhappy extends BasicGame {
         if (enemyAlive) {
             if (input.isKeyDown(Input.KEY_NUMPAD1)) {
                 if (hit(botLeft)) {
-                    score();
+                    resetEnemy();
                 }
             } else if (input.isKeyDown(Input.KEY_NUMPAD2)) {
                 if (hit(botMiddle)) {
-                    score();
+                    resetEnemy();
                 }
             } else if (input.isKeyDown(Input.KEY_NUMPAD3)) {
                 if (hit(botRight)) {
-                    score();
+                    resetEnemy();
                 }
             } else if (input.isKeyDown(Input.KEY_NUMPAD4)) {
                 if (hit(topLeft)) {
-                    score();
+                    resetEnemy();
                 }
             } else if (input.isKeyDown(Input.KEY_NUMPAD5)) {
                 if (hit(topMiddle)) {
-                    score();
+                    resetEnemy();
                 }
             } else if (input.isKeyDown(Input.KEY_NUMPAD6)) {
                 if (hit(topRight)) {
-                    score();
+                    resetEnemy();
                 }
             }
         }
     }
 
-    private void score() {
+    private void resetEnemy() {
         enemy.setSize(0, 0);
-        player1Score++;
         enemyAlive = false;
     }
 
@@ -181,7 +177,10 @@ public class Triggerhappy extends BasicGame {
 
     private void drawScore(Graphics g) {
         g.setFont(font);
-        g.drawString("" + player1Score, 30, 30);
+
+        List<Integer> scores = gameSession.getScores();
+
+        g.drawString("Score: " + scores.toString(), 30, 30);
     }
 
 }

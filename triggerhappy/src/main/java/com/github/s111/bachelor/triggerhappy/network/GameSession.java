@@ -9,35 +9,27 @@ import javax.websocket.RemoteEndpoint;
 import javax.websocket.Session;
 import java.io.IOException;
 import java.nio.ByteBuffer;
+import java.util.ArrayList;
+import java.util.List;
 
 public class GameSession {
     private final Triggerhappy game;
-    private Session player1;
-    private Session player2;
+
+    private List<Player> players;
+
     public GameSession(Triggerhappy game) throws DeploymentException {
         this.game = game;
+        players = new ArrayList();
         Server server = new Server("localhost", 1234, "/", null, WebsocketServer.class);
         server.start();
     }
     public void onOpen(Session session) throws IOException {
-        boolean player1NotActive = player1 == null || !player1.isOpen();
-        boolean player2NotActive = player2 == null || !player2.isOpen();
-        if (player1NotActive) {
-            player1 = session;
-        } else if (player2NotActive) {
-            player2 = session;
-        } else {
-            closeConnection(session);
-            return;
-        }
+        players.add(new Player(session));
+
         RemoteEndpoint.Basic remote = session.getBasicRemote();
         remote.sendPing(ByteBuffer.wrap("".getBytes()));
     }
-    public void closeConnection(Session session) throws IOException {
-        RemoteEndpoint.Basic remote = session.getBasicRemote();
-        remote.sendText("Already got 2 players");
-        session.close();
-    }
+
     public void onMessage(Session session, String message) throws IOException {
         int position;
         try {
@@ -45,25 +37,56 @@ public class GameSession {
         } catch (NumberFormatException e) {
             position = -1;
         }
-        if (player1.equals(session)) {
-            game.shootEnemy(1, position);
-        } else {
-            game.shootEnemy(2, position);
+        for (Player player : players) {
+            if (session.equals(player.getSession())) {
+                if(game.checkIfHit(position)) {
+                    player.increaseScore();
+                }
+            }
         }
     }
-    public void broadcastScore(int player1score, int player2score) {
-        String score = "[" + player1score + ", " + player2score + "]";
-        try {
-            if (player1 != null && player1.isOpen()) {
-                RemoteEndpoint.Basic remote1 = player1.getBasicRemote();
-                remote1.sendText(score);
-            }
-            if (player2 != null && player2.isOpen()) {
-                RemoteEndpoint.Basic remote2 = player2.getBasicRemote();
-                remote2.sendText(score);
-            }
-        } catch (IOException e) {
-// Ignore exception, the score is updated next time and is also displayed on the game screen
+
+    public List<Integer> getScores() {
+        List<Integer> scores = new ArrayList<Integer>();
+        for (Player player : players) {
+            scores.add(player.getScore());
+        }
+        return scores;
+    }
+//    public void broadcastScore(int player1score, int player2score) {
+//        String score = "[" + player1score + ", " + player2score + "]";
+//        try {
+//            if (player1 != null && player1.isOpen()) {
+//                RemoteEndpoint.Basic remote1 = player1.getBasicRemote();
+//                remote1.sendText(score);
+//            }
+//            if (player2 != null && player2.isOpen()) {
+//                RemoteEndpoint.Basic remote2 = player2.getBasicRemote();
+//                remote2.sendText(score);
+//            }
+//        } catch (IOException e) {
+//// Ignore exception, the score is updated next time and is also displayed on the game screen
+//        }
+//    }
+
+    private class Player {
+        private Session session;
+        private int score = 0;
+
+        private Player(Session session) {
+            this.session = session;
+        }
+
+        public Session getSession() {
+            return session;
+        }
+
+        public void increaseScore() {
+            score++;
+        }
+
+        public int getScore() {
+            return score;
         }
     }
 }
