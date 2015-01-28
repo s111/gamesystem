@@ -19,7 +19,7 @@ function preload() {
     }
   }
 
-  game.stage.backgroundColor = '#000000';
+  game.stage.backgroundColor = '#2C3E59';
 }
 
 function create() {
@@ -30,12 +30,10 @@ function create() {
   bttnWidth = game.stage.width / 3;
   bttnHeight = game.stage.height / 2;
 
-  var colors = [0xD24D57, 0xDB0A5B, 0xF64747, 0xF1A9A0, 0xD2527F, 0xF62459];
-
   for (i=0; i < 6; i++) {
     g = game.add.graphics(0, 0);
-    g.beginFill(colors[i], 1);
-    g.drawRect((i%3) * bttnWidth, (i > 2 ? 1 : 0) * bttnHeight, bttnWidth, bttnHeight);
+    g.beginFill(0xE74C3C, 1);
+    g.drawRect((i%3) * bttnWidth + 32, (i > 2 ? 1 : 0) * bttnHeight + 32, bttnWidth - 64, bttnHeight - 64);
 
     s = game.add.sprite(0, 0);
     s.addChild(g);
