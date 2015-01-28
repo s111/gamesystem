@@ -36,9 +36,11 @@ public class Triggerhappy extends BasicGame {
     }
 
     public void shootEnemy(int player, int position) {
-        if(position == enemyPosition) {
-            score();
-        }
+         if(enemyAlive) {
+             if(position == enemyPosition) {
+                 score();
+             }
+         }
     }
 
     @Override
