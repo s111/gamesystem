@@ -7,7 +7,7 @@ var pos;
 var bttnHeight;
 var bttnWidth;
 
-var shootEnemy = function(pos) { console.log(pos) }
+var shootEnemy = function(pos) { }
 
 
 function preload() {
