@@ -1,4 +1,4 @@
-package com.github.s111.bachelor.frontend;
+package com.github.s111.bachelor.launcher;
 
 import static org.junit.Assert.assertTrue;
 
