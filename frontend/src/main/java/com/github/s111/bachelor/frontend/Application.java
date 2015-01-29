@@ -40,7 +40,7 @@ public class Application {
 //    }
     private void startGame() {
         try {
-            AppGameContainer app = new AppGameContainer(game, 1920, 1080, false);
+            AppGameContainer app = new AppGameContainer(game, 640, 480, false);
             app.setAlwaysRender(true);
             app.start();
         } catch (SlickException e) {
