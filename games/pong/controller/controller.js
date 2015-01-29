@@ -9,7 +9,7 @@ var y = 0;
 var movePaddle = function(pos) {};
 
 function preload() {
-  conn = new WebSocket('ws://192.168.1.221:1234/ws');
+  conn = new WebSocket('ws://' + window.location.hostname + ':1234/ws');
 
   conn.onopen = function (e) {
     movePaddle = function(pos) {
@@ -17,7 +17,7 @@ function preload() {
     }
   }
 
-  game.stage.backgroundColor = '#0000FF';
+  game.stage.backgroundColor = '#000000';
 }
 
 function create() {
@@ -27,7 +27,7 @@ function create() {
 
   var graphics = game.add.graphics(0, 0);
 
-  graphics.beginFill(0xFF0000, 0.5);
+  graphics.beginFill(0xFFFFFF, 1);
   graphics.drawRect(0, 0, game.stage.width - 32*2, 128);
 
   sprite = game.add.sprite(32, 32);

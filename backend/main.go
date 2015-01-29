@@ -10,7 +10,6 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/codegangsta/martini"
 	"golang.org/x/net/websocket"
 )
 
@@ -21,15 +20,27 @@ type Game struct {
 
 const path = "games"
 
-var server *martini.ClassicMartini
 var games []Game
 
+var currentGame Game
+
 func main() {
-	http.HandleFunc("/ws",
-		func(w http.ResponseWriter, req *http.Request) {
-			s := websocket.Server{Handler: websocket.Handler(wsHandler)}
-			s.ServeHTTP(w, req)
+	http.HandleFunc("/",
+		func(w http.ResponseWriter, r *http.Request) {
+			if currentGame.Name != "" {
+				http.Redirect(w, r, "/"+strings.ToLower(currentGame.Name), http.StatusFound)
+			} else {
+				http.Redirect(w, r, "/"+strings.ToLower("launcher"), http.StatusFound)
+			}
 		})
+
+	http.HandleFunc("/ws",
+		func(w http.ResponseWriter, r *http.Request) {
+			s := websocket.Server{Handler: websocket.Handler(wsHandler)}
+			s.ServeHTTP(w, r)
+		})
+
+	parseGames()
 
 	go func() {
 		if err := http.ListenAndServe(":3001", nil); err != nil {
@@ -37,14 +48,7 @@ func main() {
 		}
 	}()
 
-	server = martini.Classic()
-
-	parseGames()
 	listGames()
-
-	go func() {
-		server.Run()
-	}()
 
 	for {
 		selectGame()
@@ -94,7 +98,9 @@ func parseGames() {
 
 		json.Unmarshal(file, &game)
 
-		games = append(games, game)
+		if strings.ToLower(game.Name) != "launcher" {
+			games = append(games, game)
+		}
 
 		addController(game.Name, gamePath)
 	}
@@ -104,9 +110,7 @@ func addController(gameName string, gamePath string) {
 	controllerPath := filepath.Join(gamePath, "controller")
 	prefix := strings.ToLower(gameName)
 
-	server.Use(martini.Static(controllerPath, martini.StaticOptions{
-		Prefix: prefix,
-	}))
+	http.Handle("/"+prefix+"/", http.StripPrefix("/"+prefix+"/", http.FileServer(http.Dir(controllerPath))))
 }
 
 func listGames() {
@@ -132,9 +136,13 @@ func selectGame() {
 }
 
 func startGame(game Game) {
+	currentGame = game
+
 	err := exec.Command(game.Exec[0], game.Exec[1:]...).Run()
 
 	if err != nil {
 		fmt.Println(err.Error())
 	}
+
+	currentGame = Game{}
 }

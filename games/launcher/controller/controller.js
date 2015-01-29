@@ -1,6 +1,6 @@
 var conn;
 
-var game = new Phaser.Game(800, 600, Phaser.AUTO, 'game', {preload: preload, create: create, update: update});
+var game = new Phaser.Game(800, 600, Phaser.AUTO, 'game', {preload: preload, create: create});
 var sprite;
 var target;
 
@@ -9,19 +9,32 @@ var y = 0;
 var movePaddle = function(pos) {};
 
 function preload() {
-  conn = new WebSocket('ws://192.168.1.22:3001/ws');
+  conn = new WebSocket('ws://' + window.location.hostname + ':3001/ws');
 
   conn.onopen = function (e) {
     movePaddle = function(pos) {
       conn.send(pos);
+
+      document.location.href="/";
     };
   };
 
-  conn.onmessage = function(event) {
-    console.log(event.data);
+  conn.onmessage = function(e) {
+    games = JSON.parse(e.data);
+
+    for (var i = 0; i < games.length; i++) {
+      var text = game.add.text(game.scale.width / 2, (game.scale.height - (game.scale.height / 16) * games.length) / 2 + (game.scale.height / 16) * i, games[i].Name, {fill: "white"});
+      text.x = (game.scale.width - text.width) / 2;
+      console.log(games[i].Name);
+
+      var sprite = game.add.sprite(0, 0);
+      sprite.value = i;
+      sprite.addChild(text);
+      sprite.inputEnabled = true;
+    }
   };
 
-  game.stage.backgroundColor = '#0000FF';
+  game.stage.backgroundColor = '#000000';
 }
 
 function create() {
@@ -29,29 +42,15 @@ function create() {
   game.scale.scaleMode = Phaser.ScaleManager.EXACT_FIT;
   game.scale.refresh();
 
-  var graphics = game.add.graphics(0, 0);
-
-  graphics.beginFill(0xFF0000, 0.5);
-  graphics.drawRect(0, 0, game.stage.width - 32*2, 128);
-
-  sprite = game.add.sprite(32, 32);
-  sprite.addChild(graphics);
-  sprite.inputEnabled = true;
-  sprite.input.enableDrag();
-  sprite.input.allowHorizontalDrag = false;
-  sprite.input.boundsRect = new Phaser.Rectangle(32, 32, game.stage.width, game.stage.height - 32 - 128);
-
   game.input.onDown.add(function(pointer) {
     if (!game.scale.isFullScreen) {
       game.scale.startFullScreen(false);
     }
 
     target = pointer.targetObject;
-  }, this);
-}
 
-function update() {
-  if (target && target.sprite === sprite && target.isDragged) {
-    movePaddle((sprite.y - 32)/(game.stage.height - 32*2 - 128));
-  }
+    if (target) {
+      movePaddle(target.sprite.value);
+    }
+  }, this);
 }
