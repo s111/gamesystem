@@ -46,16 +46,16 @@ public class Launcher extends BasicGame {
     }
 
     private void instantiateFonts() {
-        headerFont = new Font("Arial", Font.BOLD, 60);
+        headerFont = new Font("Arial", Font.BOLD, screenHeight / 20);
         headerTTFont = new TrueTypeFont(headerFont, true);
 
-        listFont = new Font("Arial", Font.ROMAN_BASELINE, 36);
+        listFont = new Font("Arial", Font.ROMAN_BASELINE, screenHeight / 30);
         listTTFont = new TrueTypeFont(listFont, true);
 
-        selectedGameFont = new Font("Arial", Font.ROMAN_BASELINE, 48);
+        selectedGameFont = new Font("Arial", Font.ROMAN_BASELINE, screenHeight / 23);
         selectedGameTTFont = new TrueTypeFont(selectedGameFont, true);
 
-        startButtonFont = new Font("Arial", Font.BOLD, 48);
+        startButtonFont = new Font("Arial", Font.BOLD, screenHeight / 23);
         startButtonTTFont = new TrueTypeFont(startButtonFont, true);
     }
 
