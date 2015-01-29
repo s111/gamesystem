@@ -6,24 +6,32 @@ import org.newdawn.slick.SlickException;
 
 public class Application {
     private static Launcher game;
-//    private static GameSession gameSession;
+
+    //    private static GameSession gameSession;
     private Application() {
         game = new Launcher("Pong");
 //        createGameSession();
         startGame();
     }
-//    public static GameSession getGameSession() {
+
+    //    public static GameSession getGameSession() {
 //        return gameSession;
 //    }
     public static void fatalError(String error) {
         System.out.println(error);
         exit();
     }
+
     private static void exit() {
         System.out.println("Unable to recover; exiting...");
         System.exit(1);
     }
-//    private void createGameSession() {
+
+    public static void main(String[] args) {
+        new Application();
+    }
+
+    //    private void createGameSession() {
 //        try {
 //            gameSession = new GameSession(game);
 //        } catch (DeploymentException e) {
@@ -32,14 +40,11 @@ public class Application {
 //    }
     private void startGame() {
         try {
-            AppGameContainer app = new AppGameContainer(game);
+            AppGameContainer app = new AppGameContainer(game, 1600, 900, false);
             app.setAlwaysRender(true);
             app.start();
         } catch (SlickException e) {
             fatalError("Could not start game: " + e.getMessage());
         }
-    }
-    public static void main(String[] args) {
-        new Application();
     }
 }
