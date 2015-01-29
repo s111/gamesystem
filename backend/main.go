@@ -52,6 +52,8 @@ func main() {
 }
 
 func wsHandler(ws *websocket.Conn) {
+	websocket.JSON.Send(ws, games)
+
 	var data int
 
 	for {
