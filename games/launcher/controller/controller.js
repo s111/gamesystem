@@ -13,7 +13,6 @@ function preload() {
 
   conn.onopen = function (e) {
     movePaddle = function(pos) {
-      console.log(JSON.stringify({"action":"select", "data": pos}));
       conn.send(JSON.stringify({"action":"select", "data": pos}));
 
       document.location.href="/";
