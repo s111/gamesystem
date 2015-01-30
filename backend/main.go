@@ -1,81 +1,48 @@
 package main
 
 import (
-	"encoding/json"
-	"fmt"
-	"io/ioutil"
+	"flag"
+	"log"
 	"net/http"
-	"os"
 	"path/filepath"
 	"strings"
 )
 
-const gamesDir = "games"
-const controllerDir = "controller"
+var addr = flag.String("addr", ":3001", "http service address")
 
-var games []Game
-
+var launcher, games = parseGames()
 var currentGame Game
 
 func main() {
-	parseGames()
-	setUpHttpHandlers()
-	listGames()
+	flag.Parse()
 
-	if err := http.ListenAndServe(":3001", nil); err != nil {
-		panic(err.Error())
-	}
-
-}
-
-func setUpHttpHandlers() {
-	http.HandleFunc("/",
-		func(w http.ResponseWriter, r *http.Request) {
-			if currentGame.Name != "" {
-				http.Redirect(w, r, "/"+strings.ToLower(currentGame.Name), http.StatusFound)
-			} else {
-				http.Redirect(w, r, "/"+strings.ToLower("launcher"), http.StatusFound)
-			}
-		})
+	serveController(launcher)
 
 	for _, game := range games {
-		controllerPath := filepath.Join(gamesDir, strings.ToLower(game.Name), controllerDir)
-		prefix := strings.ToLower(game.Name)
-
-		http.Handle("/"+prefix+"/", http.StripPrefix("/"+prefix+"/", http.FileServer(http.Dir(controllerPath))))
+		serveController(game)
 	}
 
-	server := NewServer("/ws")
-	go server.Listen()
-}
+	http.HandleFunc("/ws", serverWs)
+	http.HandleFunc("/", redirectToController)
 
-func parseGames() {
-	names, _ := ioutil.ReadDir(gamesDir)
+	err := http.ListenAndServe(*addr, nil)
 
-	for _, name := range names {
-		gamePath := filepath.Join(gamesDir, name.Name())
-		filename := filepath.Join(gamePath, "game.json")
-
-		if _, err := os.Stat(filename); os.IsNotExist(err) {
-			fmt.Println("Warning: Found directory without game.json:", filename)
-
-			continue
-		}
-
-		file, _ := ioutil.ReadFile(filename)
-
-		var game Game
-		json.Unmarshal(file, &game)
-		games = append(games, game)
+	if err != nil {
+		log.Fatal("ListenAndServe: ", err)
 	}
 }
 
-func listGames() {
-	fmt.Println("Availabe games:")
+func serveController(game Game) {
+	controllerPath := filepath.Join(gamesDir, strings.ToLower(game.Name), controllerDir)
+	prefix := strings.ToLower(game.Name)
 
-	for i, game := range games {
-		if strings.ToLower(game.Name) != "launcher" {
-			fmt.Printf("\t\t%v. %v\n", i+1, game.Name)
-		}
+	http.Handle("/"+prefix+"/", http.StripPrefix("/"+prefix+"/", http.FileServer(http.Dir(controllerPath))))
+}
+
+func redirectToController(w http.ResponseWriter, r *http.Request) {
+	if currentGame.Name != "" {
+		http.Redirect(w, r, "/"+strings.ToLower(currentGame.Name), http.StatusFound)
+	} else {
+		http.Redirect(w, r, "/"+strings.ToLower("launcher"), http.StatusFound)
 	}
 }
