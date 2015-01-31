@@ -32,6 +32,10 @@ public class Launcher extends BasicGame {
     private float gameListX, gameListY, gameListWidth;
     private float selectedBoxStartingY;
 
+    private float borderWidth = screenWidth / 320;
+
+    private float timeElapsedSinceClick = 0;
+
 
     public Launcher(String title) {
         super(title);
@@ -78,14 +82,14 @@ public class Launcher extends BasicGame {
         activeColor = new Color(225, 30, 45);
         backgroundColor = new Color(21, 22, 24);
         headerColor = new Color(10, 10, 10);
-        selectedColor = new Color(60, 60, 60);
+        selectedColor = new Color(26, 28, 30);
         borderColor = new Color(37, 41, 44);
     }
 
     private void instantiateGUI() {
         background = new Rectangle(0, 0, screenWidth, screenHeight);
         header = new Rectangle(0, 0, screenWidth, screenHeight / 6);
-        middleSeperator = new Line(screenWidth * 2 / 5, header.getMaxY(), screenWidth * 2 / 5, screenHeight);
+        middleSeperator = new Line(screenWidth * 2 / 5, header.getMaxY() + MARGIN, screenWidth * 2 / 5, screenHeight - MARGIN);
         startButton = new Rectangle(MARGIN, screenHeight - MARGIN - header.getHeight(), middleSeperator.getX() - 2 * MARGIN, header.getHeight());
 
         instantiateSelectionBox();
@@ -106,6 +110,8 @@ public class Launcher extends BasicGame {
     public void update(GameContainer container, int delta) throws SlickException {
         Input input = container.getInput();
 
+        timeElapsedSinceClick += delta;
+
         if (input.isKeyPressed(Input.KEY_Q)) {
             container.exit();
         }
@@ -114,20 +120,23 @@ public class Launcher extends BasicGame {
     }
 
     private void moveSelection(Input input, int delta) {
-        if (input.isKeyDown(Input.KEY_UP)) {
-            if (selectedGameNr == 0) {
-                selectedGameNr = gameList.size() - 1;
-            } else {
-                selectedGameNr--;
+        if ((timeElapsedSinceClick / 1000) > 0.08) {
+            timeElapsedSinceClick = 0;
+            if (input.isKeyDown(Input.KEY_UP)) {
+                if (selectedGameNr == 0) {
+                    selectedGameNr = gameList.size() - 1;
+                } else {
+                    selectedGameNr--;
+                }
+            } else if (input.isKeyDown(Input.KEY_DOWN)) {
+                if (selectedGameNr == gameList.size() - 1) {
+                    selectedGameNr = 0;
+                } else {
+                    selectedGameNr++;
+                }
             }
-        } else if (input.isKeyDown(Input.KEY_DOWN)) {
-            if (selectedGameNr == gameList.size() - 1) {
-                selectedGameNr = 0;
-            } else {
-                selectedGameNr++;
-            }
+            selectedBox.setCenterY(selectedBoxStartingY + selectedGameNr * selectedBox.getHeight());
         }
-        selectedBox.setCenterY(selectedBoxStartingY + selectedGameNr * selectedBox.getHeight());
     }
 
     @Override
@@ -141,7 +150,7 @@ public class Launcher extends BasicGame {
 
     private void drawBorder(Graphics g) {
         g.setColor(borderColor);
-        g.setLineWidth(screenWidth / 160);
+        g.setLineWidth(borderWidth);
         g.draw(middleSeperator);
     }
 
@@ -162,7 +171,7 @@ public class Launcher extends BasicGame {
         g.setColor(selectedColor);
         g.fill(selectedBox);
 
-        g.setLineWidth(screenWidth / 160);
+        g.setLineWidth(borderWidth);
         g.setColor(borderColor);
         g.draw(selectedBox);
     }
