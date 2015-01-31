@@ -4,6 +4,6 @@
         "java",
         "-Djava.library.path=games/launcher/lib",
         "-jar",
-        "games/pong/bin/launcher.jar"
+        "games/launcher/bin/launcher.jar"
     ]
 }
