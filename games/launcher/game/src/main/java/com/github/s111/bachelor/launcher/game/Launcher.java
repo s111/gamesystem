@@ -1,4 +1,4 @@
-package com.github.s111.bachelor.frontend.launcher;
+package com.github.s111.bachelor.launcher.game;
 
 import org.newdawn.slick.*;
 import org.newdawn.slick.Color;
