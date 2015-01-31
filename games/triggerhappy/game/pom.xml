@@ -19,7 +19,7 @@
                 <configuration>
                     <archive>
                         <manifest>
-                            <mainClass>com.github.s111.bachelor.pong.Application</mainClass>
+                            <mainClass>com.github.s111.bachelor.triggerhappy.Application</mainClass>
                         </manifest>
                     </archive>
                     <descriptorRefs>
