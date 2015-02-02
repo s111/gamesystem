@@ -1,0 +1,9 @@
+{
+    "name": "Quizzer",
+    "exec": [
+        "java",
+        "-Djava.library.path=games/quizzer/lib",
+        "-jar",
+        "games/quizzer/bin/quizzer.jar"
+    ]
+}
