@@ -1,4 +1,4 @@
-package game;
+package com.github.s111.bachelor.quizzer.game;
 
 /**
  * Created by Jonas on 27.01.2015.
@@ -16,30 +16,19 @@ public class Question {
 
     public boolean correctAnswer(String answer, String choice) {
         if (answer.equals(choice)) {
-        return true;
+            return true;
         } else return false;
     }
+
     public String getQuestion() {
         return question;
-    }
-
-    public void setQuestion(String question) {
-        this.question = question;
     }
 
     public String getAnswer() {
         return answer;
     }
 
-    public void setAnswer(String answer) {
-        this.answer = answer;
-    }
-
     public String getOption(int index) {
         return options[index - 1];
-    }
-
-    public void setOptions(String[] options) {
-        this.options = options;
     }
 }

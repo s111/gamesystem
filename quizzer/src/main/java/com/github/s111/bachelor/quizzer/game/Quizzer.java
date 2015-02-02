@@ -1,5 +1,7 @@
-package game;
+package com.github.s111.bachelor.quizzer.game;
 
+import com.github.s111.bachelor.quizzer.Application;
+import com.github.s111.bachelor.quizzer.network.GameSession;
 import org.newdawn.slick.*;
 
 /**
@@ -17,6 +19,8 @@ public class Quizzer extends BasicGame {
     private Question currentQuestion;
     private String choice;
 
+    private GameSession gameSession;
+
     public Quizzer(String title) {
         super(title);
     }
@@ -24,6 +28,7 @@ public class Quizzer extends BasicGame {
     @Override
     public void init(GameContainer container) throws SlickException {
         initiateQuestions();
+        gameSession = Application.getGameSession();
     }
 
     private void initiateQuestions() {
@@ -38,33 +43,33 @@ public class Quizzer extends BasicGame {
     }
 
     private void setCurrentQuestion() {
-        currentQuestion = questionList[(int)(Math.random() * NUM_QUESTIONS)];
+        currentQuestion = questionList[(int) (Math.random() * NUM_QUESTIONS)];
     }
 
     @Override
     public void update(GameContainer container, int delta) throws SlickException {
-        Input input = container.getInput();
-        answerQuestion(input);
+//        Input input = container.getInput();
+//        answerQuestion(input);
     }
 
-    public void answerQuestion(Input input) {
-        if (input.isKeyPressed(Input.KEY_1)) {
-            choice = currentQuestion.getOption(1);
-            checkIfCorrectAnswer(choice);
-        } else if (input.isKeyPressed(Input.KEY_2)) {
-            choice = currentQuestion.getOption(2);
-            checkIfCorrectAnswer(choice);
-        } else if (input.isKeyPressed(Input.KEY_3)) {
-            choice = currentQuestion.getOption(3);
-            checkIfCorrectAnswer(choice);
-        } else if (input.isKeyPressed(Input.KEY_4)) {
-            choice = currentQuestion.getOption(4);
-            checkIfCorrectAnswer(choice);
-        }
-    }
+//    public void answerQuestion(Input input) {
+//        if (input.isKeyPressed(Input.KEY_1)) {
+//            choice = currentQuestion.getOption(1);
+//            checkIfCorrectAnswer(choice);
+//        } else if (input.isKeyPressed(Input.KEY_2)) {
+//            choice = currentQuestion.getOption(2);
+//            checkIfCorrectAnswer(choice);
+//        } else if (input.isKeyPressed(Input.KEY_3)) {
+//            choice = currentQuestion.getOption(3);
+//            checkIfCorrectAnswer(choice);
+//        } else if (input.isKeyPressed(Input.KEY_4)) {
+//            choice = currentQuestion.getOption(4);
+//            checkIfCorrectAnswer(choice);
+//        }
+//    }
 
     public void checkIfCorrectAnswer(String choice) {
-        if(currentQuestion.correctAnswer(currentQuestion.getAnswer(), choice)) {
+        if (currentQuestion.correctAnswer(currentQuestion.getAnswer(), currentQuestion.getOption(Integer.parseInt((choice))))) {
             setCurrentQuestion();
         }
     }
