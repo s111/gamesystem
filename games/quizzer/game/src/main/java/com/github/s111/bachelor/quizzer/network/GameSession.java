@@ -9,9 +9,6 @@ import javax.websocket.Session;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 
-/**
- * Created by Jonas on 27.01.2015.
- */
 public class GameSession {
     private final Quizzer game;
 
@@ -25,15 +22,14 @@ public class GameSession {
     }
 
     public void onOpen(Session session) throws IOException {
-       player = session;
-//        boolean playerNotActive = player == null || !player.isOpen();
-//
-//        if (playerNotActive) {
-//            player = session;
-//        } else {
-//            closeConnection(session);
-//            return;
-//        }
+        boolean playerNotActive = player == null || !player.isOpen();
+
+        if (playerNotActive) {
+            player = session;
+        } else {
+            closeConnection(session);
+            return;
+        }
 
         RemoteEndpoint.Basic remote = session.getBasicRemote();
         remote.sendPing(ByteBuffer.wrap("".getBytes()));

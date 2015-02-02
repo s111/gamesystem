@@ -1,8 +1,5 @@
 package com.github.s111.bachelor.quizzer.game;
 
-/**
- * Created by Jonas on 27.01.2015.
- */
 public class Question {
     private String question;
     private String answer;

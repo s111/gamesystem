@@ -7,9 +7,6 @@ import javax.websocket.server.ServerEndpoint;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 
-/**
- * Created by Jonas on 27.01.2015.
- */
 @ServerEndpoint(value = "/ws")
 public class WebsocketServer {
     private GameSession gameSession = Application.getGameSession();
