@@ -25,6 +25,12 @@ func main() {
 	http.HandleFunc("/ws", serverWs)
 	http.HandleFunc("/", redirectToController)
 
+	go func() {
+		currentGame = launcher
+		currentGame.start()
+		currentGame = Game{}
+	}()
+
 	err := http.ListenAndServe(*addr, nil)
 
 	if err != nil {
@@ -42,7 +48,5 @@ func serveController(game Game) {
 func redirectToController(w http.ResponseWriter, r *http.Request) {
 	if currentGame.Name != "" {
 		http.Redirect(w, r, "/"+strings.ToLower(currentGame.Name), http.StatusFound)
-	} else {
-		http.Redirect(w, r, "/"+strings.ToLower("launcher"), http.StatusFound)
 	}
 }
