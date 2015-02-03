@@ -14,8 +14,7 @@ const (
 	controllerDir   = "controller"
 )
 
-func parseGames() (Game, []Game) {
-	var launcher Game
+func parseGames() []Game {
 	var games []Game
 
 	names, _ := ioutil.ReadDir(gamesDir)
@@ -40,12 +39,8 @@ func parseGames() (Game, []Game) {
 
 		var game Game
 		json.Unmarshal(file, &game)
-		if game.Name != "Launcher" {
-			games = append(games, game)
-		} else {
-			launcher = game
-		}
+		games = append(games, game)
 	}
 
-	return launcher, games
+	return games
 }

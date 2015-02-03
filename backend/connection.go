@@ -30,7 +30,7 @@ type connection struct {
 
 type Message struct {
 	Action string `json:"action"`
-	Data   int    `json:"data"`
+	Data   string `json:"data"`
 }
 
 func (c *connection) listenRead() {
@@ -52,12 +52,8 @@ func (c *connection) listenRead() {
 
 		log.Println(msg)
 
-		if msg.Action == "select" && currentGame.Name == "" {
-			if msg.Data > 0 && msg.Data <= len(games) {
-				currentGame = games[msg.Data-1]
-				currentGame.start()
-				currentGame = Game{}
-			}
+		if msg.Action == "select" {
+			scheduler.start(msg.Data)
 		} else if msg.Action == "ready" {
 			// broadcast ready to all clients but this
 		}
@@ -129,6 +125,13 @@ func serverWs(w http.ResponseWriter, r *http.Request) {
 	}
 
 	go c.listenWrite()
+
+	var games []Game
+
+	for _, game := range scheduler.games {
+		games = append(games, game)
+	}
+
 	c.sendList <- games
 	c.listenRead()
 }

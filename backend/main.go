@@ -10,15 +10,12 @@ import (
 
 var addr = flag.String("addr", ":3001", "http service address")
 
-var launcher, games = parseGames()
-var currentGame Game
+var scheduler = NewGameScheduler(parseGames())
 
 func main() {
 	flag.Parse()
 
-	serveController(launcher)
-
-	for _, game := range games {
+	for _, game := range scheduler.games {
 		serveController(game)
 	}
 
@@ -26,16 +23,14 @@ func main() {
 	http.HandleFunc("/", redirectToController)
 
 	go func() {
-		currentGame = launcher
-		currentGame.start()
-		currentGame = Game{}
+		err := http.ListenAndServe(*addr, nil)
+
+		if err != nil {
+			log.Fatal("ListenAndServe: ", err)
+		}
 	}()
 
-	err := http.ListenAndServe(*addr, nil)
-
-	if err != nil {
-		log.Fatal("ListenAndServe: ", err)
-	}
+	scheduler.run()
 }
 
 func serveController(game Game) {
@@ -46,7 +41,7 @@ func serveController(game Game) {
 }
 
 func redirectToController(w http.ResponseWriter, r *http.Request) {
-	if currentGame.Name != "" {
-		http.Redirect(w, r, "/"+strings.ToLower(currentGame.Name), http.StatusFound)
+	if scheduler.currentGame.Name != "" {
+		http.Redirect(w, r, "/"+strings.ToLower(scheduler.currentGame.Name), http.StatusFound)
 	}
 }
