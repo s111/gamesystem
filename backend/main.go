@@ -27,6 +27,8 @@ func main() {
 		serveController(game)
 	}
 
+	go h.run()
+
 	http.HandleFunc("/ws", serverWs)
 	http.HandleFunc("/", redirectToController)
 
