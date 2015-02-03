@@ -11,7 +11,7 @@ var shootEnemy = function(pos) { }
 
 
 function preload() {
-  conn = new WebSocket('ws://192.168.1.26:1234/ws');
+  conn = new WebSocket('ws://' + window.location.hostname + ':1234/ws');
 
   conn.onopen = function (e) {
     shootEnemy = function(pos) {

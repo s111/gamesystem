@@ -13,7 +13,7 @@ function preload() {
 
   conn.onopen = function (e) {
     movePaddle = function(pos) {
-      conn.send(JSON.stringify({"action":"select", "data": pos}));
+      conn.send(JSON.stringify({"action":"select", "data": games[pos].Name}));
 
       document.location.href="/";
     };
@@ -28,7 +28,7 @@ function preload() {
       console.log(games[i].Name);
 
       var sprite = game.add.sprite(0, 0);
-      sprite.value = i + 1;
+      sprite.value = i;
       sprite.addChild(text);
       sprite.inputEnabled = true;
     }
