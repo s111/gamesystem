@@ -51,7 +51,7 @@ func (gs *GameScheduler) run() {
 
 			select {
 			case g := <-gs.startGame:
-				gs.startGame <- g
+				go func() { gs.startGame <- g }()
 			default:
 				go gs.start(launcher)
 			}

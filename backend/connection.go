@@ -50,7 +50,11 @@ func (c *connection) listenRead() {
 		msg := &Message{}
 		err := c.ws.ReadJSON(msg)
 
-		log.Println(msg)
+		if err != nil {
+			break
+		}
+
+		log.Println("Recieved message:", msg)
 
 		if msg.Action == "select" {
 			scheduler.start(msg.Data)
@@ -58,9 +62,6 @@ func (c *connection) listenRead() {
 			// broadcast ready to all clients but this
 		}
 
-		if err != nil {
-			break
-		}
 	}
 }
 
@@ -129,6 +130,10 @@ func serverWs(w http.ResponseWriter, r *http.Request) {
 	var games []Game
 
 	for _, game := range scheduler.games {
+		if game.Name == "Launcher" {
+			continue
+		}
+
 		games = append(games, game)
 	}
 

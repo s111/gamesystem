@@ -2,6 +2,7 @@ package main
 
 import (
 	"flag"
+	"io/ioutil"
 	"log"
 	"net/http"
 	"path/filepath"
@@ -9,12 +10,19 @@ import (
 )
 
 var addr = flag.String("addr", ":3001", "http service address")
+var debug = flag.Bool("debug", true, "debug")
 
 var scheduler = NewGameScheduler(parseGames())
 
-func main() {
+func init() {
 	flag.Parse()
 
+	if !*debug {
+		log.SetOutput(ioutil.Discard)
+	}
+}
+
+func main() {
 	for _, game := range scheduler.games {
 		serveController(game)
 	}

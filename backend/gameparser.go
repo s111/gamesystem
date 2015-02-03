@@ -24,7 +24,7 @@ func parseGames() []Game {
 		filename := filepath.Join(gamePath, gameDescription)
 
 		if _, err := os.Stat(filename); os.IsNotExist(err) {
-			log.Printf("Warning: Found directory without %v: %v", gameDescription, gamePath)
+			log.Printf("Found directory without %v: %v\n", gameDescription, gamePath)
 
 			continue
 		}
@@ -32,7 +32,7 @@ func parseGames() []Game {
 		file, err := ioutil.ReadFile(filename)
 
 		if err != nil {
-			log.Printf("Warning: Could not read %v", gameDescription)
+			log.Printf("Could not read %v\n", gameDescription)
 
 			continue
 		}
