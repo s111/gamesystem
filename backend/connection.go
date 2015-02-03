@@ -24,8 +24,9 @@ var upgrader = websocket.Upgrader{
 }
 
 type connection struct {
-	ws       *websocket.Conn
-	sendList chan []Game
+	ws        *websocket.Conn
+	sendList  chan []Game
+	sendReady chan string
 }
 
 type Message struct {
@@ -59,7 +60,9 @@ func (c *connection) listenRead() {
 		if msg.Action == "select" {
 			scheduler.start(msg.Data)
 		} else if msg.Action == "ready" {
-			// broadcast ready to all clients but this
+			scheduler.ready = true
+
+			h.broadcast <- "ready"
 		}
 
 	}
@@ -97,6 +100,18 @@ func (c *connection) listenWrite() {
 			if err := c.writeJSON(list); err != nil {
 				return
 			}
+
+		case s, ok := <-c.sendReady:
+			if !ok {
+				c.writeMessage(websocket.CloseMessage, []byte{})
+
+				return
+			}
+
+			if err := c.writeJSON(s); err != nil {
+				return
+			}
+
 		case <-ticker.C:
 			if err := c.writeMessage(websocket.PingMessage, []byte{}); err != nil {
 				return
@@ -121,9 +136,12 @@ func serverWs(w http.ResponseWriter, r *http.Request) {
 	}
 
 	c := &connection{
-		sendList: make(chan []Game),
-		ws:       ws,
+		sendList:  make(chan []Game),
+		sendReady: make(chan string),
+		ws:        ws,
 	}
+
+	h.register <- c
 
 	go c.listenWrite()
 
@@ -138,5 +156,10 @@ func serverWs(w http.ResponseWriter, r *http.Request) {
 	}
 
 	c.sendList <- games
+
+	if scheduler.ready {
+		c.sendReady <- "ready"
+	}
+
 	c.listenRead()
 }
