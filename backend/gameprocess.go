@@ -1,6 +1,9 @@
 package main
 
-import "os/exec"
+import (
+	"log"
+	"os/exec"
+)
 
 type GameProcess interface {
 	start()
@@ -15,9 +18,16 @@ type Game struct {
 
 func (g *Game) start() {
 	g.Command = exec.Command(g.Exec[0], g.Exec[1:]...)
-	g.Command.Run()
+
+	log.Println("Starting:", g.Name)
+
+	err := g.Command.Run()
+
+	log.Println("Done:", g.Name+". Reason:", err)
 }
 
 func (g *Game) stop() {
+	log.Println("Stopping:", g.Name)
+
 	g.Command.Process.Kill()
 }

@@ -14,8 +14,7 @@ const (
 	controllerDir   = "controller"
 )
 
-func parseGames() (Game, []Game) {
-	var launcher Game
+func parseGames() []Game {
 	var games []Game
 
 	names, _ := ioutil.ReadDir(gamesDir)
@@ -25,7 +24,7 @@ func parseGames() (Game, []Game) {
 		filename := filepath.Join(gamePath, gameDescription)
 
 		if _, err := os.Stat(filename); os.IsNotExist(err) {
-			log.Printf("Warning: Found directory without %v: %v", gameDescription, gamePath)
+			log.Printf("Found directory without %v: %v\n", gameDescription, gamePath)
 
 			continue
 		}
@@ -33,19 +32,15 @@ func parseGames() (Game, []Game) {
 		file, err := ioutil.ReadFile(filename)
 
 		if err != nil {
-			log.Printf("Warning: Could not read %v", gameDescription)
+			log.Printf("Could not read %v\n", gameDescription)
 
 			continue
 		}
 
 		var game Game
 		json.Unmarshal(file, &game)
-		if game.Name != "Launcher" {
-			games = append(games, game)
-		} else {
-			launcher = game
-		}
+		games = append(games, game)
 	}
 
-	return launcher, games
+	return games
 }

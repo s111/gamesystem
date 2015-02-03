@@ -2,6 +2,7 @@ package main
 
 import (
 	"flag"
+	"io/ioutil"
 	"log"
 	"net/http"
 	"path/filepath"
@@ -9,27 +10,35 @@ import (
 )
 
 var addr = flag.String("addr", ":3001", "http service address")
+var debug = flag.Bool("debug", true, "debug")
 
-var launcher, games = parseGames()
-var currentGame Game
+var scheduler = NewGameScheduler(parseGames())
 
-func main() {
+func init() {
 	flag.Parse()
 
-	serveController(launcher)
+	if !*debug {
+		log.SetOutput(ioutil.Discard)
+	}
+}
 
-	for _, game := range games {
+func main() {
+	for _, game := range scheduler.games {
 		serveController(game)
 	}
 
 	http.HandleFunc("/ws", serverWs)
 	http.HandleFunc("/", redirectToController)
 
-	err := http.ListenAndServe(*addr, nil)
+	go func() {
+		err := http.ListenAndServe(*addr, nil)
 
-	if err != nil {
-		log.Fatal("ListenAndServe: ", err)
-	}
+		if err != nil {
+			log.Fatal("ListenAndServe: ", err)
+		}
+	}()
+
+	scheduler.run()
 }
 
 func serveController(game Game) {
@@ -40,9 +49,7 @@ func serveController(game Game) {
 }
 
 func redirectToController(w http.ResponseWriter, r *http.Request) {
-	if currentGame.Name != "" {
-		http.Redirect(w, r, "/"+strings.ToLower(currentGame.Name), http.StatusFound)
-	} else {
-		http.Redirect(w, r, "/"+strings.ToLower("launcher"), http.StatusFound)
+	if scheduler.currentGame.Name != "" {
+		http.Redirect(w, r, "/"+strings.ToLower(scheduler.currentGame.Name), http.StatusFound)
 	}
 }
