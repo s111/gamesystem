@@ -2,12 +2,14 @@ package com.github.s111.bachelor.triggerhappy.network;
 
 import com.github.s111.bachelor.triggerhappy.game.Triggerhappy;
 
+import org.glassfish.tyrus.client.ClientManager;
 import org.glassfish.tyrus.server.Server;
 
-import javax.websocket.DeploymentException;
-import javax.websocket.RemoteEndpoint;
-import javax.websocket.Session;
+import javax.json.Json;
+import javax.json.JsonObject;
+import javax.websocket.*;
 import java.io.IOException;
+import java.net.URI;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.List;
@@ -22,6 +24,8 @@ public class GameSession {
         players = new ArrayList();
         Server server = new Server("localhost", 1234, "/", null, WebsocketServer.class);
         server.start();
+
+        sendReady();
     }
     public void onOpen(Session session) throws IOException {
         players.add(new Player(session));
@@ -46,6 +50,26 @@ public class GameSession {
         }
     }
 
+    private void sendReady() {
+        ClientManager client = ClientManager.createClient();
+
+        try {
+            client.connectToServer(new Endpoint() {
+                @Override
+                public void onOpen(Session session, EndpointConfig config) {
+                    JsonObject b = Json.createObjectBuilder()
+                            .add("action", "ready")
+                            .build();
+
+                    session.getAsyncRemote().sendObject(b);
+                }
+            }, new URI("ws://localhost:3001/ws"));
+        } catch (Exception e) {
+            System.out.println("Unable to recover; exiting...");
+            System.exit(1);
+        }
+    }
+
     public List<Integer> getScores() {
         List<Integer> scores = new ArrayList<Integer>();
         for (Player player : players) {
@@ -53,21 +77,6 @@ public class GameSession {
         }
         return scores;
     }
-//    public void broadcastScore(int player1score, int player2score) {
-//        String score = "[" + player1score + ", " + player2score + "]";
-//        try {
-//            if (player1 != null && player1.isOpen()) {
-//                RemoteEndpoint.Basic remote1 = player1.getBasicRemote();
-//                remote1.sendText(score);
-//            }
-//            if (player2 != null && player2.isOpen()) {
-//                RemoteEndpoint.Basic remote2 = player2.getBasicRemote();
-//                remote2.sendText(score);
-//            }
-//        } catch (IOException e) {
-//// Ignore exception, the score is updated next time and is also displayed on the game screen
-//        }
-//    }
 
     private class Player {
         private Session session;

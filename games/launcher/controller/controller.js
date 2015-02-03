@@ -20,7 +20,13 @@ function preload() {
   };
 
   conn.onmessage = function(e) {
-    games = JSON.parse(e.data);
+    var data = JSON.parse(e.data);
+
+    if (data === "ready") {
+      return
+    }
+
+    games = data;
 
     for (var i = 0; i < games.length; i++) {
       var text = game.add.text(game.scale.width / 2, (game.scale.height - (game.scale.height / 16) * games.length) / 2 + (game.scale.height / 16) * i, games[i].Name, {fill: "white"});

@@ -1,12 +1,14 @@
 package com.github.s111.bachelor.quizzer.network;
 
 import com.github.s111.bachelor.quizzer.game.Quizzer;
+import org.glassfish.tyrus.client.ClientManager;
 import org.glassfish.tyrus.server.Server;
 
-import javax.websocket.DeploymentException;
-import javax.websocket.RemoteEndpoint;
-import javax.websocket.Session;
+import javax.json.Json;
+import javax.json.JsonObject;
+import javax.websocket.*;
 import java.io.IOException;
+import java.net.URI;
 import java.nio.ByteBuffer;
 
 public class GameSession {
@@ -19,6 +21,8 @@ public class GameSession {
 
         Server server = new Server("localhost", 1234, "/", null, WebsocketServer.class);
         server.start();
+
+        sendReady();
     }
 
     public void onOpen(Session session) throws IOException {
@@ -44,5 +48,24 @@ public class GameSession {
 
     public void onMessage(Session session, String message) throws IOException {
         game.checkIfCorrectAnswer(message);
+    }
+
+    private void sendReady() {
+        ClientManager client = ClientManager.createClient();
+        try {
+            client.connectToServer(new Endpoint() {
+                @Override
+                public void onOpen(Session session, EndpointConfig config) {
+                    JsonObject b = Json.createObjectBuilder()
+                            .add("action", "ready")
+                            .build();
+
+                    session.getAsyncRemote().sendObject(b);
+                }
+            }, new URI("ws://localhost:3001/ws"));
+        } catch (Exception e) {
+            System.out.println("Unable to recover; exiting...");
+            System.exit(1);
+        }
     }
 }

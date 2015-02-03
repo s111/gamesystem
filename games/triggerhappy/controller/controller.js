@@ -1,3 +1,4 @@
+var backend;
 var conn;
 
 var game = new Phaser.Game(800, 600, Phaser.AUTO, 'game', {preload: preload, create: create});
@@ -11,14 +12,20 @@ var shootEnemy = function(pos) { }
 
 
 function preload() {
-  conn = new WebSocket('ws://' + window.location.hostname + ':1234/ws');
+  backend = new WebSocket('ws://localhost:3001/ws');
 
-  conn.onopen = function (e) {
-    shootEnemy = function(pos) {
-      window.navigator.vibrate(200);
-      conn.send(pos)
+  backend.onmessage = function(e) {
+    if (JSON.parse(e.data) === "ready") {
+      conn = new WebSocket('ws://' + window.location.hostname + ':1234/ws');
+
+      conn.onopen = function (e) {
+        shootEnemy = function(pos) {
+          window.navigator.vibrate(200);
+          conn.send(pos)
+        }
+      }
     }
-  }
+  };
 
   game.stage.backgroundColor = '#2C3E59';
 }
@@ -39,16 +46,16 @@ function create() {
     s = game.add.sprite(0, 0);
     s.addChild(g);
     s.data = i;
-    s.inputEnabled = true; 
-  } 
+    s.inputEnabled = true;
+  }
 
   game.input.onDown.add(function(pointer) {
     if (!game.scale.isFullScreen) {
       game.scale.startFullScreen(false);
     } else {
-        if (pointer.targetObject) {
-       shootEnemy(pointer.targetObject.sprite.data + 1);
-        }
-    }    
+      if (pointer.targetObject) {
+        shootEnemy(pointer.targetObject.sprite.data + 1);
+      }
+    }
   }, this);
 }

@@ -1,3 +1,4 @@
+var backend;
 var conn;
 
 var game = new Phaser.Game(800, 600, Phaser.AUTO, 'game', {preload: preload, create: create});
@@ -9,13 +10,19 @@ var bttnD;
 var selection = function(sel) {};
 
 function preload() {
-  conn = new WebSocket('ws://' + window.location.hostname + ':1234/ws');
+  backend = new WebSocket('ws://localhost:3001/ws');
 
-  conn.onopen = function(e) {
-    selection = function(sel) {
-      conn.send(sel)
+  backend.onmessage = function(e) {
+    if (JSON.parse(e.data) === "ready") {
+      conn = new WebSocket('ws://' + window.location.hostname + ':1234/ws');
+
+      conn.onopen = function(e) {
+        selection = function(sel) {
+          conn.send(sel)
+        }
+      }
     }
-  }
+  };
 
   game.stage.backgroundColor = '#000000';
 }
