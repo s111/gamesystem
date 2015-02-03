@@ -13,10 +13,8 @@ public class Question {
         options = new ArrayList<String>();
     }
 
-    public boolean correctAnswer(String answer, String choice) {
-        if (answer.equals(choice)) {
-            return true;
-        } else return false;
+    public boolean correctAnswer(String choice) {
+        return answer.equals(choice);
     }
 
     public void addOptions(String option1, String option2, String option3, String option4) {
@@ -27,10 +25,6 @@ public class Question {
     }
     public String getQuestion() {
         return question;
-    }
-
-    public String getAnswer() {
-        return answer;
     }
 
     public String getOption(int index) {

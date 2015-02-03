@@ -20,12 +20,9 @@ public class Quizzer extends BasicGame {
     private int questionPosX;
     private int questionPosY;
     private int optionsPosX;
-    private int optionsPosY;
 
     private Question[] questionList;
     private Question currentQuestion;
-
-
 
     public Quizzer(String title) {
         super(title);
@@ -47,7 +44,7 @@ public class Quizzer extends BasicGame {
 
     private void initiateQuestions() {
         Question question1 = new Question("What is the Capital of China?", "Beijing");
-        question1.addOptions("Bejing", "Washington", "Storhaug", "Hong Kong");
+        question1.addOptions("Beijing", "Washington", "Storhaug", "Hong Kong");
         Question question2 = new Question("What is the best hero in DOTKA?", "Tusk");
         question2.addOptions("Meepo", "Bear of shock ass bitch!", "Tusk", "Bloodcyka");
         Question question3 = new Question("What is the answer to life, the universe and everything?", "42");
@@ -62,9 +59,8 @@ public class Quizzer extends BasicGame {
         int questionTextLength = font.getWidth(currentQuestion.getQuestion());
         fontTextHeight = font.getHeight(currentQuestion.getQuestion());
         questionPosX = width / 2 - questionTextLength / 2;
-        questionPosY = height / 4;
+        questionPosY = height / 6;
         optionsPosX =  width / 2 - questionTextLength / 2;
-        optionsPosY = height / 4;
     }
 
     private void setCurrentQuestion() {
@@ -75,8 +71,8 @@ public class Quizzer extends BasicGame {
     public void update(GameContainer container, int delta) throws SlickException {
     }
 
-    public void checkIfCorrectAnswer(String choice) {
-        if (currentQuestion.correctAnswer(currentQuestion.getAnswer(), currentQuestion.getOption(Integer.parseInt((choice))))) {
+    public void checkIfCorrectAnswer(int choice) {
+        if (currentQuestion.correctAnswer(currentQuestion.getOption(choice))) {
             setCurrentQuestion();
         }
     }
@@ -86,7 +82,8 @@ public class Quizzer extends BasicGame {
         g.setFont(font);
         g.drawString(currentQuestion.getQuestion(), questionPosX, questionPosY);
         for (int i = 1; i <= 4; i++) {
-            g.drawString(i + ". " + currentQuestion.getOption(i), optionsPosX, optionsPosY + fontTextHeight * i);
+            g.drawString((char)(i + 64) + ". " + currentQuestion.getOption(i),
+                    optionsPosX, questionPosY + fontTextHeight * i);
         }
     }
 }

@@ -43,6 +43,6 @@ public class GameSession {
     }
 
     public void onMessage(Session session, String message) throws IOException {
-        game.checkIfCorrectAnswer(message);
+        game.checkIfCorrectAnswer(Integer.parseInt(message));
     }
 }

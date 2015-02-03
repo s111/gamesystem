@@ -32,7 +32,6 @@ public class Application {
         System.exit(1);
     }
 
-
     private void createGameSession() {
         try {
             gameSession = new GameSession(game);
