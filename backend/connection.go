@@ -60,6 +60,8 @@ func (c *connection) listenRead() {
 		if msg.Action == "select" {
 			scheduler.start(msg.Data)
 		} else if msg.Action == "ready" {
+			scheduler.ready = true
+
 			h.broadcast <- "ready"
 		}
 
@@ -154,5 +156,10 @@ func serverWs(w http.ResponseWriter, r *http.Request) {
 	}
 
 	c.sendList <- games
+
+	if scheduler.ready {
+		c.sendReady <- "ready"
+	}
+
 	c.listenRead()
 }

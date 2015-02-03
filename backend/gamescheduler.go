@@ -4,6 +4,7 @@ type GameScheduler struct {
 	games       map[string]Game
 	startGame   chan *Game
 	currentGame *Game
+	ready       bool
 }
 
 func NewGameScheduler(games []Game) GameScheduler {
@@ -17,6 +18,7 @@ func NewGameScheduler(games []Game) GameScheduler {
 		games:       g,
 		startGame:   make(chan *Game),
 		currentGame: &Game{},
+		ready:       false,
 	}
 
 	return gs
@@ -44,6 +46,8 @@ func (gs *GameScheduler) run() {
 		select {
 		case g := <-gs.startGame:
 			g.start()
+
+			gs.ready = false
 
 			if gs.currentGame.Name == launcher {
 				return
