@@ -20,9 +20,13 @@ function preload() {
 
       conn.onopen = function (e) {
         movePaddle = function(pos) {
-          conn.send(JSON.stringify({"action":"select", "data": games[pos].Name}));
+          if (pos === "start") {
+            conn.send(JSON.stringify({"action":"select", "data": pos}));
 
-          document.location.href="/";
+            document.location.href="/";
+          } else {
+            conn.send(JSON.stringify({"action":"select", "data": games[pos].Name}));
+          }
         };
       };
 
@@ -41,6 +45,14 @@ function preload() {
       sprite.addChild(text);
       sprite.inputEnabled = true;
     }
+
+    var text = game.add.text(game.scale.width / 2, (game.scale.height - (game.scale.height / 16) * games.length) / 2 + (game.scale.height / 16) * i, "START GAME", {fill: "white"});
+    text.x = (game.scale.width - text.width) / 2;
+
+    var sprite = game.add.sprite(0, 0);
+    sprite.value = "start";
+    sprite.addChild(text);
+    sprite.inputEnabled = true;
   };
 
   game.stage.backgroundColor = '#000000';
