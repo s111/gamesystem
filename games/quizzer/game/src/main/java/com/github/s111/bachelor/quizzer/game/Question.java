@@ -1,31 +1,33 @@
 package com.github.s111.bachelor.quizzer.game;
 
+import java.util.ArrayList;
+
 public class Question {
     private String question;
     private String answer;
-    private String[] options;
+    private ArrayList<String> options;
 
-    public Question(String q, String a, String[] o) {
-        this.question = q;
-        this.answer = a;
-        this.options = o;
+    public Question(String question, String answer) {
+        this.question = question;
+        this.answer = answer;
+        options = new ArrayList<String>();
     }
 
-    public boolean correctAnswer(String answer, String choice) {
-        if (answer.equals(choice)) {
-            return true;
-        } else return false;
+    public boolean correctAnswer(String choice) {
+        return answer.equals(choice);
     }
 
+    public void addOptions(String option1, String option2, String option3, String option4) {
+        options.add(option1);
+        options.add(option2);
+        options.add(option3);
+        options.add(option4);
+    }
     public String getQuestion() {
         return question;
     }
 
-    public String getAnswer() {
-        return answer;
-    }
-
     public String getOption(int index) {
-        return options[index - 1];
+        return options.get(index - 1);
     }
 }
