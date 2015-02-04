@@ -21,7 +21,7 @@ public class GameSession {
 
     public GameSession(Triggerhappy game) throws DeploymentException {
         this.game = game;
-        players = new ArrayList();
+        players = new ArrayList<>();
         Server server = new Server("localhost", 1234, "/", null, WebsocketServer.class);
         server.start();
 
