@@ -1,5 +1,7 @@
 package com.github.s111.bachelor.launcher.game;
 
+import com.github.s111.bachelor.launcher.Application;
+import com.github.s111.bachelor.launcher.network.GameSession;
 import org.newdawn.slick.*;
 import org.newdawn.slick.Color;
 import org.newdawn.slick.Graphics;
@@ -36,6 +38,8 @@ public class Launcher extends BasicGame {
 
     private float timeElapsedSinceClick = 0;
 
+    private GameSession gameSession;
+
 
     public Launcher(String title) {
         super(title);
@@ -43,6 +47,8 @@ public class Launcher extends BasicGame {
 
     @Override
     public void init(GameContainer container) throws SlickException {
+        gameSession = Application.getGameSession();
+
         screenWidth = container.getWidth();
         screenHeight = container.getHeight();
 
@@ -70,12 +76,7 @@ public class Launcher extends BasicGame {
     }
 
     private void createGameList() {
-        gameList = new ArrayList<String>();
-        gameList.add("Pong");
-        gameList.add("Scorched Earth");
-        gameList.add("TriggerHappy");
-        gameList.add("Quizzer");
-        gameList.add("Kebab");
+        gameList = gameSession.getGames();
     }
 
     private void instantiateColors() {

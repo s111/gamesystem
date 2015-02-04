@@ -4,15 +4,19 @@ import com.github.s111.bachelor.launcher.game.Launcher;
 import org.glassfish.tyrus.client.ClientManager;
 import org.glassfish.tyrus.server.Server;
 
-import javax.json.Json;
-import javax.json.JsonObject;
+import javax.json.*;
 import javax.websocket.*;
 import java.io.IOException;
+import java.io.StringReader;
 import java.net.URI;
 import java.nio.ByteBuffer;
+import java.util.ArrayList;
+import java.util.List;
 
 public class GameSession {
     private final Launcher game;
+
+    private List<String> games = new ArrayList<>();
 
     public GameSession(Launcher game) throws DeploymentException {
         this.game = game;
@@ -36,6 +40,24 @@ public class GameSession {
             client.connectToServer(new Endpoint() {
                 @Override
                 public void onOpen(Session session, EndpointConfig config) {
+                    session.addMessageHandler(new MessageHandler.Whole<String>() {
+
+                        @Override
+                        public void onMessage(String message) {
+                            if (message.equals("ready")) {
+                                return;
+                            }
+
+                            JsonReader jsonReader = Json.createReader(new StringReader(message));
+                            JsonArray array = jsonReader.readArray();
+                            jsonReader.close();
+
+                            for (JsonValue game : array) {
+                                games.add(((JsonObject) game).getString("Name"));
+                            }
+                        }
+                    });
+
                     JsonObject b = Json.createObjectBuilder()
                             .add("action", "ready")
                             .build();
@@ -47,5 +69,9 @@ public class GameSession {
             System.out.println("Unable to recover; exiting...");
             System.exit(1);
         }
+    }
+
+    public List<String> getGames() {
+        return games;
     }
 }
