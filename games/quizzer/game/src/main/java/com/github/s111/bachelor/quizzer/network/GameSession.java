@@ -43,6 +43,13 @@ public class GameSession {
     }
 
     public void onMessage(Session session, String message) throws IOException {
-        game.checkIfCorrectAnswer(Integer.parseInt(message));
+        int selection;
+        try {
+            selection = Integer.parseInt(message);
+        } catch (NumberFormatException e) {
+            selection = -1;
+        }
+
+        game.checkIfCorrectAnswer(selection);
     }
 }
