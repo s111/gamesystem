@@ -45,7 +45,6 @@ public class GameSession {
                     backend = session;
 
                     backend.addMessageHandler(new MessageHandler.Whole<String>() {
-
                         @Override
                         public void onMessage(String message) {
                             if (message.equals("ready")) {
@@ -73,6 +72,15 @@ public class GameSession {
             System.out.println("Unable to recover; exiting...");
             System.exit(1);
         }
+    }
+
+    public void startGame(String name) {
+        JsonObject ready = Json.createObjectBuilder()
+                .add("action", "select")
+                .add("data", name)
+                .build();
+
+        backend.getAsyncRemote().sendObject(ready);
     }
 
     public List<String> getGames() {
