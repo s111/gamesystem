@@ -9,7 +9,6 @@ import org.newdawn.slick.geom.Line;
 import org.newdawn.slick.geom.Rectangle;
 
 import java.awt.Font;
-import java.util.ArrayList;
 import java.util.List;
 
 public class Launcher extends BasicGame {
@@ -135,7 +134,10 @@ public class Launcher extends BasicGame {
                 } else {
                     selectedGameNr++;
                 }
+            } else if (input.isKeyDown(Input.KEY_ENTER)) {
+                gameSession.startGame(gameList.get(selectedGameNr));
             }
+
             selectedBox.setCenterY(selectedBoxStartingY + selectedGameNr * selectedBox.getHeight());
         }
     }
