@@ -116,10 +116,10 @@ public class Launcher extends BasicGame {
             container.exit();
         }
 
-        moveSelection(input, delta);
+        moveSelection(input);
     }
 
-    private void moveSelection(Input input, int delta) {
+    private void moveSelection(Input input) {
         if ((timeElapsedSinceClick / 1000) > 0.08) {
             timeElapsedSinceClick = 0;
             if (input.isKeyDown(Input.KEY_UP)) {
