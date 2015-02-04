@@ -16,6 +16,8 @@ import java.util.List;
 public class GameSession {
     private final Launcher game;
 
+    private Session backend;
+
     private List<String> games = new ArrayList<>();
 
     public GameSession(Launcher game) throws DeploymentException {
@@ -40,7 +42,9 @@ public class GameSession {
             client.connectToServer(new Endpoint() {
                 @Override
                 public void onOpen(Session session, EndpointConfig config) {
-                    session.addMessageHandler(new MessageHandler.Whole<String>() {
+                    backend = session;
+
+                    backend.addMessageHandler(new MessageHandler.Whole<String>() {
 
                         @Override
                         public void onMessage(String message) {
@@ -58,11 +62,11 @@ public class GameSession {
                         }
                     });
 
-                    JsonObject b = Json.createObjectBuilder()
+                    JsonObject ready = Json.createObjectBuilder()
                             .add("action", "ready")
                             .build();
 
-                    session.getAsyncRemote().sendObject(b);
+                    backend.getAsyncRemote().sendObject(ready);
                 }
             }, new URI("ws://localhost:3001/ws"));
         } catch (Exception e) {
