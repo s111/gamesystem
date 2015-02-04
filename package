@@ -1,0 +1,42 @@
+#!/bin/bash
+
+ROOTDIR=`pwd`
+GAMESDIR="$ROOTDIR/backend/games"
+
+[[ ! -d $GAMESDIR ]] && mkdir $GAMESDIR
+
+for GAMEPATH in games/*; do
+    if [[ -d ${GAMEPATH} ]]; then
+        JSON="$GAMEPATH/game.json"
+        GAMEDIR="$GAMEPATH/game"
+        CONTROLLERDIR="$GAMEPATH/controller"
+        TARGETDIR="$GAMEDIR/target"
+        NATIVESDIR="$TARGETDIR/natives"
+        GAMENAME=`cut -d "/" -f 2 <<< $GAMEPATH`
+        NEWGAMEDIR="$GAMESDIR/$GAMENAME"
+        BINDIR="$NEWGAMEDIR/bin"
+        LIBDIR="$NEWGAMEDIR/lib"
+        NEWCONTROLLERDIR="$NEWGAMEDIR/controller"
+
+        [[ ! -d $NEWGAMEDIR ]] && mkdir $NEWGAMEDIR
+        [[ ! -d $BINDIR ]] && mkdir $BINDIR
+        [[ ! -d $LIBDIR ]] && mkdir $LIBDIR
+        [[ ! -d $NEWCONTROLLERDIR ]] && mkdir $NEWCONTROLLERDIR
+
+        cd $GAMEDIR
+
+        mvn clean compile assembly:single
+
+        JARNAME=`find . -iregex '.*\(jar\)' -printf '%f'`
+        JAR="$TARGETDIR/$JARNAME"
+        NEWJAR="$BINDIR/${GAMENAME}.jar"
+
+
+        cd "../../.."
+
+        cp $JSON $NEWGAMEDIR
+        cp $JAR $NEWJAR
+        cp -r "$NATIVESDIR"/* $LIBDIR
+        cp -r "$CONTROLLERDIR"/* $NEWCONTROLLERDIR
+    fi
+done
