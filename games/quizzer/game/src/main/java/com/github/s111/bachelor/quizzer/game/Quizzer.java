@@ -76,6 +76,11 @@ public class Quizzer extends BasicGame {
 
     @Override
     public void update(GameContainer container, int delta) throws SlickException {
+        Input input = container.getInput();
+
+        if (input.isKeyPressed(Input.KEY_Q)) {
+            container.exit();
+        }
     }
 
     public void checkIfCorrectAnswer(int choice) {
