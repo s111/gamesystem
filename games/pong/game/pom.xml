@@ -6,7 +6,7 @@
 
     <groupId>com.github.s111.bachelor</groupId>
     <artifactId>pong</artifactId>
-    <version>1.0-SNAPSHOT</version>
+    <version>1.0</version>
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
