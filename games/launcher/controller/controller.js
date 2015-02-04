@@ -1,3 +1,4 @@
+var backend;
 var conn;
 
 var game = new Phaser.Game(800, 600, Phaser.AUTO, 'game', {preload: preload, create: create});
@@ -9,21 +10,23 @@ var y = 0;
 var movePaddle = function(pos) {};
 
 function preload() {
-  conn = new WebSocket('ws://' + window.location.hostname + ':3001/ws');
+  backend = new WebSocket('ws://localhost:3001/ws');
 
-  conn.onopen = function (e) {
-    movePaddle = function(pos) {
-      conn.send(JSON.stringify({"action":"select", "data": games[pos].Name}));
-
-      document.location.href="/";
-    };
-  };
-
-  conn.onmessage = function(e) {
+  backend.onmessage = function(e) {
     var data = JSON.parse(e.data);
 
     if (data === "ready") {
-      return
+      conn = new WebSocket('ws://' + window.location.hostname + ':1234/ws');
+
+      conn.onopen = function (e) {
+        movePaddle = function(pos) {
+          conn.send(JSON.stringify({"action":"select", "data": games[pos].Name}));
+
+          document.location.href="/";
+        };
+      };
+
+      return;
     }
 
     games = data;
