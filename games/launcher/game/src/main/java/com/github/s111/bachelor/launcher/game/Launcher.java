@@ -142,6 +142,11 @@ public class Launcher extends BasicGame {
         }
     }
 
+    public void setSelectedGame(String name) {
+        selectedGameNr = gameList.indexOf(name);
+        selectedBox.setCenterY(selectedBoxStartingY + selectedGameNr * selectedBox.getHeight());
+    }
+
     @Override
     public void render(GameContainer container, Graphics g) throws SlickException {
         drawBackground(g);

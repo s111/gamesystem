@@ -41,7 +41,7 @@ public class GameSession {
         JsonObject jsonObj = ((JsonObject) object);
 
         if (jsonObj.containsKey("data")) {
-            startGame(jsonObj.getString("data"));
+            game.setSelectedGame(jsonObj.getString("data"));
         }
     }
 
