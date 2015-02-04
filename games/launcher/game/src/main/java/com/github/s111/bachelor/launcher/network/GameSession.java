@@ -34,6 +34,15 @@ public class GameSession {
     }
 
     public void onMessage(Session session, String message) throws IOException {
+        JsonReader jsonReader = Json.createReader(new StringReader(message));
+        JsonObject object = jsonReader.readObject();
+        jsonReader.close();
+
+        JsonObject jsonObj = ((JsonObject) object);
+
+        if (jsonObj.containsKey("data")) {
+            startGame(jsonObj.getString("data"));
+        }
     }
 
     private void sendReady() {
