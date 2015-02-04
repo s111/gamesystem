@@ -10,7 +10,7 @@ var bttnD;
 var selection = function(sel) {};
 
 function preload() {
-  backend = new WebSocket('ws://localhost:3001/ws');
+  backend = new WebSocket('ws://' + window.location.hostname + ':3001/ws');
 
   backend.onmessage = function(e) {
     if (JSON.parse(e.data) === "ready") {
