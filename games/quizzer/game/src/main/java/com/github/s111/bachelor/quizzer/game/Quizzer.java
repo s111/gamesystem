@@ -4,6 +4,7 @@ import com.github.s111.bachelor.quizzer.Application;
 import com.github.s111.bachelor.quizzer.network.GameSession;
 import org.newdawn.slick.*;
 import org.newdawn.slick.Graphics;
+import org.newdawn.slick.Color;
 
 import java.awt.Font;
 
@@ -16,6 +17,7 @@ public class Quizzer extends BasicGame {
     private Font awtFont;
     private TrueTypeFont font;
     private int fontTextHeight;
+    private Color[] fontColors;
 
     private int questionPosX;
     private int questionPosY;
@@ -34,6 +36,7 @@ public class Quizzer extends BasicGame {
 
         awtFont = new Font(Font.MONOSPACED, Font.BOLD, 16);
         font = new TrueTypeFont(awtFont, true);
+        fontColors = new Color[]{Color.red, Color.yellow, Color.green, Color.blue};
 
         width = container.getWidth();
         height = container.getHeight();
@@ -84,8 +87,11 @@ public class Quizzer extends BasicGame {
     @Override
     public void render(GameContainer container, Graphics g) throws SlickException {
         g.setFont(font);
+        g.setBackground(Color.darkGray);
+        g.setColor(Color.white);
         g.drawString(currentQuestion.getQuestion(), questionPosX, questionPosY);
         for (int i = 1; i <= 4; i++) {
+            g.setColor(fontColors[i - 1]);
             g.drawString((char)(i + 64) + ". " + currentQuestion.getOption(i),
                     optionsPosX, questionPosY + fontTextHeight * i);
         }
