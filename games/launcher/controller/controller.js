@@ -1,3 +1,4 @@
+var backend;
 var conn;
 
 var game = new Phaser.Game(800, 600, Phaser.AUTO, 'game', {preload: preload, create: create});
@@ -9,21 +10,27 @@ var y = 0;
 var movePaddle = function(pos) {};
 
 function preload() {
-  conn = new WebSocket('ws://' + window.location.hostname + ':3001/ws');
+  backend = new WebSocket('ws://localhost:3001/ws');
 
-  conn.onopen = function (e) {
-    movePaddle = function(pos) {
-      conn.send(JSON.stringify({"action":"select", "data": games[pos].Name}));
-
-      document.location.href="/";
-    };
-  };
-
-  conn.onmessage = function(e) {
+  backend.onmessage = function(e) {
     var data = JSON.parse(e.data);
 
     if (data === "ready") {
-      return
+      conn = new WebSocket('ws://' + window.location.hostname + ':1234/ws');
+
+      conn.onopen = function (e) {
+        movePaddle = function(pos) {
+          if (pos === "start") {
+            conn.send(JSON.stringify({"action":"select", "data": pos}));
+
+            document.location.href="/";
+          } else {
+            conn.send(JSON.stringify({"action":"select", "data": games[pos].Name}));
+          }
+        };
+      };
+
+      return;
     }
 
     games = data;
@@ -38,6 +45,14 @@ function preload() {
       sprite.addChild(text);
       sprite.inputEnabled = true;
     }
+
+    var text = game.add.text(game.scale.width / 2, (game.scale.height - (game.scale.height / 16) * games.length) / 2 + (game.scale.height / 16) * i, "START GAME", {fill: "white"});
+    text.x = (game.scale.width - text.width) / 2;
+
+    var sprite = game.add.sprite(0, 0);
+    sprite.value = "start";
+    sprite.addChild(text);
+    sprite.inputEnabled = true;
   };
 
   game.stage.backgroundColor = '#000000';

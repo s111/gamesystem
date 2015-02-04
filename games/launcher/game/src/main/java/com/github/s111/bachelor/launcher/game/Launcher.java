@@ -1,5 +1,7 @@
 package com.github.s111.bachelor.launcher.game;
 
+import com.github.s111.bachelor.launcher.Application;
+import com.github.s111.bachelor.launcher.network.GameSession;
 import org.newdawn.slick.*;
 import org.newdawn.slick.Color;
 import org.newdawn.slick.Graphics;
@@ -7,7 +9,6 @@ import org.newdawn.slick.geom.Line;
 import org.newdawn.slick.geom.Rectangle;
 
 import java.awt.Font;
-import java.util.ArrayList;
 import java.util.List;
 
 public class Launcher extends BasicGame {
@@ -36,6 +37,8 @@ public class Launcher extends BasicGame {
 
     private float timeElapsedSinceClick = 0;
 
+    private GameSession gameSession;
+
 
     public Launcher(String title) {
         super(title);
@@ -43,6 +46,8 @@ public class Launcher extends BasicGame {
 
     @Override
     public void init(GameContainer container) throws SlickException {
+        gameSession = Application.getGameSession();
+
         screenWidth = container.getWidth();
         screenHeight = container.getHeight();
 
@@ -70,12 +75,7 @@ public class Launcher extends BasicGame {
     }
 
     private void createGameList() {
-        gameList = new ArrayList<String>();
-        gameList.add("Pong");
-        gameList.add("Scorched Earth");
-        gameList.add("TriggerHappy");
-        gameList.add("Quizzer");
-        gameList.add("Kebab");
+        gameList = gameSession.getGames();
     }
 
     private void instantiateColors() {
@@ -134,9 +134,21 @@ public class Launcher extends BasicGame {
                 } else {
                     selectedGameNr++;
                 }
+            } else if (input.isKeyDown(Input.KEY_ENTER)) {
+                gameSession.startGame(gameList.get(selectedGameNr));
             }
+
             selectedBox.setCenterY(selectedBoxStartingY + selectedGameNr * selectedBox.getHeight());
         }
+    }
+
+    public void setSelectedGame(String name) {
+        selectedGameNr = gameList.indexOf(name);
+        selectedBox.setCenterY(selectedBoxStartingY + selectedGameNr * selectedBox.getHeight());
+    }
+
+    public void startGame() {
+        gameSession.startGame(gameList.get(selectedGameNr));
     }
 
     @Override
