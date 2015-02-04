@@ -45,10 +45,10 @@ public class Quizzer extends BasicGame {
     private void initiateQuestions() {
         Question question1 = new Question("What is the Capital of China?", "Beijing");
         question1.addOptions("Beijing", "Washington", "Storhaug", "Hong Kong");
-        Question question2 = new Question("What is the best hero in DOTKA?", "Tusk");
-        question2.addOptions("Meepo", "Bear of shock ass bitch!", "Tusk", "Bloodcyka");
-        Question question3 = new Question("What is the answer to life, the universe and everything?", "42");
-        question3.addOptions("Cake", "42", "Black Helicopters", "Illoominadi");
+        Question question2 = new Question("What is the tallest mountain in Norway?", "Galdhøpiggen");
+        question2.addOptions("Glittertinden", "Veslpiggen", "Galdhøpiggen", "Sentraltind");
+        Question question3 = new Question("How old is the norwegian constitution?", "201");
+        question3.addOptions("42", "589", "0", "201");
         Question question4 = new Question("What is the approximate value of pi?", "3.14");
         question4.addOptions("2.7", "6.28", "144", "3.14");
         questionList = new Question[]{question1, question2, question3, question4};
@@ -64,7 +64,11 @@ public class Quizzer extends BasicGame {
     }
 
     private void setCurrentQuestion() {
-        currentQuestion = questionList[(int) (Math.random() * questionList.length)];
+        Question question = questionList[(int) (Math.random() * questionList.length)];
+
+        if(currentQuestion == question) {
+            setCurrentQuestion();
+        } else currentQuestion = question;
     }
 
     @Override
