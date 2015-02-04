@@ -9,13 +9,20 @@ import (
 	"strings"
 )
 
+const version = "1.0"
+
 var addr = flag.String("addr", ":3001", "http service address")
 var debug = flag.Bool("debug", true, "debug")
+var showVersion = flag.Bool("version", false, "show version number")
 
 var scheduler = NewGameScheduler(parseGames())
 
 func init() {
 	flag.Parse()
+
+	if *showVersion {
+		log.Println("Version", version)
+	}
 
 	if !*debug {
 		log.SetOutput(ioutil.Discard)

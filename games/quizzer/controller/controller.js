@@ -2,15 +2,15 @@ var backend;
 var conn;
 
 var game = new Phaser.Game(800, 600, Phaser.AUTO, 'game', {preload: preload, create: create});
-var target;
-var bttnA;
-var bttnB;
-var bttnC;
-var bttnD;
+var data;
+
+var bttnHeight;
+var bttnWidth;
+var colours = [0xFF0000, 0xFFFF00, 0x00FF00, 0x0000FF];
 var selection = function(sel) {};
 
 function preload() {
-  backend = new WebSocket('ws://localhost:3001/ws');
+  backend = new WebSocket('ws://' + window.location.hostname + ':3001/ws');
 
   backend.onmessage = function(e) {
     if (JSON.parse(e.data) === "ready") {
@@ -32,67 +32,24 @@ function create() {
   game.scale.scaleMode = Phaser.ScaleManager.EXACT_FIT;
   game.scale.refresh();
 
-  var gfxA = game.add.graphics(0, 0);
-  var gfxB = game.add.graphics(0, 0);
-  var gfxC = game.add.graphics(0, 0);
-  var gfxD = game.add.graphics(0, 0);
+  bttnWidth = game.stage.width / 2;
+  bttnHeight = game.stage.height / 2;
 
-  gfxA.beginFill(0xFF0000, 0.5);
-  gfxA.drawRect(0, 0, 128, 128);
-
-  bttnA = game.add.sprite(100, 100);
-  bttnA.addChild(gfxA);
-  bttnA.inputEnabled = true;
-
-  gfxB.beginFill(0xFFFF00, 0.5);
-  gfxB.drawRect(0, 0, 128, 128);
-
-  bttnB = game.add.sprite(250, 100);
-  bttnB.addChild(gfxB);
-  bttnB.inputEnabled = true;
-
-  gfxC.beginFill(0xFF0000, 0.5);
-  gfxC.drawRect(0, 0, 128, 128);
-
-  bttnC = game.add.sprite(402, 100);
-  bttnC.addChild(gfxC);
-  bttnC.inputEnabled = true;
-
-  gfxD.beginFill(0xFFFF00, 0.5);
-  gfxD.drawRect(0, 0, 128, 128);
-
-  bttnD = game.add.sprite(552, 100);
-  bttnD.addChild(gfxD);
-  bttnD.inputEnabled = true;
+  for (i = 1; i <= 4; i++) {
+    g = game.add.graphics(0, 0);
+    g.beginFill(colours[i - 1], 1);
+    g.drawRect(((i == 2 || i == 4) ? 1 : 0) * bttnWidth + 32, (i > 2 ? 1 : 0) * bttnHeight + 32, bttnWidth - 64, bttnHeight - 64);
+    s = game.add.sprite(0, 0);
+    s.addChild(g);
+    s.data = i;
+    s.inputEnabled = true;
+  }
 
   game.input.onDown.add(function(pointer) {
     if (!game.scale.isFullScreen) {
       game.scale.startFullScreen(false);
-    }
-
-    target = pointer.targetObject;
-  }, this);
-
-  game.input.onTap.add(function(pointer) {
-    target = pointer.targetObject;
-
-    if (target && target.sprite == bttnA) {
-      selection(1);
-    }
-
-    target = pointer.targetObject;
-    if (target && target.sprite == bttnB) {
-      selection(2);
-    }
-
-    target = pointer.targetObject;
-    if (target && target.sprite == bttnC) {
-      selection(3);
-    }
-
-    target = pointer.targetObject;
-    if (target && target.sprite == bttnD) {
-      selection(4);
+    } else if (pointer.targetObject) {
+        selection(pointer.targetObject.sprite.data);
     }
   }, this);
 }
