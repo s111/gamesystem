@@ -5,7 +5,7 @@ var data;
 
 var bttnHeight;
 var bttnWidth;
-
+var colours = [0xFF0000, 0xFFFF00, 0x00FF00, 0x0000FF];
 var selection = function(sel) {};
 
 function preload() {
@@ -30,7 +30,7 @@ function create() {
 
   for (i = 1; i <= 4; i++) {
     g = game.add.graphics(0, 0);
-    g.beginFill(0xFF0000, 1);
+    g.beginFill(colours[i - 1], 1);
     g.drawRect(((i == 2 || i == 4) ? 1 : 0) * bttnWidth + 32, (i > 2 ? 1 : 0) * bttnHeight + 32, bttnWidth - 64, bttnHeight - 64);
     s = game.add.sprite(0, 0);
     s.addChild(g);
