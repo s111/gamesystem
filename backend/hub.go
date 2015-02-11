@@ -2,7 +2,13 @@ package main
 
 import "log"
 
-const game = "game"
+const (
+	game = "game"
+
+	ActionAdd    = "added client"
+	ActionDrop   = "dropped client"
+	ActionRename = "renamed client"
+)
 
 type hub struct {
 	connections map[*connection]string
@@ -21,6 +27,10 @@ var h = hub{
 }
 
 func (h *hub) run() {
+	messageGame := func(m messageOut) {
+		h.sendToGame <- m
+	}
+
 	for {
 		select {
 		case c := <-h.register:
@@ -46,7 +56,10 @@ func (h *hub) run() {
 
 					log.Println("Renamed", id, "to", c.id)
 
-					// TODO: Notify game
+					go messageGame(messageOut{
+						Action: ActionRename,
+						Data:   []string{id, c.id},
+					})
 				}
 
 				break
@@ -57,7 +70,10 @@ func (h *hub) run() {
 
 			log.Println("Added client:", c.id)
 
-			// TODO: Notify game
+			go messageGame(messageOut{
+				Action: ActionAdd,
+				Data:   c.id,
+			})
 
 		case c := <-h.unregister:
 			if _, ok := h.connections[c]; ok {

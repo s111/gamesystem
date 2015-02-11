@@ -31,7 +31,7 @@ func unregister(c *connection) {
 func newConnection(id string) *connection {
 	return &connection{
 		id:   id,
-		send: make(chan message),
+		send: make(chan messageOut),
 		ws:   &websocket.Conn{},
 	}
 }

@@ -151,7 +151,7 @@ func serverWs(w http.ResponseWriter, r *http.Request) {
 	c.listenRead()
 
 	m := messageOut{
-		Action: "drop client",
+		Action: ActionDrop,
 		Data:   c.id,
 	}
 
