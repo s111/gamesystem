@@ -5,9 +5,11 @@ import "log"
 const (
 	game = "game"
 
-	ActionAdd    = "added client"
-	ActionDrop   = "dropped client"
-	ActionRename = "renamed client"
+	ActionIdentify    = "identify"
+	ActionPassthrough = "passthrough"
+	ActionAdd         = "added client"
+	ActionDrop        = "dropped client"
+	ActionRename      = "renamed client"
 )
 
 type hub struct {
@@ -15,7 +17,7 @@ type hub struct {
 	clients     map[string]*connection
 	register    chan *connection
 	unregister  chan *connection
-	sendToGame  chan messageOut
+	send        chan messageOut
 }
 
 var h = hub{
@@ -23,12 +25,12 @@ var h = hub{
 	clients:     make(map[string]*connection),
 	register:    make(chan *connection),
 	unregister:  make(chan *connection),
-	sendToGame:  make(chan messageOut),
+	send:        make(chan messageOut),
 }
 
 func (h *hub) run() {
-	messageGame := func(m messageOut) {
-		h.sendToGame <- m
+	sendMessage := func(m messageOut) {
+		h.send <- m
 	}
 
 	for {
@@ -56,7 +58,8 @@ func (h *hub) run() {
 
 					log.Println("Renamed", id, "to", c.id)
 
-					go messageGame(messageOut{
+					go sendMessage(messageOut{
+						To:     game,
 						Action: ActionRename,
 						Data:   []string{id, c.id},
 					})
@@ -70,7 +73,8 @@ func (h *hub) run() {
 
 			log.Println("Added client:", c.id)
 
-			go messageGame(messageOut{
+			go sendMessage(messageOut{
+				To:     game,
 				Action: ActionAdd,
 				Data:   c.id,
 			})
@@ -82,8 +86,8 @@ func (h *hub) run() {
 				delete(h.clients, c.id)
 			}
 
-		case m := <-h.sendToGame:
-			if c, ok := h.clients[game]; ok {
+		case m := <-h.send:
+			if c, ok := h.clients[m.To]; ok {
 				c.send <- m
 			}
 		}

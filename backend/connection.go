@@ -32,13 +32,17 @@ type connection struct {
 }
 
 type messageIn struct {
-	Action string          `json:"action"`
-	Data   json.RawMessage `json:"data"`
+	To     string          `json:"to,omitempty"`
+	Action string          `json:"action,omitempty"`
+	Data   json.RawMessage `json:"data,omitempty"`
 }
 
 type messageOut struct {
-	Action string      `json:"action"`
-	Data   interface{} `json:"data"`
+	To     string           `json:"to,omitempty"`
+	From   string           `json:"from,omitempty"`
+	Action string           `json:"action,omitempty"`
+	Data   interface{}      `json:"data,omitempty"`
+	Raw    *json.RawMessage `json:"raw,omitempty"`
 }
 
 func (c *connection) listenRead() {
@@ -70,15 +74,31 @@ func (c *connection) listenRead() {
 
 		log.Println("Recieved message:", msg)
 
-		switch msg.Action {
-		case "identify":
-			err := json.Unmarshal(msg.Data, &c.id)
+		// Drop all messages from unidentifed clients
+		if !(c.id == "" && msg.Action != ActionIdentify) {
+			switch msg.Action {
+			case ActionIdentify:
+				if msg.Action == ActionIdentify {
+					err := json.Unmarshal(msg.Data, &c.id)
 
-			if err != nil {
-				log.Println("Dropping client:", err)
+					if err != nil {
+						log.Println("Dropping client:", err)
+					}
+
+					h.register <- c
+				}
+
+			case ActionPassthrough:
+				// Don't allow clients to talk to each other
+				if msg.To == game || c.id == game {
+					h.send <- messageOut{
+						To:     msg.To,
+						From:   c.id,
+						Action: msg.Action,
+						Raw:    &msg.Data,
+					}
+				}
 			}
-
-			h.register <- c
 		}
 	}
 }
@@ -147,13 +167,14 @@ func serverWs(w http.ResponseWriter, r *http.Request) {
 
 	go c.listenWrite()
 
-	c.send <- messageOut{Action: "identify"}
+	c.send <- messageOut{Action: ActionIdentify}
 	c.listenRead()
 
 	m := messageOut{
+		To:     game,
 		Action: ActionDrop,
 		Data:   c.id,
 	}
 
-	h.sendToGame <- m
+	h.send <- m
 }
