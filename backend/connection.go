@@ -1,6 +1,7 @@
 package main
 
 import (
+	"errors"
 	"log"
 	"net/http"
 	"time"
@@ -10,7 +11,7 @@ import (
 
 const (
 	writeWait      = 10 * time.Second
-	pongWait       = 60 * time.Second
+	pongWait       = 10 * time.Second
 	pingPeriod     = (pongWait * 9) / 10
 	maxMessageSize = 512
 )
@@ -24,12 +25,12 @@ var upgrader = websocket.Upgrader{
 }
 
 type connection struct {
-	ws        *websocket.Conn
-	sendList  chan []Game
-	sendReady chan string
+	id   string
+	ws   *websocket.Conn
+	send chan message
 }
 
-type Message struct {
+type message struct {
 	Action string `json:"action"`
 	Data   string `json:"data"`
 }
@@ -48,23 +49,27 @@ func (c *connection) listenRead() {
 	})
 
 	for {
-		msg := &Message{}
+		msg := &message{}
 		err := c.ws.ReadJSON(msg)
 
 		if err != nil {
-			break
+			if c.id != "" {
+				err = errors.New(err.Error() + " (" + c.id + ")")
+			}
+
+			log.Println("Dropping client:", err)
+
+			return
 		}
 
 		log.Println("Recieved message:", msg)
 
-		if msg.Action == "select" {
-			scheduler.start(msg.Data)
-		} else if msg.Action == "ready" {
-			scheduler.ready = true
+		switch msg.Action {
+		case "identify":
+			c.id = msg.Data
 
-			h.broadcast <- "ready"
+			h.register <- c
 		}
-
 	}
 }
 
@@ -90,28 +95,18 @@ func (c *connection) listenWrite() {
 
 	for {
 		select {
-		case list, ok := <-c.sendList:
+		case m, ok := <-c.send:
 			if !ok {
 				c.writeMessage(websocket.CloseMessage, []byte{})
 
 				return
 			}
 
-			if err := c.writeJSON(list); err != nil {
-				return
-			}
-
-		case s, ok := <-c.sendReady:
-			if !ok {
-				c.writeMessage(websocket.CloseMessage, []byte{})
+			if err := c.writeJSON(m); err != nil {
+				log.Println("Dropping client:", err)
 
 				return
 			}
-
-			if err := c.writeJSON(s); err != nil {
-				return
-			}
-
 		case <-ticker.C:
 			if err := c.writeMessage(websocket.PingMessage, []byte{}); err != nil {
 				return
@@ -130,36 +125,20 @@ func serverWs(w http.ResponseWriter, r *http.Request) {
 	ws, err := upgrader.Upgrade(w, r, nil)
 
 	if err != nil {
-		log.Println(err)
+		log.Println("Dropping client:", err)
 
 		return
 	}
 
 	c := &connection{
-		sendList:  make(chan []Game),
-		sendReady: make(chan string),
-		ws:        ws,
+		ws:   ws,
+		send: make(chan message),
 	}
-
-	h.register <- c
 
 	go c.listenWrite()
 
-	var games []Game
-
-	for _, game := range scheduler.games {
-		if game.Name == "Launcher" {
-			continue
-		}
-
-		games = append(games, game)
-	}
-
-	c.sendList <- games
-
-	if scheduler.ready {
-		c.sendReady <- "ready"
-	}
-
+	c.send <- message{Action: "identify"}
 	c.listenRead()
+
+	// TODO: Notify game
 }

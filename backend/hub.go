@@ -1,42 +1,64 @@
 package main
 
+import "log"
+
 type hub struct {
-	connections map[*connection]bool
+	connections map[*connection]string
+	clients     map[string]*connection
 	register    chan *connection
 	unregister  chan *connection
-	broadcast   chan string
 }
 
 var h = hub{
-	connections: make(map[*connection]bool),
+	connections: make(map[*connection]string),
+	clients:     make(map[string]*connection),
 	register:    make(chan *connection),
 	unregister:  make(chan *connection),
-	broadcast:   make(chan string),
 }
 
 func (h *hub) run() {
-	closeConn := func(c *connection) {
-		delete(h.connections, c)
-
-		close(c.sendList)
-		close(c.sendReady)
-	}
-
 	for {
 		select {
 		case c := <-h.register:
-			h.connections[c] = true
+			if h.clients[c.id] != c {
+				if oldC, ok := h.clients[c.id]; ok {
+					close(oldC.send)
+					delete(h.connections, oldC)
+
+					log.Printf("New connection claiming to be %v, old connection closed", c.id)
+				}
+			}
+
+			if id, ok := h.connections[c]; ok {
+				if id == c.id {
+					break
+				}
+
+				if _, ok = h.clients[id]; ok {
+					delete(h.clients, id)
+
+					h.clients[c.id] = c
+					h.connections[c] = c.id
+
+					log.Println("Renamed", id, "to", c.id)
+
+					// TODO: Notify game
+				}
+
+				break
+			}
+
+			h.clients[c.id] = c
+			h.connections[c] = c.id
+
+			log.Println("Added client:", c.id)
+
+			// TODO: Notify game
 		case c := <-h.unregister:
 			if _, ok := h.connections[c]; ok {
-				closeConn(c)
-			}
-		case s := <-h.broadcast:
-			for c := range h.connections {
-				select {
-				case c.sendReady <- s:
-				default:
-					closeConn(c)
-				}
+				close(c.send)
+				delete(h.connections, c)
+				delete(h.clients, c.id)
 			}
 		}
 	}
