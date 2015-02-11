@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/json"
 	"errors"
 	"log"
 	"net/http"
@@ -31,8 +32,8 @@ type connection struct {
 }
 
 type message struct {
-	Action string `json:"action"`
-	Data   string `json:"data"`
+	Action string          `json:"action"`
+	Data   json.RawMessage `json:"data"`
 }
 
 func (c *connection) listenRead() {
@@ -66,7 +67,7 @@ func (c *connection) listenRead() {
 
 		switch msg.Action {
 		case "identify":
-			c.id = msg.Data
+			json.Unmarshal(msg.Data, c.id)
 
 			h.register <- c
 		}
