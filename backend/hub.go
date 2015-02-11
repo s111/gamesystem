@@ -88,7 +88,11 @@ func (h *hub) run() {
 
 		case m := <-h.send:
 			if c, ok := h.clients[m.To]; ok {
+				m.To = ""
+
 				c.send <- m
+			} else {
+				log.Println("Tried to send message to nonexistent client:", m.To)
 			}
 		}
 	}
