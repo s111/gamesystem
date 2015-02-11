@@ -28,12 +28,17 @@ var upgrader = websocket.Upgrader{
 type connection struct {
 	id   string
 	ws   *websocket.Conn
-	send chan message
+	send chan messageOut
 }
 
-type message struct {
+type messageIn struct {
 	Action string          `json:"action"`
 	Data   json.RawMessage `json:"data"`
+}
+
+type messageOut struct {
+	Action string      `json:"action"`
+	Data   interface{} `json:"data"`
 }
 
 func (c *connection) listenRead() {
@@ -50,7 +55,7 @@ func (c *connection) listenRead() {
 	})
 
 	for {
-		msg := &message{}
+		msg := &messageIn{}
 		err := c.ws.ReadJSON(msg)
 
 		if err != nil {
@@ -67,7 +72,11 @@ func (c *connection) listenRead() {
 
 		switch msg.Action {
 		case "identify":
-			json.Unmarshal(msg.Data, c.id)
+			err := json.Unmarshal(msg.Data, &c.id)
+
+			if err != nil {
+				log.Println("Dropping client:", err)
+			}
 
 			h.register <- c
 		}
@@ -133,13 +142,18 @@ func serverWs(w http.ResponseWriter, r *http.Request) {
 
 	c := &connection{
 		ws:   ws,
-		send: make(chan message),
+		send: make(chan messageOut),
 	}
 
 	go c.listenWrite()
 
-	c.send <- message{Action: "identify"}
+	c.send <- messageOut{Action: "identify"}
 	c.listenRead()
 
-	// TODO: Notify game
+	m := messageOut{
+		Action: "drop client",
+		Data:   c.id,
+	}
+
+	h.sendToGame <- m
 }

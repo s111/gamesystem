@@ -2,11 +2,14 @@ package main
 
 import "log"
 
+const game = "game"
+
 type hub struct {
 	connections map[*connection]string
 	clients     map[string]*connection
 	register    chan *connection
 	unregister  chan *connection
+	sendToGame  chan messageOut
 }
 
 var h = hub{
@@ -14,6 +17,7 @@ var h = hub{
 	clients:     make(map[string]*connection),
 	register:    make(chan *connection),
 	unregister:  make(chan *connection),
+	sendToGame:  make(chan messageOut),
 }
 
 func (h *hub) run() {
@@ -54,11 +58,17 @@ func (h *hub) run() {
 			log.Println("Added client:", c.id)
 
 			// TODO: Notify game
+
 		case c := <-h.unregister:
 			if _, ok := h.connections[c]; ok {
 				close(c.send)
 				delete(h.connections, c)
 				delete(h.clients, c.id)
+			}
+
+		case m := <-h.sendToGame:
+			if c, ok := h.clients[game]; ok {
+				c.send <- m
 			}
 		}
 	}
