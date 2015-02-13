@@ -1,6 +1,10 @@
 package main
 
-import "log"
+import (
+	"encoding/json"
+	"errors"
+	"log"
+)
 
 const (
 	game = "game"
@@ -9,91 +13,102 @@ const (
 	ActionPassthrough = "passthrough"
 	ActionAdd         = "added client"
 	ActionDrop        = "dropped client"
-	ActionRename      = "renamed client"
 )
 
 type hub struct {
-	connections map[*connection]string
-	clients     map[string]*connection
-	register    chan *connection
-	unregister  chan *connection
-	send        chan messageOut
+	clients    map[string]*connection
+	register   chan *request
+	unregister chan string
 }
 
 var h = hub{
-	connections: make(map[*connection]string),
-	clients:     make(map[string]*connection),
-	register:    make(chan *connection),
-	unregister:  make(chan *connection),
-	send:        make(chan messageOut),
+	clients:    make(map[string]*connection),
+	register:   make(chan *request),
+	unregister: make(chan string),
 }
 
 func (h *hub) run() {
-	sendMessage := func(m messageOut) {
-		h.send <- m
-	}
-
 	for {
 		select {
-		case c := <-h.register:
-			if h.clients[c.id] != c {
-				if oldC, ok := h.clients[c.id]; ok {
-					close(oldC.send)
-					delete(h.connections, oldC)
+		case r := <-h.register:
+			if c, ok := h.clients[r.id]; ok {
+				if !c.active {
+					c.active = true
+					c.timeout.Stop()
 
-					log.Printf("New connection claiming to be %v, old connection closed", c.id)
+					r.conn <- c
+
+					log.Println("Resuming client:", r.id)
+				} else {
+					r.err <- errors.New("Id in use: " + r.id)
 				}
-			}
-
-			if id, ok := h.connections[c]; ok {
-				if id == c.id {
-					break
-				}
-
-				if _, ok = h.clients[id]; ok {
-					delete(h.clients, id)
-
-					h.clients[c.id] = c
-					h.connections[c] = c.id
-
-					log.Println("Renamed", id, "to", c.id)
-
-					go sendMessage(messageOut{
-						To:     game,
-						Action: ActionRename,
-						Data:   []string{id, c.id},
-					})
-				}
-
-				break
-			}
-
-			h.clients[c.id] = c
-			h.connections[c] = c.id
-
-			log.Println("Added client:", c.id)
-
-			go sendMessage(messageOut{
-				To:     game,
-				Action: ActionAdd,
-				Data:   c.id,
-			})
-
-		case c := <-h.unregister:
-			if _, ok := h.connections[c]; ok {
-				close(c.send)
-				delete(h.connections, c)
-				delete(h.clients, c.id)
-			}
-
-		case m := <-h.send:
-			if c, ok := h.clients[m.To]; ok {
-				m.To = ""
-
-				c.send <- m
 			} else {
-				log.Println("Tried to send message to nonexistent client:", m.To)
+				c := &connection{
+					id:     r.id,
+					active: true,
+					send:   make(chan messageOut),
+				}
+
+				h.clients[r.id] = c
+
+				r.conn <- c
+
+				h.send(game, messageOut{
+					Action: ActionAdd,
+					Data:   c.id,
+				})
+
+				log.Println("Adding client:", r.id)
+			}
+
+		case id := <-h.unregister:
+			if c, ok := h.clients[id]; ok {
+				if !c.active {
+					c.timeout.Stop()
+
+					// Discard all pending sends
+					for {
+						select {
+						case <-c.send:
+							continue
+						default:
+						}
+
+						break
+					}
+
+					close(c.send)
+					delete(h.clients, c.id)
+
+					log.Println("Removing client:", c.id)
+
+					h.send(game, messageOut{
+						Action: ActionDrop,
+						Data:   c.id,
+					})
+
+				}
 			}
 		}
+	}
+}
+
+func (h *hub) send(to string, m messageOut) {
+	if c, ok := h.clients[to]; ok {
+		// Use a go routine as a send can block when the connection is inactive
+		go func() { c.send <- m }()
+	} else {
+		log.Println("Tried to send message to nonexistent client:", m.To)
+	}
+}
+
+func (h *hub) passthrough(to string, from string, data *json.RawMessage) {
+	// Don't allow clients to talk to each other
+	if to == game || from == game {
+		h.send(to, messageOut{
+			From:   from,
+			Action: ActionPassthrough,
+			Raw:    data,
+		})
 	}
 }

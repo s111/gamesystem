@@ -25,10 +25,18 @@ var upgrader = websocket.Upgrader{
 	},
 }
 
-type connection struct {
+type request struct {
 	id   string
-	ws   *websocket.Conn
-	send chan messageOut
+	conn chan *connection
+	err  chan error
+}
+
+type connection struct {
+	id      string
+	active  bool
+	timeout *time.Timer
+	ws      *websocket.Conn
+	send    chan messageOut
 }
 
 type messageIn struct {
@@ -74,31 +82,9 @@ func (c *connection) listenRead() {
 
 		log.Println("Recieved message:", msg)
 
-		// Drop all messages from unidentifed clients
-		if !(c.id == "" && msg.Action != ActionIdentify) {
-			switch msg.Action {
-			case ActionIdentify:
-				if msg.Action == ActionIdentify {
-					err := json.Unmarshal(msg.Data, &c.id)
-
-					if err != nil {
-						log.Println("Dropping client:", err)
-					}
-
-					h.register <- c
-				}
-
-			case ActionPassthrough:
-				// Don't allow clients to talk to each other
-				if msg.To == game || c.id == game {
-					h.send <- messageOut{
-						To:     msg.To,
-						From:   c.id,
-						Action: msg.Action,
-						Raw:    &msg.Data,
-					}
-				}
-			}
+		switch msg.Action {
+		case ActionPassthrough:
+			h.passthrough(msg.To, c.id, &msg.Data)
 		}
 	}
 }
@@ -145,6 +131,33 @@ func (c *connection) listenWrite() {
 	}
 }
 
+func getId(ws *websocket.Conn) (string, error) {
+	var id string
+
+	ws.WriteJSON(messageOut{Action: ActionIdentify})
+
+	msg := &messageIn{}
+	err := ws.ReadJSON(msg)
+
+	if err != nil {
+		return "", err
+	}
+
+	if msg.Action == ActionIdentify {
+		err = json.Unmarshal(msg.Data, &id)
+
+		if err == nil {
+			return id, nil
+		}
+	}
+
+	if id == "" {
+		err = errors.New("id cannot be empty")
+	}
+
+	return "", err
+}
+
 func serverWs(w http.ResponseWriter, r *http.Request) {
 	if r.Method != "GET" {
 		http.Error(w, "Method not allowed", 405)
@@ -154,27 +167,57 @@ func serverWs(w http.ResponseWriter, r *http.Request) {
 
 	ws, err := upgrader.Upgrade(w, r, nil)
 
+	defer func() {
+		ws.Close()
+		ws.WriteMessage(websocket.CloseMessage, []byte{})
+	}()
+
 	if err != nil {
 		log.Println("Dropping client:", err)
 
 		return
 	}
 
-	c := &connection{
-		ws:   ws,
-		send: make(chan messageOut),
+	var c *connection
+
+	for {
+		id, err := getId(ws)
+
+		if err != nil {
+			log.Println("Dropping client:", err)
+
+			return
+		}
+
+		r := &request{
+			id:   id,
+			conn: make(chan *connection),
+			err:  make(chan error),
+		}
+
+		h.register <- r
+
+		select {
+		case c = <-r.conn:
+			c.ws = ws
+		case err := <-r.err:
+			log.Println(err)
+
+			continue
+		}
+
+		break
 	}
 
 	go c.listenWrite()
-
-	c.send <- messageOut{Action: ActionIdentify}
 	c.listenRead()
 
-	m := messageOut{
-		To:     game,
-		Action: ActionDrop,
-		Data:   c.id,
-	}
+	c.active = false
+	c.timeout = time.NewTimer(pongWait)
 
-	h.send <- m
+	_, ok := <-c.timeout.C
+
+	if ok {
+		h.unregister <- c.id
+	}
 }
