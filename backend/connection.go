@@ -25,10 +25,9 @@ var upgrader = websocket.Upgrader{
 	},
 }
 
-type request struct {
-	id   string
-	conn chan *connection
-	err  chan error
+type registration struct {
+	conn *connection
+	ok   chan bool
 }
 
 type connection struct {
@@ -53,11 +52,19 @@ type messageOut struct {
 	Raw    *json.RawMessage `json:"raw,omitempty"`
 }
 
-func (c *connection) listenRead() {
-	defer func() {
-		c.ws.Close()
-	}()
+func (c *connection) writeMessage(mt int, payload []byte) error {
+	c.ws.SetWriteDeadline(time.Now().Add(writeWait))
 
+	return c.ws.WriteMessage(mt, payload)
+}
+
+func (c *connection) writeJSON(payload interface{}) error {
+	c.ws.SetWriteDeadline(time.Now().Add(writeWait))
+
+	return c.ws.WriteJSON(payload)
+}
+
+func (c *connection) listenRead() {
 	c.ws.SetReadLimit(maxMessageSize)
 	c.ws.SetReadDeadline(time.Now().Add(pongWait))
 	c.ws.SetPongHandler(func(string) error {
@@ -77,6 +84,8 @@ func (c *connection) listenRead() {
 
 			log.Println("Dropping client:", err)
 
+			c.closeWs()
+
 			return
 		}
 
@@ -84,42 +93,61 @@ func (c *connection) listenRead() {
 
 		switch msg.Action {
 		case ActionPassthrough:
-			h.passthrough(msg.To, c.id, &msg.Data)
+			h.send <- messageOut{
+				To:   msg.To,
+				From: c.id,
+				Data: &msg.Data,
+			}
+
+		case ActionIdentify:
+			if c.id != "" {
+				break
+			}
+
+			err = json.Unmarshal(msg.Data, &c.id)
+
+			if err != nil {
+				log.Println("Dropping client:", err)
+
+				c.closeWs()
+
+				return
+			}
+
+			r := registration{
+				conn: c,
+				ok:   make(chan bool),
+			}
+
+			h.register <- r
+
+			if !<-r.ok {
+				c.id = ""
+				c.send <- messageOut{Action: ActionIdentify}
+			}
 		}
 	}
-}
-
-func (c *connection) writeMessage(mt int, payload []byte) error {
-	c.ws.SetWriteDeadline(time.Now().Add(writeWait))
-
-	return c.ws.WriteMessage(mt, payload)
-}
-
-func (c *connection) writeJSON(payload interface{}) error {
-	c.ws.SetWriteDeadline(time.Now().Add(writeWait))
-
-	return c.ws.WriteJSON(payload)
 }
 
 func (c *connection) listenWrite() {
 	ticker := time.NewTicker(pingPeriod)
 
 	defer func() {
-		ticker.Stop()
 		c.ws.Close()
+		ticker.Stop()
 	}()
 
 	for {
 		select {
 		case m, ok := <-c.send:
 			if !ok {
-				c.writeMessage(websocket.CloseMessage, []byte{})
-
 				return
 			}
 
 			if err := c.writeJSON(m); err != nil {
 				log.Println("Dropping client:", err)
+
+				c.closeWs()
 
 				return
 			}
@@ -131,31 +159,9 @@ func (c *connection) listenWrite() {
 	}
 }
 
-func getId(ws *websocket.Conn) (string, error) {
-	var id string
-
-	ws.WriteJSON(messageOut{Action: ActionIdentify})
-
-	msg := &messageIn{}
-	err := ws.ReadJSON(msg)
-
-	if err != nil {
-		return "", err
-	}
-
-	if msg.Action == ActionIdentify {
-		err = json.Unmarshal(msg.Data, &id)
-
-		if err == nil {
-			return id, nil
-		}
-	}
-
-	if id == "" {
-		err = errors.New("id cannot be empty")
-	}
-
-	return "", err
+func (c *connection) closeWs() {
+	c.ws.Close()
+	c.ws.WriteMessage(websocket.CloseMessage, []byte{})
 }
 
 func serverWs(w http.ResponseWriter, r *http.Request) {
@@ -167,9 +173,14 @@ func serverWs(w http.ResponseWriter, r *http.Request) {
 
 	ws, err := upgrader.Upgrade(w, r, nil)
 
+	c := &connection{
+		active: true,
+		ws:     ws,
+		send:   make(chan messageOut),
+	}
+
 	defer func() {
-		ws.Close()
-		ws.WriteMessage(websocket.CloseMessage, []byte{})
+		c.closeWs()
 	}()
 
 	if err != nil {
@@ -178,46 +189,35 @@ func serverWs(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var c *connection
-
-	for {
-		id, err := getId(ws)
-
-		if err != nil {
-			log.Println("Dropping client:", err)
-
-			return
-		}
-
-		r := &request{
-			id:   id,
-			conn: make(chan *connection),
-			err:  make(chan error),
-		}
-
-		h.register <- r
-
-		select {
-		case c = <-r.conn:
-			c.ws = ws
-		case err := <-r.err:
-			log.Println(err)
-
-			continue
-		}
-
-		break
-	}
-
 	go c.listenWrite()
+
+	c.send <- messageOut{Action: ActionIdentify}
+
 	c.listenRead()
 
 	c.active = false
 	c.timeout = time.NewTimer(pongWait)
 
-	_, ok := <-c.timeout.C
+	<-c.timeout.C
 
-	if ok {
-		h.unregister <- c.id
+	reg := registration{
+		conn: c,
+		ok:   make(chan bool),
 	}
+
+	h.unregister <- reg
+	<-reg.ok
+
+	// Empty channel before closing
+	for {
+		select {
+		case <-c.send:
+			continue
+		default:
+		}
+
+		break
+	}
+
+	close(c.send)
 }
