@@ -65,6 +65,8 @@ func (c *connection) writeJSON(payload interface{}) error {
 }
 
 func (c *connection) listenRead() {
+	defer c.closeWs()
+
 	c.ws.SetReadLimit(maxMessageSize)
 	c.ws.SetReadDeadline(time.Now().Add(pongWait))
 	c.ws.SetPongHandler(func(string) error {
@@ -83,8 +85,6 @@ func (c *connection) listenRead() {
 			}
 
 			log.Println("Dropping client:", err)
-
-			c.closeWs()
 
 			return
 		}
@@ -109,8 +109,6 @@ func (c *connection) listenRead() {
 			if err != nil {
 				log.Println("Dropping client:", err)
 
-				c.closeWs()
-
 				return
 			}
 
@@ -133,7 +131,7 @@ func (c *connection) listenWrite() {
 	ticker := time.NewTicker(pingPeriod)
 
 	defer func() {
-		c.ws.Close()
+		c.closeWs()
 		ticker.Stop()
 	}()
 
@@ -146,8 +144,6 @@ func (c *connection) listenWrite() {
 
 			if err := c.writeJSON(m); err != nil {
 				log.Println("Dropping client:", err)
-
-				c.closeWs()
 
 				return
 			}
