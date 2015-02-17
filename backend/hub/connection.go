@@ -1,4 +1,4 @@
-package main
+package hub
 
 import (
 	"encoding/json"
@@ -180,7 +180,7 @@ func (c *connection) isActive() bool {
 	return c.active
 }
 
-func serverWs(w http.ResponseWriter, r *http.Request) {
+func ServeWs(w http.ResponseWriter, r *http.Request) {
 	if r.Method != "GET" {
 		http.Error(w, "Method not allowed", 405)
 

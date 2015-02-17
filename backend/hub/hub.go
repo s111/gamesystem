@@ -1,4 +1,4 @@
-package main
+package hub
 
 import "log"
 
@@ -111,4 +111,8 @@ func (h *hub) run() {
 			}
 		}
 	}
+}
+
+func Run() {
+	h.run()
 }

@@ -5,6 +5,8 @@ import (
 	"io/ioutil"
 	"log"
 	"net/http"
+
+	"github.com/s111/bachelor/backend/hub"
 )
 
 var addr = flag.String("addr", ":3001", "http service address")
@@ -19,9 +21,9 @@ func init() {
 }
 
 func main() {
-	go h.run()
+	go hub.Run()
 
-	http.HandleFunc("/ws", serverWs)
+	http.HandleFunc("/ws", hub.ServeWs)
 
 	err := http.ListenAndServe(*addr, nil)
 
