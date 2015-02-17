@@ -59,19 +59,25 @@ func (h *hub) run() {
 					r.ok <- false
 				}
 			} else {
-				h.clients[r.conn.id] = r.conn
+				if r.conn.id != "" {
+					h.clients[r.conn.id] = r.conn
 
-				r.ok <- true
+					r.ok <- true
 
-				go func() {
-					h.send <- messageOut{
-						To:     game,
-						Action: ActionAdd,
-						Data:   r.conn.id,
-					}
-				}()
+					go func() {
+						h.send <- messageOut{
+							To:     game,
+							Action: ActionAdd,
+							Data:   r.conn.id,
+						}
+					}()
 
-				log.Println("Added client:", r.conn.id)
+					log.Println("Added client:", r.conn.id)
+				} else {
+					r.ok <- false
+
+					log.Println("Id cannot be empty")
+				}
 			}
 
 		case r := <-h.unregister:

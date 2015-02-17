@@ -149,6 +149,11 @@ func (c *connection) listenWrite() {
 			}
 
 			if err := c.writeJSON(m); err != nil {
+				// Putting message back in queue
+				m.To = c.id
+				go func() { h.send <- m }()
+
+				log.Println("Message put back in queue:", m)
 				log.Println("Dropping client:", err)
 
 				return
