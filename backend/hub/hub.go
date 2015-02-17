@@ -3,7 +3,7 @@ package hub
 import "log"
 
 const (
-	game = "game"
+	Game = "game"
 
 	ActionIdentify    = "identify"
 	ActionPassthrough = "passthrough"
@@ -11,18 +11,18 @@ const (
 	ActionDrop        = "dropped client"
 )
 
-type hub struct {
-	clients    map[string]*connection
-	register   chan registration
-	unregister chan registration
-	send       chan messageOut
-}
-
 var h = hub{
 	clients:    make(map[string]*connection),
 	register:   make(chan registration),
 	unregister: make(chan registration),
 	send:       make(chan messageOut),
+}
+
+type hub struct {
+	clients    map[string]*connection
+	register   chan registration
+	unregister chan registration
+	send       chan messageOut
 }
 
 func (h *hub) run() {
@@ -66,7 +66,7 @@ func (h *hub) run() {
 
 					go func() {
 						h.send <- messageOut{
-							To:     game,
+							To:     Game,
 							Action: ActionAdd,
 							Data:   r.conn.id,
 						}
@@ -87,7 +87,7 @@ func (h *hub) run() {
 
 					go func() {
 						h.send <- messageOut{
-							To:     game,
+							To:     Game,
 							Action: ActionDrop,
 							Data:   c.id,
 						}
@@ -95,14 +95,14 @@ func (h *hub) run() {
 
 					log.Println("Dropped client:", r.conn.id)
 				}
-
-				r.ok <- true
 			}
+
+			r.ok <- true
 
 		case m := <-h.send:
 			if c, ok := h.clients[m.To]; ok {
 				// Don't allow clients to talk to each other
-				if m.To == game || m.From == game {
+				if m.To == Game || m.From == Game {
 					m.To = ""
 
 					// Use a go routine as a send can block when the connection is inactive

@@ -26,10 +26,6 @@ func newTestRegistration(c *connection) registration {
 	}
 }
 
-func init() {
-	go h.run()
-}
-
 func TestAdd(t *testing.T) {
 	c := newTestConnection("c1")
 	r := newTestRegistration(c)
@@ -86,8 +82,8 @@ func TestAddWithExistingIdWhenInactive(t *testing.T) {
 
 	c1.setActive(false)
 
-	m1 := messageOut{From: game, To: "c1", Data: "message1"}
-	m2 := messageOut{From: game, To: "c1", Data: "message2"}
+	m1 := messageOut{From: Game, To: "c1", Data: "message1"}
+	m2 := messageOut{From: Game, To: "c1", Data: "message2"}
 
 	h.send <- m1
 	h.send <- m2
@@ -108,4 +104,8 @@ func TestAddWithExistingIdWhenInactive(t *testing.T) {
 
 	assert.True(t, <-r2.ok)
 	assert.Len(t, h.clients, 0)
+}
+
+func init() {
+	go Run()
 }
