@@ -5,6 +5,7 @@ import (
 	"errors"
 	"log"
 	"net/http"
+	"sync"
 	"time"
 
 	"github.com/gorilla/websocket"
@@ -31,11 +32,14 @@ type registration struct {
 }
 
 type connection struct {
+	aLock  sync.RWMutex
+	active bool
+
 	id      string
-	active  bool
 	timeout *time.Timer
 	ws      *websocket.Conn
 	send    chan messageOut
+	stop    chan bool
 }
 
 type messageIn struct {
@@ -65,7 +69,7 @@ func (c *connection) writeJSON(payload interface{}) error {
 }
 
 func (c *connection) listenRead() {
-	defer c.closeWs()
+	defer c.ws.Close()
 
 	c.ws.SetReadLimit(maxMessageSize)
 	c.ws.SetReadDeadline(time.Now().Add(pongWait))
@@ -131,7 +135,7 @@ func (c *connection) listenWrite() {
 	ticker := time.NewTicker(pingPeriod)
 
 	defer func() {
-		c.closeWs()
+		c.ws.Close()
 		ticker.Stop()
 	}()
 
@@ -139,6 +143,8 @@ func (c *connection) listenWrite() {
 		select {
 		case m, ok := <-c.send:
 			if !ok {
+				c.ws.WriteMessage(websocket.CloseMessage, []byte{})
+
 				return
 			}
 
@@ -155,9 +161,18 @@ func (c *connection) listenWrite() {
 	}
 }
 
-func (c *connection) closeWs() {
-	c.ws.Close()
-	c.ws.WriteMessage(websocket.CloseMessage, []byte{})
+func (c *connection) setActive(a bool) {
+	c.aLock.Lock()
+	defer c.aLock.Unlock()
+
+	c.active = a
+}
+
+func (c *connection) isActive() bool {
+	c.aLock.RLock()
+	defer c.aLock.RUnlock()
+
+	return c.active
 }
 
 func serverWs(w http.ResponseWriter, r *http.Request) {
@@ -173,10 +188,11 @@ func serverWs(w http.ResponseWriter, r *http.Request) {
 		active: true,
 		ws:     ws,
 		send:   make(chan messageOut),
+		stop:   make(chan bool),
 	}
 
 	defer func() {
-		c.closeWs()
+		c.ws.Close()
 	}()
 
 	if err != nil {
@@ -191,10 +207,13 @@ func serverWs(w http.ResponseWriter, r *http.Request) {
 
 	c.listenRead()
 
-	c.active = false
+	c.setActive(false)
 	c.timeout = time.NewTimer(pongWait)
 
-	<-c.timeout.C
+	select {
+	case <-c.timeout.C:
+	case <-c.stop:
+	}
 
 	reg := registration{
 		conn: c,

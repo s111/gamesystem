@@ -30,9 +30,9 @@ func (h *hub) run() {
 		select {
 		case r := <-h.register:
 			if c, ok := h.clients[r.conn.id]; ok {
-				if !c.active {
+				if !c.isActive() {
 					// Speed up the closing of the old connection
-					c.timeout.Reset(0)
+					c.stop <- true
 
 					h.clients[r.conn.id] = r.conn
 
@@ -73,7 +73,7 @@ func (h *hub) run() {
 
 		case r := <-h.unregister:
 			if c, ok := h.clients[r.conn.id]; ok {
-				if !c.active {
+				if !c.isActive() {
 					delete(h.clients, r.conn.id)
 
 					go func() {
