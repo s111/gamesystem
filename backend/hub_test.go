@@ -84,7 +84,7 @@ func TestAddWithExistingIdWhenInactive(t *testing.T) {
 	assert.Len(t, h.clients, 1)
 	assert.Equal(t, h.clients[r1.conn.id], r1.conn)
 
-	c1.active = false
+	c1.setActive(false)
 
 	m1 := messageOut{From: game, To: "c1", Data: "message1"}
 	m2 := messageOut{From: game, To: "c1", Data: "message2"}
@@ -103,7 +103,7 @@ func TestAddWithExistingIdWhenInactive(t *testing.T) {
 	assert.Len(t, h.clients, 1)
 	assert.Equal(t, h.clients[r1.conn.id], r2.conn, "The new connection should overwrite the old one")
 
-	c2.active = false
+	c2.setActive(false)
 	h.unregister <- r2
 
 	assert.True(t, <-r2.ok)

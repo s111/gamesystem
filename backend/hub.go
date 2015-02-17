@@ -32,7 +32,10 @@ func (h *hub) run() {
 			if c, ok := h.clients[r.conn.id]; ok {
 				if !c.isActive() {
 					// Speed up the closing of the old connection
-					c.stop <- true
+					select {
+					case c.stop <- true:
+					default:
+					}
 
 					h.clients[r.conn.id] = r.conn
 
