@@ -5,6 +5,7 @@ import (
 	"io/ioutil"
 	"log"
 	"net/http"
+	"time"
 
 	"github.com/s111/bachelor/backend/hub"
 )
@@ -21,6 +22,7 @@ func init() {
 }
 
 func main() {
+	hub.SetTimeout(time.Second * 10)
 	go hub.Run()
 
 	http.HandleFunc("/ws", hub.ServeWs)

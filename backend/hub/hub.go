@@ -1,6 +1,10 @@
 package hub
 
-import "log"
+import (
+	"log"
+	"sync"
+	"time"
+)
 
 const (
 	Game = "game"
@@ -23,6 +27,23 @@ type hub struct {
 	register   chan registration
 	unregister chan registration
 	send       chan messageOut
+
+	tLock   sync.RWMutex
+	timeout time.Duration
+}
+
+func (h *hub) setTimeout(d time.Duration) {
+	h.tLock.RLock()
+	defer h.tLock.RUnlock()
+
+	h.timeout = d
+}
+
+func (h *hub) getTimeout() time.Duration {
+	h.tLock.Lock()
+	defer h.tLock.Unlock()
+
+	return h.timeout
 }
 
 func (h *hub) run() {
@@ -111,6 +132,10 @@ func (h *hub) run() {
 			}
 		}
 	}
+}
+
+func SetTimeout(d time.Duration) {
+	h.setTimeout(d)
 }
 
 func Run() {

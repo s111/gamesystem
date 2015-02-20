@@ -215,7 +215,7 @@ func ServeWs(w http.ResponseWriter, r *http.Request) {
 	c.listenRead()
 
 	c.setActive(false)
-	c.timeout = time.NewTimer(pongWait)
+	c.timeout = time.NewTimer(h.getTimeout())
 
 	select {
 	case <-c.timeout.C:
