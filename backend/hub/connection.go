@@ -182,6 +182,7 @@ func (c *connection) isActive() bool {
 	return c.active
 }
 
+// ServeWs is run each time a new client connects, it's basically the equvialent of on open.
 func ServeWs(w http.ResponseWriter, r *http.Request) {
 	if r.Method != "GET" {
 		http.Error(w, "Method not allowed", 405)

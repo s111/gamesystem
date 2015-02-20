@@ -1,3 +1,4 @@
+// Package hub manages communication between clients (game, controllers and the program running the hub).
 package hub
 
 import (
@@ -7,12 +8,23 @@ import (
 )
 
 const (
+	// Game must identify with this string
 	Game = "game"
 
-	ActionIdentify    = "identify"
+	// ActionIdentify should be sent to ask a client to identify itself.
+	// The client should respond with the same action and data: uid.
+	ActionIdentify = "identify"
+
+	// ActionPassthrough should be used when the message is not directly for the hub.
+	// Message should be on the format:
+	// {to: receiver, action: passthrough, data: {action: actual action, data: actual data}}
 	ActionPassthrough = "passthrough"
-	ActionAdd         = "added client"
-	ActionDrop        = "dropped client"
+
+	// ActionAdd is a event sent to the game when a client is added
+	ActionAdd = "added client"
+
+	// ActionDrop is a event sent to the game when a client is dropped
+	ActionDrop = "dropped client"
 )
 
 var h = hub{
@@ -138,10 +150,13 @@ func (h *hub) run() {
 	}
 }
 
+// SetTimeout is used to set how long a client can be "gone" until the game should consider it dropped.
 func SetTimeout(d time.Duration) {
 	h.setTimeout(d)
 }
 
+// Run starts the hub.
+// Should be in its own go routine unless you want it to block.
 func Run() {
 	h.run()
 }
