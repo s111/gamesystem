@@ -10,8 +10,6 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-var s Server
-
 type wsHandler struct{ *testing.T }
 
 func (t wsHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
