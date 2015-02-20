@@ -1,6 +1,8 @@
 package hub
 
 import (
+	"net/http"
+	"net/http/httptest"
 	"testing"
 	"time"
 
@@ -8,104 +10,213 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func newTestConnection(id string) *connection {
-	return &connection{
-		id:      id,
-		active:  true,
-		timeout: time.NewTimer(pongWait),
-		send:    make(chan messageOut),
-		ws:      &websocket.Conn{},
+var s Server
+
+type wsHandler struct{ *testing.T }
+
+func (t wsHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	ServeWs(w, r)
+}
+
+type Server struct {
+	*httptest.Server
+	URL string
+}
+
+func newServer(t *testing.T) *Server {
+	var s Server
+	s.Server = httptest.NewServer(wsHandler{t})
+	s.URL = "ws" + s.Server.URL[len("http"):]
+
+	return &s
+}
+
+func newWs(t *testing.T, url string) *websocket.Conn {
+	ws, _, err := websocket.DefaultDialer.Dial(url, nil)
+
+	assert.Nil(t, err, "Dial: %v", err)
+
+	return ws
+}
+
+func sendCloseMessage(t *testing.T, ws *websocket.Conn) {
+	err := ws.WriteMessage(websocket.CloseMessage, []byte{})
+
+	assert.Nil(t, err, "ws: %v", err)
+
+	wait(10)
+}
+
+func wait(ms int) {
+	<-time.After(time.Millisecond * time.Duration(ms))
+}
+
+func checkClientRegistered(t *testing.T, id string) {
+	wait(20)
+
+	assert.NotNil(t, h.clients[id])
+}
+
+func checkClientUnregistered(t *testing.T, id string) {
+	wait(40)
+
+	assert.Nil(t, h.clients[id])
+}
+
+func TestAddClient(t *testing.T) {
+	s := newServer(t)
+	defer s.Close()
+
+	ws := newWs(t, s.URL)
+	defer ws.Close()
+
+	ws.WriteJSON(messageOut{
+		Action: ActionIdentify,
+		Data:   Game,
+	})
+
+	checkClientRegistered(t, Game)
+	sendCloseMessage(t, ws)
+	checkClientUnregistered(t, Game)
+}
+
+func TestAddClientEmptyId(t *testing.T) {
+	s := newServer(t)
+	defer s.Close()
+
+	ws := newWs(t, s.URL)
+	defer ws.Close()
+
+	ws.WriteJSON(messageOut{
+		Action: ActionIdentify,
+		Data:   "",
+	})
+
+	wait(20)
+	assert.Empty(t, h.clients)
+}
+
+func TestReplaceActiveClient(t *testing.T) {
+	s := newServer(t)
+	defer s.Close()
+
+	ws1 := newWs(t, s.URL)
+	ws2 := newWs(t, s.URL)
+	defer ws1.Close()
+	defer ws2.Close()
+
+	ws1.WriteJSON(messageOut{
+		Action: ActionIdentify,
+		Data:   Game,
+	})
+
+	checkClientRegistered(t, Game)
+
+	ws2.WriteJSON(messageOut{
+		Action: ActionIdentify,
+		Data:   Game,
+	})
+
+	wait(20)
+
+	msg := &messageIn{}
+
+	ws1.ReadJSON(msg)
+
+	assert.Equal(t, ActionIdentify, msg.Action)
+
+	sendCloseMessage(t, ws1)
+	sendCloseMessage(t, ws2)
+	checkClientUnregistered(t, Game)
+}
+
+func TestResumeClientWithQueuedMessage(t *testing.T) {
+	s := newServer(t)
+	defer s.Close()
+
+	ws := newWs(t, s.URL)
+
+	ws.WriteJSON(messageOut{
+		Action: ActionIdentify,
+		Data:   Game,
+	})
+
+	checkClientRegistered(t, Game)
+	sendCloseMessage(t, ws)
+
+	ws.Close()
+
+	h.send <- messageOut{
+		To: Game,
 	}
 
+	ws = newWs(t, s.URL)
+
+	ws.WriteJSON(messageOut{
+		Action: ActionIdentify,
+		Data:   Game,
+	})
+
+	checkClientRegistered(t, Game)
+	sendCloseMessage(t, ws)
+	checkClientUnregistered(t, Game)
+
+	ws.Close()
 }
 
-func newTestRegistration(c *connection) registration {
-	return registration{
-		conn: c,
-		ok:   make(chan bool),
-	}
+func TestPassthrough(t *testing.T) {
+	s := newServer(t)
+	defer s.Close()
+
+	const c = "c1"
+
+	gameWs := newWs(t, s.URL)
+	cWs := newWs(t, s.URL)
+	defer gameWs.Close()
+	defer cWs.Close()
+
+	gameWs.WriteJSON(messageOut{
+		Action: ActionIdentify,
+		Data:   Game,
+	})
+
+	checkClientRegistered(t, Game)
+
+	cWs.WriteJSON(messageOut{
+		Action: ActionIdentify,
+		Data:   c,
+	})
+
+	checkClientRegistered(t, c)
+
+	cWs.WriteJSON(messageIn{
+		To:     Game,
+		Action: ActionPassthrough,
+		Data:   []byte(c),
+	})
+
+	wait(90)
+
+	msg := &messageIn{}
+	gameWs.ReadJSON(msg)
+	// The second should be a added client message
+	gameWs.ReadJSON(msg)
+	// The third should be the message from c
+	gameWs.ReadJSON(msg)
+
+	assert.Equal(t, msg.Action, ActionPassthrough)
+
+	sendCloseMessage(t, gameWs)
+	sendCloseMessage(t, cWs)
+	checkClientUnregistered(t, Game)
+	checkClientUnregistered(t, c)
 }
 
-func TestAdd(t *testing.T) {
-	c := newTestConnection("c1")
-	r := newTestRegistration(c)
-
-	h.register <- r
-
-	assert.True(t, <-r.ok)
-	assert.Len(t, h.clients, 1)
-	assert.Equal(t, h.clients[r.conn.id], r.conn)
-
-	c.active = false
-	h.unregister <- r
-
-	assert.True(t, <-r.ok)
-	assert.Len(t, h.clients, 0)
-}
-
-func TestAddWithExistingId(t *testing.T) {
-	c1 := newTestConnection("c1")
-	r1 := newTestRegistration(c1)
-	c2 := newTestConnection("c1")
-	r2 := newTestRegistration(c2)
-
-	h.register <- r1
-
-	assert.True(t, <-r1.ok)
-	assert.Len(t, h.clients, 1)
-	assert.Equal(t, h.clients[r1.conn.id], r1.conn)
-
-	h.register <- r2
-
-	assert.False(t, <-r2.ok, "The new connection should not overwrite the old one")
-	assert.Len(t, h.clients, 1)
-	assert.Equal(t, h.clients[r1.conn.id], r1.conn, "The connection should not be overwritten")
-
-	c1.active = false
-	h.unregister <- r1
-
-	assert.True(t, <-r1.ok)
-	assert.Len(t, h.clients, 0)
-}
-
-func TestAddWithExistingIdWhenInactive(t *testing.T) {
-	c1 := newTestConnection("c1")
-	r1 := newTestRegistration(c1)
-	c2 := newTestConnection("c1")
-	r2 := newTestRegistration(c2)
-
-	h.register <- r1
-
-	assert.True(t, <-r1.ok)
-	assert.Len(t, h.clients, 1)
-	assert.Equal(t, h.clients[r1.conn.id], r1.conn)
-
-	c1.setActive(false)
-
-	m1 := messageOut{From: Game, To: "c1", Data: "message1"}
-	m2 := messageOut{From: Game, To: "c1", Data: "message2"}
-
-	h.send <- m1
-	h.send <- m2
-
-	h.register <- r2
-
-	m1.To = ""
-	m2.To = ""
-
-	assert.Equal(t, <-c2.send, m1, "first message not received correctly")
-	assert.Equal(t, <-c2.send, m2, "second message not received correctly")
-	assert.True(t, <-r2.ok, "The new connection should overwrite the old one")
-	assert.Len(t, h.clients, 1)
-	assert.Equal(t, h.clients[r1.conn.id], r2.conn, "The new connection should overwrite the old one")
-
-	c2.setActive(false)
-	h.unregister <- r2
-
-	assert.True(t, <-r2.ok)
-	assert.Len(t, h.clients, 0)
+func TestOrigin(t *testing.T) {
+	assert.Equal(t, upgrader.CheckOrigin(&http.Request{}), true, "CheckOrigin should always return true")
 }
 
 func init() {
+	SetTimeout(time.Millisecond * 20)
 	go Run()
 }
