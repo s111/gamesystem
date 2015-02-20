@@ -75,6 +75,11 @@ func TestAddClient(t *testing.T) {
 
 	checkClientRegistered(t, Game)
 	sendCloseMessage(t, ws)
+
+	h.send <- messageOut{
+		To: Game,
+	}
+
 	checkClientUnregistered(t, Game)
 }
 
