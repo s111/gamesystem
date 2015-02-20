@@ -5,8 +5,12 @@ import (
 	"io/ioutil"
 	"log"
 	"net/http"
+	"path/filepath"
+	"strings"
 	"time"
 
+	. "github.com/s111/bachelor/backend/gameparser"
+	gs "github.com/s111/bachelor/backend/gamescheduler"
 	"github.com/s111/bachelor/backend/hub"
 )
 
@@ -25,11 +29,38 @@ func main() {
 	hub.SetTimeout(time.Second * 10)
 	go hub.Run()
 
+	gp := GameParser{
+		Games: make(map[string]Game),
+	}
+	gp.Parse()
+
+	for _, game := range gp.Games {
+		serveController(game)
+	}
+
 	http.HandleFunc("/ws", hub.ServeWs)
 
-	err := http.ListenAndServe(*addr, nil)
+	go func() {
+		err := http.ListenAndServe(*addr, nil)
 
-	if err != nil {
-		log.Fatal("ListenAndServe: ", err)
+		if err != nil {
+			log.Fatal("ListenAndServe: ", err)
+		}
+	}()
+
+	gs.Run(gp.Games)
+}
+
+func serveController(game Game) {
+	controllerPath := filepath.Join(GamesDir, strings.ToLower(game.Name), ControllerDir)
+	prefix := strings.ToLower(game.Name)
+	http.Handle("/"+prefix+"/", http.StripPrefix("/"+prefix+"/", http.FileServer(http.Dir(controllerPath))))
+}
+
+func redirectToController(w http.ResponseWriter, r *http.Request) {
+	currentGame := gs.GetCurrentGameName()
+
+	if currentGame != "" {
+		http.Redirect(w, r, "/"+strings.ToLower(currentGame), http.StatusFound)
 	}
 }
