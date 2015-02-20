@@ -119,7 +119,10 @@ func TestReplaceActiveClient(t *testing.T) {
 
 	msg := &messageIn{}
 
-	ws1.ReadJSON(msg)
+	// first identify message
+	ws2.ReadJSON(msg)
+	// second identify message
+	ws2.ReadJSON(msg)
 
 	assert.Equal(t, ActionIdentify, msg.Action)
 
