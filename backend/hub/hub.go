@@ -86,10 +86,12 @@ func (h *hub) run() {
 					r.ok <- true
 
 					go func() {
-						h.send <- messageOut{
-							To:     Game,
-							Action: ActionAdd,
-							Data:   r.conn.id,
+						if r.conn.id != Game {
+							h.send <- messageOut{
+								To:     Game,
+								Action: ActionAdd,
+								Data:   r.conn.id,
+							}
 						}
 					}()
 
@@ -107,10 +109,12 @@ func (h *hub) run() {
 					delete(h.clients, r.conn.id)
 
 					go func() {
-						h.send <- messageOut{
-							To:     Game,
-							Action: ActionDrop,
-							Data:   c.id,
+						if c.id != Game {
+							h.send <- messageOut{
+								To:     Game,
+								Action: ActionDrop,
+								Data:   c.id,
+							}
 						}
 					}()
 
