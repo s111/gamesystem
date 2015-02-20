@@ -45,15 +45,15 @@ type hub struct {
 }
 
 func (h *hub) setTimeout(d time.Duration) {
-	h.tLock.RLock()
-	defer h.tLock.RUnlock()
+	h.tLock.Lock()
+	defer h.tLock.Unlock()
 
 	h.timeout = d
 }
 
 func (h *hub) getTimeout() time.Duration {
-	h.tLock.Lock()
-	defer h.tLock.Unlock()
+	h.tLock.RLock()
+	defer h.tLock.RUnlock()
 
 	return h.timeout
 }
