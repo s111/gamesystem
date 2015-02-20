@@ -193,7 +193,7 @@ func TestPassthrough(t *testing.T) {
 		Data:   []byte(c),
 	})
 
-	wait(90)
+	wait(20)
 
 	msg := &messageIn{}
 	gameWs.ReadJSON(msg)
