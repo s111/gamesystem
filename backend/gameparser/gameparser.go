@@ -1,4 +1,4 @@
-package main
+package gameparser
 
 import (
 	"encoding/json"
@@ -9,18 +9,26 @@ import (
 )
 
 const (
+	GamesDir      = "games"
+	ControllerDir = "controller"
+
 	gameDescription = "game.json"
-	gamesDir        = "games"
-	controllerDir   = "controller"
 )
 
-func parseGames() []Game {
-	var games []Game
+type Game struct {
+	Name string
+	Exec []string
+}
 
-	names, _ := ioutil.ReadDir(gamesDir)
+type GameParser struct {
+	Games map[string]Game
+}
+
+func (gp *GameParser) Parse() {
+	names, _ := ioutil.ReadDir(GamesDir)
 
 	for _, name := range names {
-		gamePath := filepath.Join(gamesDir, name.Name())
+		gamePath := filepath.Join(GamesDir, name.Name())
 		filename := filepath.Join(gamePath, gameDescription)
 
 		if _, err := os.Stat(filename); os.IsNotExist(err) {
@@ -39,8 +47,7 @@ func parseGames() []Game {
 
 		var game Game
 		json.Unmarshal(file, &game)
-		games = append(games, game)
-	}
 
-	return games
+		gp.Games[game.Name] = game
+	}
 }
