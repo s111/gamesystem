@@ -98,9 +98,10 @@ func (c *connection) listenRead() {
 		switch msg.Action {
 		case ActionPassthrough:
 			h.send <- messageOut{
-				To:   msg.To,
-				From: c.id,
-				Data: &msg.Data,
+				To:     msg.To,
+				From:   c.id,
+				Action: ActionPassthrough,
+				Raw:    &msg.Data,
 			}
 
 		case ActionIdentify:
@@ -158,6 +159,7 @@ func (c *connection) listenWrite() {
 
 				return
 			}
+
 		case <-ticker.C:
 			if err := c.writeMessage(websocket.PingMessage, []byte{}); err != nil {
 				return
