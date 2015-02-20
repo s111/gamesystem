@@ -49,11 +49,10 @@ type messageIn struct {
 }
 
 type messageOut struct {
-	To     string           `json:"to,omitempty"`
-	From   string           `json:"from,omitempty"`
-	Action string           `json:"action,omitempty"`
-	Data   interface{}      `json:"data,omitempty"`
-	Raw    *json.RawMessage `json:"raw,omitempty"`
+	To     string      `json:"to,omitempty"`
+	From   string      `json:"from,omitempty"`
+	Action string      `json:"action,omitempty"`
+	Data   interface{} `json:"data,omitempty"`
 }
 
 func (c *connection) writeMessage(mt int, payload []byte) error {
@@ -97,11 +96,20 @@ func (c *connection) listenRead() {
 
 		switch msg.Action {
 		case ActionPassthrough:
+			data := messageOut{}
+			err := json.Unmarshal(msg.Data, &data)
+
+			if err != nil {
+				log.Println("Dropping client:", err)
+
+				return
+			}
+
 			h.send <- messageOut{
 				To:     msg.To,
 				From:   c.id,
-				Action: ActionPassthrough,
-				Raw:    &msg.Data,
+				Action: data.Action,
+				Data:   data.Data,
 			}
 
 		case ActionIdentify:
@@ -109,7 +117,7 @@ func (c *connection) listenRead() {
 				break
 			}
 
-			err = json.Unmarshal(msg.Data, &c.id)
+			err := json.Unmarshal(msg.Data, &c.id)
 
 			if err != nil {
 				log.Println("Dropping client:", err)

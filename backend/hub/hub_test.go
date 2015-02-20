@@ -166,7 +166,10 @@ func TestPassthrough(t *testing.T) {
 	s := newServer(t)
 	defer s.Close()
 
-	const c = "c1"
+	const (
+		c            = "c1"
+		actionActual = "actual action"
+	)
 
 	gameWs := newWs(t, s.URL)
 	cWs := newWs(t, s.URL)
@@ -187,11 +190,10 @@ func TestPassthrough(t *testing.T) {
 
 	checkClientRegistered(t, c)
 
-	cWs.WriteJSON(messageIn{
-		To:     Game,
-		Action: ActionPassthrough,
-		Data:   []byte(c),
-	})
+	cWs.WriteMessage(
+		websocket.TextMessage,
+		[]byte(`{"to":"`+Game+`", "action":"`+ActionPassthrough+`", "data":{"action": "`+actionActual+`", "data": ""}}`),
+	)
 
 	wait(20)
 
@@ -202,7 +204,7 @@ func TestPassthrough(t *testing.T) {
 	// The third should be the message from c
 	gameWs.ReadJSON(msg)
 
-	assert.Equal(t, msg.Action, ActionPassthrough)
+	assert.Equal(t, msg.Action, actionActual)
 
 	sendCloseMessage(t, gameWs)
 	sendCloseMessage(t, cWs)
