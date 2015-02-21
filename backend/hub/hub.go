@@ -32,6 +32,7 @@ var h = hub{
 	register:   make(chan registration),
 	unregister: make(chan registration),
 	send:       make(chan MessageOut),
+	handlers:   make(map[string]func(MessageIn)),
 }
 
 type hub struct {
@@ -42,6 +43,9 @@ type hub struct {
 
 	tLock   sync.RWMutex
 	timeout time.Duration
+
+	hLock    sync.RWMutex
+	handlers map[string]func(MessageIn)
 }
 
 func (h *hub) setTimeout(d time.Duration) {

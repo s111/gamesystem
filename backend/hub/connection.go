@@ -94,6 +94,16 @@ func (c *connection) listenRead() {
 
 		log.Println("Recieved message:", msg)
 
+		h.hLock.RLock()
+
+		for action, cb := range h.handlers {
+			if action == msg.Action {
+				cb(*msg)
+			}
+		}
+
+		h.hLock.RUnlock()
+
 		switch msg.Action {
 		case ActionPassthrough:
 			data := MessageOut{}
