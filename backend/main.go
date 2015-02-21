@@ -1,28 +1,25 @@
 package main
 
 import (
+	"encoding/json"
 	"flag"
 	"io/ioutil"
 	"log"
 	"net/http"
 	"path/filepath"
 	"strings"
-)
+	"time"
 
-const version = "1.0"
+	. "github.com/s111/bachelor/backend/gameparser"
+	gs "github.com/s111/bachelor/backend/gamescheduler"
+	"github.com/s111/bachelor/backend/hub"
+)
 
 var addr = flag.String("addr", ":3001", "http service address")
 var debug = flag.Bool("debug", true, "debug")
-var showVersion = flag.Bool("version", false, "show version number")
-
-var scheduler = NewGameScheduler(parseGames())
 
 func init() {
 	flag.Parse()
-
-	if *showVersion {
-		log.Println("Version", version)
-	}
 
 	if !*debug {
 		log.SetOutput(ioutil.Discard)
@@ -30,14 +27,49 @@ func init() {
 }
 
 func main() {
-	for _, game := range scheduler.games {
+	hub.SetTimeout(time.Second * 10)
+	go hub.Run()
+
+	gp := GameParser{
+		Games: make(map[string]Game),
+	}
+	gp.Parse()
+
+	var games []string
+
+	for g := range gp.Games {
+		if g == gs.Launcher {
+			continue
+		}
+
+		games = append(games, g)
+	}
+
+	hub.AddMessageHandler(hub.ActionList, func(m hub.MessageIn) {
+		hub.Send(hub.MessageOut{
+			To:     hub.Game,
+			Action: hub.ActionList,
+			Data:   games,
+		})
+	})
+
+	hub.AddMessageHandler(hub.ActionStart, func(m hub.MessageIn) {
+		var data string
+
+		err := json.Unmarshal(m.Data, &data)
+
+		if err != nil {
+			return
+		}
+
+		gs.Start(data)
+	})
+
+	for _, game := range gp.Games {
 		serveController(game)
 	}
 
-	go h.run()
-
-	http.HandleFunc("/ws", serverWs)
-	http.HandleFunc("/", redirectToController)
+	http.HandleFunc("/ws", hub.ServeWs)
 
 	go func() {
 		err := http.ListenAndServe(*addr, nil)
@@ -47,18 +79,19 @@ func main() {
 		}
 	}()
 
-	scheduler.run()
+	gs.Run(gp.Games)
 }
 
 func serveController(game Game) {
-	controllerPath := filepath.Join(gamesDir, strings.ToLower(game.Name), controllerDir)
+	controllerPath := filepath.Join(GamesDir, strings.ToLower(game.Name), ControllerDir)
 	prefix := strings.ToLower(game.Name)
-
 	http.Handle("/"+prefix+"/", http.StripPrefix("/"+prefix+"/", http.FileServer(http.Dir(controllerPath))))
 }
 
 func redirectToController(w http.ResponseWriter, r *http.Request) {
-	if scheduler.currentGame.Name != "" {
-		http.Redirect(w, r, "/"+strings.ToLower(scheduler.currentGame.Name), http.StatusFound)
+	currentGame := gs.GetCurrentGameName()
+
+	if currentGame != "" {
+		http.Redirect(w, r, "/"+strings.ToLower(currentGame), http.StatusFound)
 	}
 }

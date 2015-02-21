@@ -56,8 +56,6 @@ public class Launcher extends BasicGame {
         instantiateColors();
         instantiateFonts();
         instantiateGUI();
-
-        createGameList();
     }
 
     private void instantiateFonts() {
@@ -74,8 +72,8 @@ public class Launcher extends BasicGame {
         startButtonTTFont = new TrueTypeFont(startButtonFont, true);
     }
 
-    private void createGameList() {
-        gameList = gameSession.getGames();
+    public void setGameList(List<String> games) {
+        gameList = games;
     }
 
     private void instantiateColors() {
@@ -207,11 +205,13 @@ public class Launcher extends BasicGame {
     }
 
     private void drawSelectedGameTitle(Graphics g) {
-        selectedGameName = gameList.get(selectedGameNr);
-        selectedGameName = selectedGameName.toUpperCase();
-        int selectedGameFontWidth = selectedGameTTFont.getWidth(selectedGameName);
-        g.setFont(selectedGameTTFont);
-        g.drawString(selectedGameName, middleSeperator.getX() / 2 - selectedGameFontWidth / 2, 5 / 2 * header.getHeight() - MARGIN);
+        if (!gameList.isEmpty()) {
+            selectedGameName = gameList.get(selectedGameNr);
+            selectedGameName = selectedGameName.toUpperCase();
+            int selectedGameFontWidth = selectedGameTTFont.getWidth(selectedGameName);
+            g.setFont(selectedGameTTFont);
+            g.drawString(selectedGameName, middleSeperator.getX() / 2 - selectedGameFontWidth / 2, 5 / 2 * header.getHeight() - MARGIN);
+        }
     }
 
     private void drawGameList(Graphics g) {
