@@ -34,7 +34,8 @@ public class Application {
     private void createGameSession() {
         try {
             gameSession = new GameSession(game);
-        } catch (DeploymentException e) {
+            gameSession.connect();
+        } catch (Exception e) {
             fatalError("Could not start websocket server: " + e.getMessage());
         }
     }
@@ -45,7 +46,7 @@ public class Application {
             app.setAlwaysRender(true);
             app.start();
         } catch (SlickException e) {
-            fatalError("Could not start game: " + e.getMessage());
+            fatalError("Could not start launcher: " + e.getMessage());
         }
     }
 
