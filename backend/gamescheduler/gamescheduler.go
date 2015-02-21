@@ -2,6 +2,8 @@ package gamescheduler
 
 import . "github.com/s111/bachelor/backend/gameparser"
 
+const Launcher = "Launcher"
+
 var gs = gameScheduler{
 	startGame:      make(chan *gameProcess),
 	currentProcess: &gameProcess{},
@@ -29,9 +31,7 @@ func (gs *gameScheduler) start(name string) {
 }
 
 func (gs *gameScheduler) run() {
-	const launcher = "Launcher"
-
-	go gs.start(launcher)
+	go gs.start(Launcher)
 
 	for {
 		select {
@@ -40,7 +40,7 @@ func (gs *gameScheduler) run() {
 
 			gs.ready = false
 
-			if gs.currentProcess.game.Name == launcher {
+			if gs.currentProcess.game.Name == Launcher {
 				return
 			}
 
@@ -48,7 +48,7 @@ func (gs *gameScheduler) run() {
 			case g := <-gs.startGame:
 				go func() { gs.startGame <- g }()
 			default:
-				go gs.start(launcher)
+				go gs.start(Launcher)
 			}
 		}
 	}
@@ -56,6 +56,14 @@ func (gs *gameScheduler) run() {
 
 func (gs *gameScheduler) getCurrentGameName() string {
 	return gs.currentProcess.game.Name
+}
+
+func GetCurrentGameName() string {
+	return gs.getCurrentGameName()
+}
+
+func Start(name string) {
+	gs.start(name)
 }
 
 func Run(games map[string]Game) {
@@ -69,8 +77,4 @@ func Run(games map[string]Game) {
 
 	gs.games = g
 	gs.run()
-}
-
-func GetCurrentGameName() string {
-	return gs.getCurrentGameName()
 }
