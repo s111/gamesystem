@@ -1,101 +1,49 @@
 package com.github.s111.bachelor.triggerhappy.network;
 
 import com.github.s111.bachelor.triggerhappy.game.Triggerhappy;
-
 import org.glassfish.tyrus.client.ClientManager;
-import org.glassfish.tyrus.server.Server;
 
 import javax.json.Json;
 import javax.json.JsonObject;
-import javax.websocket.*;
+import javax.json.JsonReader;
+import javax.websocket.DeploymentException;
+import javax.websocket.EncodeException;
+import javax.websocket.Session;
 import java.io.IOException;
+import java.io.StringReader;
 import java.net.URI;
-import java.nio.ByteBuffer;
-import java.util.ArrayList;
-import java.util.List;
+import java.net.URISyntaxException;
 
 public class GameSession {
     private final Triggerhappy game;
 
-    private List<Player> players;
+    private Session backend;
 
     public GameSession(Triggerhappy game) throws DeploymentException {
         this.game = game;
-        players = new ArrayList<>();
-        Server server = new Server("localhost", 1234, "/", null, WebsocketServer.class);
-        server.start();
-
-        sendReady();
     }
-    public void onOpen(Session session) throws IOException {
-        players.add(new Player(session));
 
-        RemoteEndpoint.Basic remote = session.getBasicRemote();
-        remote.sendPing(ByteBuffer.wrap("".getBytes()));
+    public void connect() throws URISyntaxException, IOException, DeploymentException {
+        ClientManager client = ClientManager.createClient();
+        client.connectToServer(WebsocketClient.class, new URI("ws://localhost:3001/ws"));
+    }
+
+    public void onOpen(Session session) throws IOException, EncodeException {
+        backend = session;
+        backend.getBasicRemote().sendObject(Json.createObjectBuilder()
+                .add("action", "identify")
+                .add("data", "game")
+                .build());
     }
 
     public void onMessage(Session session, String message) throws IOException {
-        int position;
-        try {
-            position = Integer.parseInt(message);
-        } catch (NumberFormatException e) {
-            position = -1;
-        }
-        for (Player player : players) {
-            if (session.equals(player.getSession())) {
-                if(game.checkIfHit(position)) {
-                    player.increaseScore();
-                }
-            }
-        }
-    }
+        JsonReader jsonReader = Json.createReader(new StringReader(message));
+        JsonObject jsonObj = jsonReader.readObject();
+        jsonReader.close();
 
-    private void sendReady() {
-        ClientManager client = ClientManager.createClient();
+        String action = jsonObj.getString("action");
 
-        try {
-            client.connectToServer(new Endpoint() {
-                @Override
-                public void onOpen(Session session, EndpointConfig config) {
-                    JsonObject b = Json.createObjectBuilder()
-                            .add("action", "ready")
-                            .build();
-
-                    session.getAsyncRemote().sendObject(b);
-                }
-            }, new URI("ws://localhost:3001/ws"));
-        } catch (Exception e) {
-            System.out.println("Unable to recover; exiting...");
-            System.exit(1);
-        }
-    }
-
-    public List<Integer> getScores() {
-        List<Integer> scores = new ArrayList<Integer>();
-        for (Player player : players) {
-            scores.add(player.getScore());
-        }
-        return scores;
-    }
-
-    private class Player {
-        private Session session;
-        private int score = 0;
-
-        private Player(Session session) {
-            this.session = session;
-        }
-
-        public Session getSession() {
-            return session;
-        }
-
-        public void increaseScore() {
-            score++;
-        }
-
-        public int getScore() {
-            return score;
+        switch (action) {
         }
     }
 }
