@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/json"
 	"flag"
 	"io/ioutil"
 	"log"
@@ -33,6 +34,36 @@ func main() {
 		Games: make(map[string]Game),
 	}
 	gp.Parse()
+
+	var games []string
+
+	for g := range gp.Games {
+		if g == gs.Launcher {
+			continue
+		}
+
+		games = append(games, g)
+	}
+
+	hub.AddMessageHandler(hub.ActionList, func(m hub.MessageIn) {
+		hub.Send(hub.MessageOut{
+			To:     hub.Game,
+			Action: hub.ActionList,
+			Data:   games,
+		})
+	})
+
+	hub.AddMessageHandler(hub.ActionStart, func(m hub.MessageIn) {
+		var data string
+
+		err := json.Unmarshal(m.Data, &data)
+
+		if err != nil {
+			return
+		}
+
+		gs.Start(data)
+	})
 
 	for _, game := range gp.Games {
 		serveController(game)

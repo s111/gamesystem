@@ -25,6 +25,9 @@ const (
 
 	// ActionDrop is a event sent to the game when a client is dropped
 	ActionDrop = "dropped client"
+
+	ActionList  = "list"
+	ActionStart = "start"
 )
 
 var h = hub{
