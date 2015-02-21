@@ -68,7 +68,7 @@ func TestAddClient(t *testing.T) {
 	ws := newWs(t, s.URL)
 	defer ws.Close()
 
-	ws.WriteJSON(messageOut{
+	ws.WriteJSON(MessageOut{
 		Action: ActionIdentify,
 		Data:   Game,
 	})
@@ -76,7 +76,7 @@ func TestAddClient(t *testing.T) {
 	checkClientRegistered(t, Game)
 	sendCloseMessage(t, ws)
 
-	h.send <- messageOut{
+	h.send <- MessageOut{
 		To: Game,
 	}
 
@@ -90,7 +90,7 @@ func TestAddClientEmptyId(t *testing.T) {
 	ws := newWs(t, s.URL)
 	defer ws.Close()
 
-	ws.WriteJSON(messageOut{
+	ws.WriteJSON(MessageOut{
 		Action: ActionIdentify,
 		Data:   "",
 	})
@@ -108,21 +108,21 @@ func TestReplaceActiveClient(t *testing.T) {
 	defer ws1.Close()
 	defer ws2.Close()
 
-	ws1.WriteJSON(messageOut{
+	ws1.WriteJSON(MessageOut{
 		Action: ActionIdentify,
 		Data:   Game,
 	})
 
 	checkClientRegistered(t, Game)
 
-	ws2.WriteJSON(messageOut{
+	ws2.WriteJSON(MessageOut{
 		Action: ActionIdentify,
 		Data:   Game,
 	})
 
 	wait(20)
 
-	msg := &messageIn{}
+	msg := &MessageIn{}
 
 	// first identify message
 	ws2.ReadJSON(msg)
@@ -142,7 +142,7 @@ func TestResumeClientWithQueuedMessage(t *testing.T) {
 
 	ws := newWs(t, s.URL)
 
-	ws.WriteJSON(messageOut{
+	ws.WriteJSON(MessageOut{
 		Action: ActionIdentify,
 		Data:   Game,
 	})
@@ -152,13 +152,13 @@ func TestResumeClientWithQueuedMessage(t *testing.T) {
 
 	ws.Close()
 
-	h.send <- messageOut{
+	h.send <- MessageOut{
 		To: Game,
 	}
 
 	ws = newWs(t, s.URL)
 
-	ws.WriteJSON(messageOut{
+	ws.WriteJSON(MessageOut{
 		Action: ActionIdentify,
 		Data:   Game,
 	})
@@ -184,14 +184,14 @@ func TestPassthrough(t *testing.T) {
 	defer gameWs.Close()
 	defer cWs.Close()
 
-	gameWs.WriteJSON(messageOut{
+	gameWs.WriteJSON(MessageOut{
 		Action: ActionIdentify,
 		Data:   Game,
 	})
 
 	checkClientRegistered(t, Game)
 
-	cWs.WriteJSON(messageOut{
+	cWs.WriteJSON(MessageOut{
 		Action: ActionIdentify,
 		Data:   c,
 	})
@@ -205,7 +205,7 @@ func TestPassthrough(t *testing.T) {
 
 	wait(20)
 
-	msg := &messageIn{}
+	msg := &MessageIn{}
 	gameWs.ReadJSON(msg)
 	// The second should be a added client message
 	gameWs.ReadJSON(msg)

@@ -38,17 +38,17 @@ type connection struct {
 	id      string
 	timeout *time.Timer
 	ws      *websocket.Conn
-	send    chan messageOut
+	send    chan MessageOut
 	stop    chan bool
 }
 
-type messageIn struct {
+type MessageIn struct {
 	To     string          `json:"to,omitempty"`
 	Action string          `json:"action,omitempty"`
 	Data   json.RawMessage `json:"data,omitempty"`
 }
 
-type messageOut struct {
+type MessageOut struct {
 	To     string      `json:"to,omitempty"`
 	From   string      `json:"from,omitempty"`
 	Action string      `json:"action,omitempty"`
@@ -79,7 +79,7 @@ func (c *connection) listenRead() {
 	})
 
 	for {
-		msg := &messageIn{}
+		msg := &MessageIn{}
 		err := c.ws.ReadJSON(msg)
 
 		if err != nil {
@@ -96,7 +96,7 @@ func (c *connection) listenRead() {
 
 		switch msg.Action {
 		case ActionPassthrough:
-			data := messageOut{}
+			data := MessageOut{}
 			err := json.Unmarshal(msg.Data, &data)
 
 			if err != nil {
@@ -105,7 +105,7 @@ func (c *connection) listenRead() {
 				return
 			}
 
-			h.send <- messageOut{
+			h.send <- MessageOut{
 				To:     msg.To,
 				From:   c.id,
 				Action: data.Action,
@@ -134,7 +134,7 @@ func (c *connection) listenRead() {
 
 			if !<-r.ok {
 				c.id = ""
-				c.send <- messageOut{Action: ActionIdentify}
+				c.send <- MessageOut{Action: ActionIdentify}
 			}
 		}
 	}
@@ -203,7 +203,7 @@ func ServeWs(w http.ResponseWriter, r *http.Request) {
 	c := &connection{
 		active: true,
 		ws:     ws,
-		send:   make(chan messageOut),
+		send:   make(chan MessageOut),
 		stop:   make(chan bool),
 	}
 
@@ -219,7 +219,7 @@ func ServeWs(w http.ResponseWriter, r *http.Request) {
 
 	go c.listenWrite()
 
-	c.send <- messageOut{Action: ActionIdentify}
+	c.send <- MessageOut{Action: ActionIdentify}
 
 	c.listenRead()
 

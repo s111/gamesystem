@@ -31,14 +31,14 @@ var h = hub{
 	clients:    make(map[string]*connection),
 	register:   make(chan registration),
 	unregister: make(chan registration),
-	send:       make(chan messageOut),
+	send:       make(chan MessageOut),
 }
 
 type hub struct {
 	clients    map[string]*connection
 	register   chan registration
 	unregister chan registration
-	send       chan messageOut
+	send       chan MessageOut
 
 	tLock   sync.RWMutex
 	timeout time.Duration
@@ -99,7 +99,7 @@ func (h *hub) run() {
 
 					go func() {
 						if r.conn.id != Game {
-							h.send <- messageOut{
+							h.send <- MessageOut{
 								To:     Game,
 								Action: ActionAdd,
 								Data:   r.conn.id,
@@ -122,7 +122,7 @@ func (h *hub) run() {
 
 					go func() {
 						if c.id != Game {
-							h.send <- messageOut{
+							h.send <- MessageOut{
 								To:     Game,
 								Action: ActionDrop,
 								Data:   c.id,
@@ -148,6 +148,17 @@ func (h *hub) run() {
 			}
 		}
 	}
+}
+
+func AddMessageHandler(action string, cb func(m MessageIn)) {
+	h.hLock.Lock()
+	defer h.hLock.Unlock()
+
+	h.handlers[action] = cb
+}
+
+func Send(m MessageOut) {
+	h.send <- m
 }
 
 // SetTimeout is used to set how long a client can be "gone" until the game should consider it dropped.
