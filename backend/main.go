@@ -47,7 +47,7 @@ func main() {
 
 	hub.AddMessageHandler(hub.ActionList, func(m hub.MessageIn) {
 		hub.Send(hub.MessageOut{
-			To:     hub.Game,
+			To:     m.From,
 			Action: hub.ActionList,
 			Data:   games,
 		})

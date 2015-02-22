@@ -44,6 +44,7 @@ type connection struct {
 
 type MessageIn struct {
 	To     string          `json:"to,omitempty"`
+	From   string          `json:"from,omitempty"`
 	Action string          `json:"action,omitempty"`
 	Data   json.RawMessage `json:"data,omitempty"`
 }
@@ -98,6 +99,8 @@ func (c *connection) listenRead() {
 
 		for action, cb := range h.handlers {
 			if action == msg.Action {
+				msg.From = c.id
+
 				cb(*msg)
 			}
 		}
