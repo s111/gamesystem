@@ -73,6 +73,9 @@ func main() {
 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		redirectToController(w, r)
 	})
+	http.HandleFunc("/hub.js", func(w http.ResponseWriter, r *http.Request) {
+		http.ServeFile(w, r, "hub.js")
+	})
 
 	go func() {
 		err := http.ListenAndServe(*addr, nil)
