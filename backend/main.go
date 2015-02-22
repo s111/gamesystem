@@ -70,6 +70,9 @@ func main() {
 	}
 
 	http.HandleFunc("/ws", hub.ServeWs)
+	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+		redirectToController(w, r)
+	})
 
 	go func() {
 		err := http.ListenAndServe(*addr, nil)
