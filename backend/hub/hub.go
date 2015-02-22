@@ -145,13 +145,10 @@ func (h *hub) run() {
 
 		case m := <-h.send:
 			if c, ok := h.clients[m.To]; ok {
-				// Don't allow clients to talk to each other
-				if m.To == Game || m.From == Game {
-					m.To = ""
+				m.To = ""
 
-					// Use a go routine as a send can block when the connection is inactive
-					go func() { c.send <- m }()
-				}
+				// Use a go routine as a send can block when the connection is inactive
+				go func() { c.send <- m }()
 			}
 		}
 	}
