@@ -11,33 +11,30 @@ var y = 0;
 
 var movePaddle = function(pos) {};
 
-addMessageHandler(function(e) {
-    var msg = JSON.parse(e.data);
+addMessageHandler(function(msg) {
+  if (msg === "identified") {
+    sendToBackend("list");
+  }
 
-    if (msg.action === "identify") {
-        sendToBackend("identify", "launcher");
-        sendToBackend("list");
+  if (msg.action === "list") {
+    games = msg.data;
+
+    game = new Phaser.Game(800, 600, Phaser.AUTO, 'game', {preload: preload, create: create});
+  }
+
+  movePaddle = function(pos) {
+    if (selectedGame && pos === "start") {
+      sendToGame("start", selectedGame);
+
+      setTimeout(function() {
+        document.location.href="/";
+      }, 1000);
+    } else {
+      selectedGame = games[pos];
+
+      sendToGame("select", games[pos]);
     }
-
-    if (msg.action === "list") {
-        games = msg.data;
-
-        game = new Phaser.Game(800, 600, Phaser.AUTO, 'game', {preload: preload, create: create});
-    }
-
-    movePaddle = function(pos) {
-        if (selectedGame && pos === "start") {
-            sendToGame("start", selectedGame);
-
-            setTimeout(function() {
-                document.location.href="/";
-            }, 1000);
-        } else {
-            selectedGame = games[pos];
-
-            sendToGame("select", games[pos]);
-        }
-    };
+  };
 });
 
 function preload() {
