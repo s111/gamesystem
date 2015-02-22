@@ -159,7 +159,6 @@ public class Pong extends BasicGame {
                     player1Score++;
                 }
 
-                gameSession.broadcastScore(player1Score, player2Score);
                 resetBall();
             }
         }

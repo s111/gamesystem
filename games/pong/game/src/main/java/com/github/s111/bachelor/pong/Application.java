@@ -13,7 +13,6 @@ public class Application {
 
     private Application() {
         game = new Pong("Pong");
-
         createGameSession();
         startGame();
     }
@@ -24,7 +23,6 @@ public class Application {
 
     public static void fatalError(String error) {
         System.out.println(error);
-
         exit();
     }
 
@@ -36,7 +34,8 @@ public class Application {
     private void createGameSession() {
         try {
             gameSession = new GameSession(game);
-        } catch (DeploymentException e) {
+            gameSession.connect();
+        } catch (Exception e) {
             fatalError("Could not start websocket server: " + e.getMessage());
         }
     }
@@ -47,7 +46,7 @@ public class Application {
             app.setAlwaysRender(true);
             app.start();
         } catch (SlickException e) {
-            fatalError("Could not start game: " + e.getMessage());
+            fatalError("Could not start pong: " + e.getMessage());
         }
     }
 
