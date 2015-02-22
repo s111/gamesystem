@@ -49,6 +49,10 @@ public class GameSession {
         JsonObject jsonObj = jsonReader.readObject();
         jsonReader.close();
 
+        if (!(jsonObj.containsKey("action") && jsonObj.containsKey("data"))) {
+            return;
+        }
+
         String action = jsonObj.getString("action");
 
         switch (action) {
