@@ -13,14 +13,19 @@ import java.io.IOException;
 import java.io.StringReader;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.ArrayList;
+import java.util.List;
 
 public class GameSession {
     private final Triggerhappy game;
+
+    private List<Player> players;
 
     private Session backend;
 
     public GameSession(Triggerhappy game) throws DeploymentException {
         this.game = game;
+        players = new ArrayList();
     }
 
     public void connect() throws URISyntaxException, IOException, DeploymentException {
@@ -44,6 +49,77 @@ public class GameSession {
         String action = jsonObj.getString("action");
 
         switch (action) {
+            case "added client": {
+                String id = jsonObj.getString("data");
+
+                players.add(new Player(id));
+
+                break;
+            }
+            case "dropped client": {
+                String id = jsonObj.getString("data");
+
+                for (Player player : players) {
+                    if (player.getId().equals(id)) {
+                        players.remove(player);
+                    }
+                }
+                break;
+            }
+            case "shoot": {
+                String data = jsonObj.getJsonNumber("data").toString();
+
+                int position;
+
+                try {
+                    position = Integer.parseInt(data);
+                } catch (Exception e) {
+                    position = -1;
+                }
+
+                if (!jsonObj.containsKey("from")) {
+                    return;
+                }
+
+                String from = jsonObj.getString("from");
+
+                for (Player player : players) {
+                    if (player.getId().equals(from)) {
+                        if (game.checkIfHit(position)) {
+                            player.increaseScore();
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    public List<Integer> getScores() {
+        List<Integer> scores = new ArrayList<Integer>();
+        for (Player player : players) {
+            scores.add(player.getScore());
+        }
+        return scores;
+    }
+
+    private class Player {
+        private String id;
+        private int score = 0;
+
+        private Player(String id) {
+            this.id = id;
+        }
+
+        public String getId() {
+            return id;
+        }
+
+        public void increaseScore() {
+            score++;
+        }
+
+        public int getScore() {
+            return score;
         }
     }
 }

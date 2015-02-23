@@ -8,6 +8,7 @@ import org.newdawn.slick.Graphics;
 import org.newdawn.slick.geom.Rectangle;
 
 import java.awt.Font;
+import java.util.List;
 import java.util.Random;
 
 public class Triggerhappy extends BasicGame {
@@ -170,5 +171,14 @@ public class Triggerhappy extends BasicGame {
 
         g.setColor(new Color(231, 76, 60));
         g.fill(enemy);
+
+        drawScore(g);
+    }
+
+
+    private void drawScore(Graphics g) {
+        g.setFont(font);
+        List<Integer> scores = gameSession.getScores();
+        g.drawString("Score: " + scores.toString(), 30, 30);
     }
 }
