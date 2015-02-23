@@ -94,6 +94,22 @@ func (h *hub) run() {
 
 					r.ok <- true
 
+					go func() {
+						if r.conn.id == Game {
+							for id, _ := range h.clients {
+								if id == Game {
+									continue
+								}
+
+								h.send <- MessageOut{
+									To:     Game,
+									Action: ActionAdd,
+									Data:   id,
+								}
+							}
+						}
+					}()
+
 					log.Println("Resumed client:", r.conn.id)
 				} else {
 					r.ok <- false
@@ -110,6 +126,18 @@ func (h *hub) run() {
 								To:     Game,
 								Action: ActionAdd,
 								Data:   r.conn.id,
+							}
+						} else {
+							for id, _ := range h.clients {
+								if id == Game {
+									continue
+								}
+
+								h.send <- MessageOut{
+									To:     Game,
+									Action: ActionAdd,
+									Data:   id,
+								}
 							}
 						}
 					}()
