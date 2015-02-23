@@ -1,31 +1,18 @@
-var backend;
-var conn;
-
 var game = new Phaser.Game(800, 600, Phaser.AUTO, 'game', {preload: preload, create: create});
 
 var pos;
-
-var bttnHeight;
-var bttnWidth;
 
 var shootEnemy = function(pos) { }
 
 
 function preload() {
-  backend = new WebSocket('ws://' + window.location.hostname + ':3001/ws');
-
-  backend.onmessage = function(e) {
-    if (JSON.parse(e.data) === "ready") {
-      conn = new WebSocket('ws://' + window.location.hostname + ':1234/ws');
-
-      conn.onopen = function (e) {
-        shootEnemy = function(pos) {
-          window.navigator.vibrate(200);
-          conn.send(pos)
-        }
+  addMessageHandler(function(msg) {
+    if (msg === "identified") {
+      shootEnemy = function(pos) {
+        sendToGame("shoot", pos);
       }
     }
-  };
+  });
 
   game.stage.backgroundColor = '#2C3E59';
 }
@@ -35,8 +22,8 @@ function create() {
   game.scale.scaleMode = Phaser.ScaleManager.EXACT_FIT;
   game.scale.refresh();
 
-  bttnWidth = game.stage.width / 3;
-  bttnHeight = game.stage.height / 2;
+  var bttnWidth = game.stage.width / 3;
+  var bttnHeight = game.stage.height / 2;
 
   for (i=0; i < 6; i++) {
     g = game.add.graphics(0, 0);
