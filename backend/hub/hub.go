@@ -94,9 +94,15 @@ func (h *hub) run() {
 
 					r.ok <- true
 
+					var tmpClients []string
+
+					for id, _ := range h.clients {
+						tmpClients = append(tmpClients, id)
+					}
+
 					go func() {
 						if r.conn.id == Game {
-							for id, _ := range h.clients {
+							for _, id := range tmpClients {
 								if id == Game {
 									continue
 								}
@@ -120,6 +126,12 @@ func (h *hub) run() {
 
 					r.ok <- true
 
+					var tmpClients []string
+
+					for id, _ := range h.clients {
+						tmpClients = append(tmpClients, id)
+					}
+
 					go func() {
 						if r.conn.id != Game {
 							h.send <- MessageOut{
@@ -128,7 +140,7 @@ func (h *hub) run() {
 								Data:   r.conn.id,
 							}
 						} else {
-							for id, _ := range h.clients {
+							for _, id := range tmpClients {
 								if id == Game {
 									continue
 								}
