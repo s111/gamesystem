@@ -1,6 +1,8 @@
 package main
 
 import (
+	"flag"
+	"fmt"
 	"io/ioutil"
 	"log"
 	"os"
@@ -9,7 +11,33 @@ import (
 	"strings"
 )
 
+var (
+	help = flag.Bool(
+		"help",
+		false,
+		"Show usage help",
+	)
+	gameFlag = flag.String(
+		"game",
+		"",
+		"Specify which game to compile",
+	)
+)
+
+func Usage() {
+	fmt.Fprintf(os.Stderr, "\nOptions:\n")
+	flag.PrintDefaults()
+}
+
 func main() {
+	flag.Usage = Usage
+	flag.Parse()
+
+	if *help {
+		flag.Usage()
+		os.Exit(0)
+	}
+
 	rootDir, _ := os.Getwd()
 
 	gamesDir := filepath.Join(rootDir, "games")
@@ -19,6 +47,13 @@ func main() {
 
 	for _, game := range games {
 		gameName := game.Name()
+
+		if *gameFlag != "" {
+			if gameName != *gameFlag {
+				continue
+			}
+		}
+
 		gamePath := filepath.Join(gamesDir, gameName)
 
 		json := filepath.Join(gamePath, "game.json")
