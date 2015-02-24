@@ -1,4 +1,5 @@
 package com.github.s111.bachelor.quizzer;
+
 import com.github.s111.bachelor.quizzer.game.Quizzer;
 import com.github.s111.bachelor.quizzer.network.GameSession;
 import org.newdawn.slick.AppGameContainer;
@@ -30,6 +31,10 @@ public class Application {
         System.exit(1);
     }
 
+    public static void main(String[] args) {
+        new Application();
+    }
+
     private void createGameSession() {
         try {
             gameSession = new GameSession(game);
@@ -47,9 +52,5 @@ public class Application {
         } catch (SlickException e) {
             fatalError("Could not start Quizzer: " + e.getMessage());
         }
-    }
-
-    public static void main(String[] args) {
-        new Application();
     }
 }

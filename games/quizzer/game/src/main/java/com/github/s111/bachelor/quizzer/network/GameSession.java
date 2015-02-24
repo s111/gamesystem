@@ -2,17 +2,17 @@ package com.github.s111.bachelor.quizzer.network;
 
 import com.github.s111.bachelor.quizzer.game.Quizzer;
 import org.glassfish.tyrus.client.ClientManager;
-import org.glassfish.tyrus.server.Server;
 
 import javax.json.Json;
 import javax.json.JsonObject;
 import javax.json.JsonReader;
-import javax.websocket.*;
+import javax.websocket.DeploymentException;
+import javax.websocket.EncodeException;
+import javax.websocket.Session;
 import java.io.IOException;
 import java.io.StringReader;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.nio.ByteBuffer;
 
 public class GameSession {
     private final Quizzer game;
@@ -24,6 +24,7 @@ public class GameSession {
     public GameSession(Quizzer game) throws DeploymentException {
         this.game = game;
     }
+
     public void connect() throws URISyntaxException, IOException, DeploymentException {
         ClientManager client = ClientManager.createClient();
         client.connectToServer(WebsocketClient.class, new URI("ws://localhost:3001/ws"));
