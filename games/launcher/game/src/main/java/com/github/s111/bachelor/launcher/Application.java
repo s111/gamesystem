@@ -5,8 +5,6 @@ import com.github.s111.bachelor.launcher.network.GameSession;
 import org.newdawn.slick.AppGameContainer;
 import org.newdawn.slick.SlickException;
 
-import javax.websocket.DeploymentException;
-
 public class Application {
     private static Launcher game;
     private static GameSession gameSession;
