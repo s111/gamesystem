@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"io/ioutil"
 	"log"
 	"os"
@@ -10,13 +9,10 @@ import (
 	"strings"
 )
 
-var gamesDir = "games"
-
-var nativesDir, libDir, controllerDir, newControllerDir string
-
 func main() {
 	rootDir, _ := os.Getwd()
 
+	gamesDir := filepath.Join(rootDir, "games")
 	newGamesDir := filepath.Join(rootDir, "/backend/games")
 
 	games, _ := ioutil.ReadDir(gamesDir)
@@ -24,69 +20,70 @@ func main() {
 	for _, game := range games {
 		gameName := game.Name()
 		gamePath := filepath.Join(gamesDir, gameName)
-		gamePath = filepath.Join(rootDir, gamePath) // temp fix
 
 		json := filepath.Join(gamePath, "game.json")
 		gameDir := filepath.Join(gamePath, "/game")
-		controllerDir = filepath.Join(gamePath, "controller")
+		controllerDir := filepath.Join(gamePath, "controller")
 		targetDir := filepath.Join(gameDir, "target")
-		nativesDir = filepath.Join(targetDir, "natives")
+		nativesDir := filepath.Join(targetDir, "natives")
 
 		newGameDir := filepath.Join(newGamesDir, gameName)
 		newJson := filepath.Join(newGameDir, "game.json")
 		binDir := filepath.Join(newGameDir, "bin")
-		libDir = filepath.Join(newGameDir, "lib")
-		newControllerDir = filepath.Join(newGameDir, "controller")
+		libDir := filepath.Join(newGameDir, "lib")
+		newControllerDir := filepath.Join(newGameDir, "controller")
 
 		os.MkdirAll(binDir, 0777)
 
 		os.Chdir(gameDir)
 
-		runCommand("mvn clean compile assembly:single")
+		compileGame(gameName)
 
-		os.Chdir(rootDir)
-
-		jarName := getJarName(filepath.Join(gameDir))
+		jarName := getJarName(targetDir)
 		jar := filepath.Join(targetDir, jarName)
 		newJar := filepath.Join(binDir, gameName+".jar")
 
 		os.Symlink(json, newJson)
 		os.Symlink(jar, newJar)
-
 		os.Symlink(nativesDir, libDir)
 		os.Symlink(controllerDir, newControllerDir)
+
+		log.Printf("[%v] has been compiled and symlinked to backend.\n", gameName)
 	}
+
+	log.Println("*** PACKAGING COMPLETE ***\n")
 }
 
-func runCommand(cmd string) {
+func compileGame(gameName string) {
+	cmd := "mvn clean compile assembly:single"
 	parts := strings.Fields(cmd)
 	head := parts[0]
 	parts = parts[1:len(parts)]
 
-	out, err := exec.Command(head, parts...).Output()
+	log.Printf("[%v] is being compiled. This may take a while!\n", gameName)
+
+	err := exec.Command(head, parts...).Run()
 
 	if err != nil {
-		log.Printf("Could not execute command: %v\n", cmd)
-		return
+		log.Println("Could not execute command:", cmd+". Reason:", err)
 	}
-
-	fmt.Printf("%s", out)
 }
 
 func getJarName(path string) string {
-	jarPath := filepath.Join(path, "target")
 	var jarName string
 
-	d, err := os.Open(jarPath)
+	d, err := os.Open(path)
 	defer d.Close()
+
 	if err != nil {
-		fmt.Println(err)
+		log.Println(err)
 		os.Exit(1)
 	}
 
 	files, err := d.Readdir(-1)
+
 	if err != nil {
-		fmt.Println(err)
+		log.Println(err)
 		os.Exit(1)
 	}
 
@@ -97,5 +94,6 @@ func getJarName(path string) string {
 			}
 		}
 	}
+
 	return jarName
 }
