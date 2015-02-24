@@ -1,6 +1,10 @@
 package gamescheduler
 
-import . "github.com/s111/bachelor/backend/gameparser"
+import (
+	"log"
+
+	. "github.com/s111/bachelor/backend/gameparser"
+)
 
 const Launcher = "Launcher"
 
@@ -31,6 +35,12 @@ func (gs *gameScheduler) start(name string) {
 }
 
 func (gs *gameScheduler) run() {
+	if len(gs.games) == 0 {
+		log.Println("no games found")
+
+		return
+	}
+
 	go gs.start(Launcher)
 
 	for {
