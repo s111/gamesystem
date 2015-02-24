@@ -42,51 +42,52 @@ public class GameSession {
         JsonObject jsonObj = jsonReader.readObject();
         jsonReader.close();
 
-        if (playerNotActive) {
-            player = session;
-        } else {
-            closeConnection(session);
-            return;
-        }
+        String action = jsonObj.getString("action");
 
-        RemoteEndpoint.Basic remote = session.getBasicRemote();
-        remote.sendPing(ByteBuffer.wrap("".getBytes()));
-    }
+        switch (action) {
+            case "added client": {
+                String id = jsonObj.getString("data");
 
-    public void closeConnection(Session session) throws IOException {
-        RemoteEndpoint.Basic remote = session.getBasicRemote();
-        remote.sendText("Already got player");
+                player = new Player(id);
 
-        session.close();
-    }
+                break;
+            }
+            case "dropped client": {
+                String id = jsonObj.getString("data");
 
-    public void onMessage(Session session, String message) throws IOException {
-        int selection;
-        try {
-            selection = Integer.parseInt(message);
-        } catch (NumberFormatException e) {
-            selection = -1;
-        }
-
-        game.checkIfCorrectAnswer(selection);
-    }
-
-    private void sendReady() {
-        ClientManager client = ClientManager.createClient();
-        try {
-            client.connectToServer(new Endpoint() {
-                @Override
-                public void onOpen(Session session, EndpointConfig config) {
-                    JsonObject b = Json.createObjectBuilder()
-                            .add("action", "ready")
-                            .build();
-
-                    session.getAsyncRemote().sendObject(b);
+                if (player.getId() == id) {
+                    player.setId("");
                 }
-            }, new URI("ws://localhost:3001/ws"));
-        } catch (Exception e) {
-            System.out.println("Unable to recover; exiting...");
-            System.exit(1);
+                break;
+            }
+            case "answer": {
+                String data = jsonObj.getJsonNumber("data").toString();
+
+                int selection;
+                try {
+                    selection = Integer.parseInt(data);
+                } catch (NumberFormatException e) {
+                    selection = -1;
+                }
+
+                game.checkIfCorrectAnswer(selection);
+            }
+        }
+    }
+
+    private class Player {
+        private String id;
+
+        public Player(String id) {
+            this.id = id;
+        }
+
+        public String getId() {
+            return id;
+        }
+
+        public void setId(String id) {
+            this.id = id;
         }
     }
 }
