@@ -6,27 +6,41 @@ import org.glassfish.tyrus.server.Server;
 
 import javax.json.Json;
 import javax.json.JsonObject;
+import javax.json.JsonReader;
 import javax.websocket.*;
 import java.io.IOException;
+import java.io.StringReader;
 import java.net.URI;
+import java.net.URISyntaxException;
 import java.nio.ByteBuffer;
 
 public class GameSession {
     private final Quizzer game;
 
-    private Session player;
+    private Player player;
+
+    private Session backend;
 
     public GameSession(Quizzer game) throws DeploymentException {
         this.game = game;
-
-        Server server = new Server("localhost", 1234, "/", null, WebsocketServer.class);
-        server.start();
-
-        sendReady();
+    }
+    public void connect() throws URISyntaxException, IOException, DeploymentException {
+        ClientManager client = ClientManager.createClient();
+        client.connectToServer(WebsocketClient.class, new URI("ws://localhost:3001/ws"));
     }
 
-    public void onOpen(Session session) throws IOException {
-        boolean playerNotActive = player == null || !player.isOpen();
+    public void onOpen(Session session) throws IOException, EncodeException {
+        backend = session;
+        backend.getBasicRemote().sendObject(Json.createObjectBuilder()
+                .add("action", "identify")
+                .add("data", "game")
+                .build());
+    }
+
+    public void onMessage(Session session, String message) throws IOException {
+        JsonReader jsonReader = Json.createReader(new StringReader(message));
+        JsonObject jsonObj = jsonReader.readObject();
+        jsonReader.close();
 
         if (playerNotActive) {
             player = session;
