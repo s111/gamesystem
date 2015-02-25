@@ -82,6 +82,7 @@ func Run(games map[string]Game) {
 	for _, game := range games {
 		g[game.Name] = gameProcess{
 			game: game,
+			done: make(chan error),
 		}
 	}
 

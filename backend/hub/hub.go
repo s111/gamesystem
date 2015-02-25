@@ -26,8 +26,10 @@ const (
 	// ActionDrop is a event sent to the game when a client is dropped
 	ActionDrop = "dropped client"
 
-	ActionList  = "list"
-	ActionStart = "start"
+	ActionList       = "list"
+	ActionStart      = "start"
+	ActionDisconnect = "disconnect"
+	ActionGetClients = "get clients"
 )
 
 var h = hub{
@@ -184,11 +186,41 @@ func (h *hub) run() {
 			r.ok <- true
 
 		case m := <-h.send:
-			if c, ok := h.clients[m.To]; ok {
-				m.To = ""
+			switch m.Action {
+			case ActionGetClients:
+				var clients []string
 
-				// Use a go routine as a send can block when the connection is inactive
-				go func() { c.send <- m }()
+				for id := range h.clients {
+					clients = append(clients, id)
+				}
+
+				go func() {
+					if c, ok := h.clients[m.To]; ok {
+						c.send <- MessageOut{
+							Action: ActionGetClients,
+							Data:   clients,
+						}
+					}
+				}()
+
+			default:
+				if m.To == "all" {
+					m.To = ""
+
+					for _, c := range h.clients {
+						if c.id == m.From {
+							continue
+						}
+
+						// Use a go routine as a send can block when the connection is inactive
+						go func(c *connection) { c.send <- m }(c)
+					}
+				} else if c, ok := h.clients[m.To]; ok {
+					m.To = ""
+
+					// Use a go routine as a send can block when the connection is inactive
+					go func() { c.send <- m }()
+				}
 			}
 		}
 	}
