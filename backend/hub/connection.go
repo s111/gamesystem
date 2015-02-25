@@ -149,6 +149,11 @@ func (c *connection) listenRead() {
 				c.id = ""
 				c.send <- MessageOut{Action: ActionIdentify}
 			}
+
+		case ActionDisconnect:
+			go func() { c.stop <- true }()
+
+			return
 		}
 	}
 }
