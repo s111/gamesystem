@@ -40,7 +40,7 @@ public class GameSession {
                 .build());
     }
 
-    public void onMessage(Session session, String message) throws IOException {
+    public void onMessage(Session session, String message) throws IOException, EncodeException {
         JsonReader jsonReader = Json.createReader(new StringReader(message));
         JsonObject jsonObj = jsonReader.readObject();
         jsonReader.close();
@@ -54,13 +54,15 @@ public class GameSession {
         switch (action) {
             case "added client": {
                 String id = jsonObj.getString("data");
-
-                if (player1 == null) {
-                    player1 = id;
-                } else if (player2 == null) {
-                    player2 = id;
-                }
-
+                backend.getBasicRemote().sendObject(Json.createObjectBuilder()
+                .add("action", "passthrough")
+                .add("data", Json.createObjectBuilder()
+                        .add("action", "play as")
+                        .add("data", Json.createObjectBuilder()
+                                .add("left", true)
+                                .add("right", true)))
+                .add("to", id)
+                .build());
                 break;
             }
 
