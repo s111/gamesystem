@@ -1,5 +1,24 @@
 var backend
 
+$(function() {
+  disconnectBttn = createBttn("Disconnect", "100%");
+
+  disconnectBttn.click(function () {
+     sendToBackend("disconnect");
+  });
+
+  $("#game").before(disconnectBttn);
+});
+
+function createBttn(text, width) {
+    bttn = $('<button>' + text + '</button>');
+    bttn.css("width", width);
+    bttn.css("height", "75px");
+    bttn.css("font-weight", "bold");
+
+    return bttn;
+}
+
 function addMessageHandler(callback) {
   backend = new WebSocket('ws://' + window.location.hostname + ':3001/ws');
 
