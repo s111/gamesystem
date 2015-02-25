@@ -2,7 +2,6 @@ package main
 
 import (
 	"flag"
-	"fmt"
 	"io/ioutil"
 	"log"
 	"os"
@@ -22,10 +21,12 @@ var (
 		"",
 		"Specify which game to compile",
 	)
+
+	gamesDir    string
+	newGamesDir string
 )
 
 func Usage() {
-	fmt.Fprintf(os.Stderr, "\nOptions:\n")
 	flag.PrintDefaults()
 }
 
@@ -40,64 +41,64 @@ func main() {
 
 	rootDir, _ := os.Getwd()
 
-	gamesDir := filepath.Join(rootDir, "games")
-	newGamesDir := filepath.Join(rootDir, "/backend/games")
+	gamesDir = filepath.Join(rootDir, "games")
+	newGamesDir = filepath.Join(rootDir, "backend", "games")
 
 	games, _ := ioutil.ReadDir(gamesDir)
 
 	for _, game := range games {
 		gameName := game.Name()
 
-		if *gameFlag != "" {
-			if gameName != *gameFlag {
-				continue
-			}
+		gamePath := filepath.Join(gamesDir, gameName)
+		gameDir := filepath.Join(gamePath, "game")
+
+		if *gameFlag == gameName || *gameFlag == "" {
+			os.Chdir(gameDir)
+			compileGame(gameName)
 		}
 
-		gamePath := filepath.Join(gamesDir, gameName)
-
-		json := filepath.Join(gamePath, "game.json")
-		gameDir := filepath.Join(gamePath, "/game")
-		controllerDir := filepath.Join(gamePath, "controller")
-		targetDir := filepath.Join(gameDir, "target")
-		nativesDir := filepath.Join(targetDir, "natives")
-
-		newGameDir := filepath.Join(newGamesDir, gameName)
-		newJson := filepath.Join(newGameDir, "game.json")
-		binDir := filepath.Join(newGameDir, "bin")
-		libDir := filepath.Join(newGameDir, "lib")
-		newControllerDir := filepath.Join(newGameDir, "controller")
-
-		os.MkdirAll(binDir, 0777)
-
-		os.Chdir(gameDir)
-
-		compileGame(gameName)
-
-		jarName := getJarName(targetDir)
-		jar := filepath.Join(targetDir, jarName)
-		newJar := filepath.Join(binDir, gameName+".jar")
-
-		os.Symlink(json, newJson)
-		os.Symlink(jar, newJar)
-		os.Symlink(nativesDir, libDir)
-		os.Symlink(controllerDir, newControllerDir)
-
-		log.Printf("[%v] has been compiled and symlinked to backend.\n", gameName)
+		symlinkGame(gameName)
 	}
 
 	log.Println("*** PACKAGING COMPLETE ***\n")
 }
 
+func symlinkGame(gameName string) {
+	gamePath := filepath.Join(gamesDir, gameName)
+
+	json := filepath.Join(gamePath, "game.json")
+	gameDir := filepath.Join(gamePath, "game")
+	controllerDir := filepath.Join(gamePath, "controller")
+	targetDir := filepath.Join(gameDir, "target")
+	nativesDir := filepath.Join(targetDir, "natives")
+
+	newGameDir := filepath.Join(newGamesDir, gameName)
+	newJson := filepath.Join(newGameDir, "game.json")
+	binDir := filepath.Join(newGameDir, "bin")
+	libDir := filepath.Join(newGameDir, "lib")
+	newControllerDir := filepath.Join(newGameDir, "controller")
+
+	os.MkdirAll(binDir, 0777)
+
+	jarName := getJarName(targetDir)
+	jar := filepath.Join(targetDir, jarName)
+	newJar := filepath.Join(binDir, gameName+".jar")
+
+	os.Symlink(json, newJson)
+	os.Symlink(jar, newJar)
+	os.Symlink(nativesDir, libDir)
+	os.Symlink(controllerDir, newControllerDir)
+
+	log.Printf("[%v] has been compiled and symlinked to backend.\n", gameName)
+}
+
 func compileGame(gameName string) {
 	cmd := "mvn clean compile assembly:single"
 	parts := strings.Fields(cmd)
-	head := parts[0]
-	parts = parts[1:len(parts)]
 
 	log.Printf("[%v] is being compiled. This may take a while!\n", gameName)
 
-	err := exec.Command(head, parts...).Run()
+	err := exec.Command(parts[0], parts[1:]...).Run()
 
 	if err != nil {
 		log.Println("Could not execute command:", cmd+". Reason:", err)
