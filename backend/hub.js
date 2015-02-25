@@ -1,5 +1,19 @@
 var backend
 
+$(function() {
+  disconnect = $('<button></button>');
+  disconnect.html('Disconnect');
+  disconnect.css('width', '100%');
+  disconnect.css('height', '75px');
+  disconnect.css('font-weight', 'bold');
+
+  disconnect.click(function () {
+    sendToBackend("disconnect");
+  });
+
+  $("#game").before(disconnect);
+});
+
 function addMessageHandler(callback) {
   backend = new WebSocket('ws://' + window.location.hostname + ':3001/ws');
 
