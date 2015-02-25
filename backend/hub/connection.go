@@ -154,6 +154,12 @@ func (c *connection) listenRead() {
 			go func() { c.stop <- true }()
 
 			return
+
+		default:
+			h.send <- MessageOut{
+				To:     c.id,
+				Action: msg.Action,
+			}
 		}
 	}
 }
