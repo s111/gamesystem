@@ -155,7 +155,7 @@ func (c *connection) listenRead() {
 
 			return
 
-		default:
+		case ActionGetClients:
 			h.send <- MessageOut{
 				To:     c.id,
 				Action: msg.Action,
