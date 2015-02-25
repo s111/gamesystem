@@ -185,7 +185,18 @@ func (h *hub) run() {
 			r.ok <- true
 
 		case m := <-h.send:
-			if c, ok := h.clients[m.To]; ok {
+			if m.To == "all" {
+				m.To = ""
+
+				for _, c := range h.clients {
+					if c.id == m.From {
+						continue
+					}
+
+					// Use a go routine as a send can block when the connection is inactive
+					go func(c *connection) { c.send <- m }(c)
+				}
+			} else if c, ok := h.clients[m.To]; ok {
 				m.To = ""
 
 				// Use a go routine as a send can block when the connection is inactive
