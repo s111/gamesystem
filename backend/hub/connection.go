@@ -147,7 +147,9 @@ func (c *connection) listenRead() {
 
 			if !<-r.ok {
 				c.id = ""
-				c.send <- MessageOut{Action: ActionIdentify}
+				c.send <- MessageOut{Action: ActionIdentify, Data: "error"}
+			} else {
+				c.send <- MessageOut{Action: ActionIdentify, Data: "ok"}
 			}
 
 		case ActionDisconnect:
