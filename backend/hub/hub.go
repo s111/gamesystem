@@ -98,7 +98,7 @@ func (h *hub) run() {
 
 					var tmpClients []string
 
-					for id, _ := range h.clients {
+					for id := range h.clients {
 						tmpClients = append(tmpClients, id)
 					}
 
@@ -130,7 +130,7 @@ func (h *hub) run() {
 
 					var tmpClients []string
 
-					for id, _ := range h.clients {
+					for id := range h.clients {
 						tmpClients = append(tmpClients, id)
 					}
 
