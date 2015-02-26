@@ -43,6 +43,12 @@ function addMessageHandler(callback) {
       sendToBackend("identify", id);
 
       callback("identified");
+    } else if (msg.action === "redirect") {
+      var gameName = msg.data.toLowerCase()
+
+      if (document.location.href.indexOf(gameName) < 0) {
+        document.location.href = "/" + gameName;
+      }
     } else {
       callback(msg);
     }
