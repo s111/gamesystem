@@ -1,18 +1,29 @@
 var backend
 
 $(function() {
-  disconnect = $('<button></button>');
-  disconnect.html('Disconnect');
-  disconnect.css('width', '100%');
-  disconnect.css('height', '75px');
-  disconnect.css('font-weight', 'bold');
-
+  disconnect = createButton("Disconnect");
   disconnect.click(function () {
     sendToBackend("disconnect");
   });
 
+  quit = createButton("Quit game");
+  quit.click(function () {
+    sendToBackend("start", "Launcher");
+  });
+
   $("#game").before(disconnect);
+  $("#game").before(quit);
 });
+
+function createButton(text) {
+  button = $('<button></button>');
+  button.html(text);
+  button.css('width', '50%');
+  button.css('height', '75px');
+  button.css('font-weight', 'bold');
+
+  return button;
+}
 
 function addMessageHandler(callback) {
   backend = new WebSocket('ws://' + window.location.hostname + ':3001/ws');
