@@ -4,13 +4,12 @@ var leftBttn;
 var rightBttn;
 var target;
 
-var leftSelected = false;
-var rightSelected = false;
-
+var rightSelected;
+var leftSelected;
 var y = 0;
 
 var movePaddle = function(pos) {};
-var selectPaddle = function(sel){};
+var selectPaddle = function(sel) {};
 
 function preload() {
   addMessageHandler(function(msg) {
@@ -20,8 +19,20 @@ function preload() {
       }
     }
     if (msg.action === "play as") {
-      selectPaddle = function(sel) {
-        sendToGame("play as", sel);
+      if (!selectPaddle) {
+        var selectPaddle = function(sel) {
+            sendToGame("play as", sel);
+        }
+      }
+      if (msg.data.left) {
+	leftSelected = false;
+      } else {
+	  leftSelected = true;
+      }
+      if (msg.data.right) {
+	rightSelected = false;
+      } else {
+	rightSelected = true;
       }
     }
   });
@@ -51,21 +62,26 @@ function create() {
   leftBttn = game.add.sprite(0, 0);
   leftBttn.addChild(btnGraphics1);
   leftBttn.inputEnabled = true;
-  leftBttn.data = 0;
+  leftBttn.data = "left";
   var btnGraphics2 = game.add.graphics(0, 0);
   btnGraphics2.beginFill(0xFF0000, 1);
   btnGraphics2.drawRect(game.stage.width/2 + 10, game.stage.height/2 - 128, game.stage.width/2 - 10, 128);
   rightBttn = game.add.sprite(0, 0);
   rightBttn.addChild(btnGraphics2);
   rightBttn.inputEnabled = true;
-  rightBttn.data = 1;
+  rightBttn.data = "right";
 
   game.input.onDown.add(function(pointer) {
     if (!game.scale.isFullScreen) {
       game.scale.startFullScreen(false);
     } else if (pointer.targetObject) {
-     selectPaddle(pointer.targetObject.sprite.data);
-     console.log(pointer.targetObject.sprite.data);
+       selectPaddle(pointer.targetObject.sprite.data);
+       switch(pointer.targetObject.sprite.data) {
+         case "right":
+           rightSelected = true;
+         case "left":
+           leftSelected = true;
+      }
     }
     target = pointer.targetObject;
   }, this);
@@ -74,5 +90,11 @@ function create() {
 function update() {
   if (target && target.sprite === sprite && target.isDragged) {
     movePaddle((sprite.y - 32)/(game.stage.height - 32*2 - 128));
+  }
+  if (leftSelected) {
+    leftBttn.kill();
+  }
+  if (rightSelected) {
+    rightBttn.kill();
   }
 }
