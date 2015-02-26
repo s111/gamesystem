@@ -32,17 +32,29 @@ function addMessageHandler(callback) {
     var msg = JSON.parse(e.data);
 
     if (msg.action === "identify") {
-      var id = localStorage.getItem("id-gsusfcavf");
+      if (!msg.data) {
+        var id = localStorage.getItem("id-gsusfcavf");
 
-      if(id == null) {
-        id = Math.random().toString(36).substring(7);
+        if(id == null) {
+          id = Math.random().toString(36).substring(7);
 
-        localStorage.setItem("id-gsusfcavf", id)
+          localStorage.setItem("id-gsusfcavf", id)
+        }
+
+        sendToBackend("identify", id);
+      } else if (msg.data === "ok") {
+        callback("identified");
+      } else {
+        var id = sessionStorage.getItem("id-gsusfcavf");
+
+        if(id == null) {
+          id = Math.random().toString(36).substring(7);
+
+          sessionStorage.setItem("id-gsusfcavf", id)
+        }
+
+        sendToBackend("identify", id);
       }
-
-      sendToBackend("identify", id);
-
-      callback("identified");
     } else if (msg.action === "redirect") {
       var gameName = msg.data.toLowerCase()
 
