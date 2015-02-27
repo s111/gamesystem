@@ -17,18 +17,26 @@ const (
 	// {to: receiver, action: passthrough, data: {action: actual action, data: actual data}}
 	ActionPassthrough = "passthrough"
 
-	// ActionAdd is a event sent to the game when a client is added
+	// ActionAdd is a action used to notify when a client is added.
 	ActionAdd = "added client"
 
-	// ActionDrop is a event sent to the game when a client is dropped
+	// ActionDrop is a action used to notify when a client is dropped.
 	ActionDrop = "dropped client"
 
+	// ActionDisconnect is a action used when a client wishes to immeaditaly terminate its connection.
 	ActionDisconnect = "disconnect"
+
+	// ActionGetClients is a action used when asking for the hubs current list of clients.
 	ActionGetClients = "get clients"
 
-	EventAdd    = "add"
+	// EventAdd is the event of adding a client.
+	EventAdd = "add"
+
+	// EventResume is the event of resuming a connection before it is dropped.
 	EventResume = "resume"
-	EventDrop   = "drop"
+
+	// EventDrop is the event of dropping a client.
+	EventDrop = "drop"
 )
 
 var h = hub{
@@ -188,6 +196,7 @@ func runEventHandler(event string, id string) {
 	}
 }
 
+// AddMessageHandler allows your progam to register callbacks for specific actions.
 func AddMessageHandler(action string, cb func(m MessageIn)) {
 	h.mLock.Lock()
 	defer h.mLock.Unlock()
@@ -195,6 +204,7 @@ func AddMessageHandler(action string, cb func(m MessageIn)) {
 	h.msgHandlers[action] = cb
 }
 
+// AddEventHandler allows your progam to register callbacks for specific events.
 func AddEventHandler(event string, cb func(id string)) {
 	h.eLock.Lock()
 	defer h.eLock.Unlock()
@@ -203,6 +213,7 @@ func AddEventHandler(event string, cb func(id string)) {
 
 }
 
+// Send allows your program to send a message through the hub.
 func Send(m MessageOut) {
 	h.send <- m
 }

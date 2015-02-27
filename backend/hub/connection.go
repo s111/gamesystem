@@ -42,6 +42,7 @@ type connection struct {
 	stop    chan bool
 }
 
+// MessageIn is a struct used to hold incomming messages
 type MessageIn struct {
 	To     string          `json:"to,omitempty"`
 	From   string          `json:"from,omitempty"`
@@ -49,6 +50,7 @@ type MessageIn struct {
 	Data   json.RawMessage `json:"data,omitempty"`
 }
 
+// MessageOut is a struct used to hold outgoing messages
 type MessageOut struct {
 	To     string      `json:"to,omitempty"`
 	From   string      `json:"from,omitempty"`
