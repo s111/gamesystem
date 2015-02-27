@@ -194,6 +194,10 @@ func (h *hub) run() {
 				var clients []string
 
 				for id := range h.clients {
+					if id == m.To {
+						continue
+					}
+
 					clients = append(clients, id)
 				}
 

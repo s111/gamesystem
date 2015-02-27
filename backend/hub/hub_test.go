@@ -53,7 +53,7 @@ func wait(ms int) {
 func checkNoneRegistered(t *testing.T, url string) {
 	clients := getClients(t, url)
 
-	assert.Len(t, clients, 1)
+	assert.Len(t, clients, 0)
 }
 
 func checkClientRegistered(t *testing.T, url string, id string) {
