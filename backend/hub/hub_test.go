@@ -88,7 +88,11 @@ func getClients(t *testing.T, url string) []string {
 	wait(20)
 
 	msg := &MessageIn{}
+	// identify message
 	ws.ReadJSON(msg)
+	// identify ok message
+	ws.ReadJSON(msg)
+	// get clients message
 	ws.ReadJSON(msg)
 
 	assert.Equal(t, ActionGetClients, msg.Action, "You have probably forgotten to read the buffered messages")
@@ -246,10 +250,13 @@ func TestPassthrough(t *testing.T) {
 	)
 
 	wait(20)
+
 	msg := &MessageIn{}
-	// The second should be a added client message
+	// identify message
 	gameWs.ReadJSON(msg)
-	// The third should be the message from c
+	// identify ok message
+	gameWs.ReadJSON(msg)
+	// passthrough message
 	gameWs.ReadJSON(msg)
 
 	assert.Equal(t, msg.Action, actionActual)
