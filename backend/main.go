@@ -52,6 +52,30 @@ func main() {
 		games = append(games, g)
 	}
 
+	hub.AddEventHandler(hub.EventAdd, func(id string) {
+		if id == gameClient {
+			return
+		}
+
+		hub.Send(hub.MessageOut{
+			To:     gameClient,
+			Action: hub.ActionAdd,
+			Data:   id,
+		})
+	})
+
+	hub.AddEventHandler(hub.EventDrop, func(id string) {
+		if id == gameClient {
+			return
+		}
+
+		hub.Send(hub.MessageOut{
+			To:     gameClient,
+			Action: hub.ActionDrop,
+			Data:   id,
+		})
+	})
+
 	hub.AddMessageHandler(actionList, func(m hub.MessageIn) {
 		hub.Send(hub.MessageOut{
 			To:     m.From,
