@@ -32,11 +32,12 @@ const (
 )
 
 var h = hub{
-	clients:    make(map[string]*connection),
-	register:   make(chan registration),
-	unregister: make(chan registration),
-	send:       make(chan MessageOut),
-	handlers:   make(map[string]func(MessageIn)),
+	clients:       make(map[string]*connection),
+	register:      make(chan registration),
+	unregister:    make(chan registration),
+	send:          make(chan MessageOut),
+	msgHandlers:   make(map[string]func(MessageIn)),
+	eventHandlers: make(map[string]func(string)),
 }
 
 type hub struct {
@@ -48,8 +49,11 @@ type hub struct {
 	tLock   sync.RWMutex
 	timeout time.Duration
 
-	hLock    sync.RWMutex
-	handlers map[string]func(MessageIn)
+	mLock       sync.RWMutex
+	msgHandlers map[string]func(MessageIn)
+
+	eLock         sync.RWMutex
+	eventHandlers map[string]func(string)
 }
 
 func (h *hub) setTimeout(d time.Duration) {
@@ -225,11 +229,28 @@ func (h *hub) run() {
 	}
 }
 
-func AddMessageHandler(action string, cb func(m MessageIn)) {
-	h.hLock.Lock()
-	defer h.hLock.Unlock()
+func runEventHandler(event string, id string) {
+	h.eLock.RLock()
+	defer h.eLock.RUnlock()
 
-	h.handlers[action] = cb
+	if cb, ok := h.eventHandlers[event]; ok {
+		cb(id)
+	}
+}
+
+func AddMessageHandler(action string, cb func(m MessageIn)) {
+	h.mLock.Lock()
+	defer h.mLock.Unlock()
+
+	h.msgHandlers[action] = cb
+}
+
+func AddEventHandler(event string, cb func(id string)) {
+	h.eLock.Lock()
+	defer h.eLock.Unlock()
+
+	h.eventHandlers[event] = cb
+
 }
 
 func Send(m MessageOut) {
