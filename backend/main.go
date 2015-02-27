@@ -15,6 +15,13 @@ import (
 	"github.com/s111/bachelor/backend/hub"
 )
 
+const (
+	gameClient = "game"
+
+	actionList  = "list"
+	actionStart = "start"
+)
+
 var addr = flag.String("addr", ":3001", "http service address")
 var debug = flag.Bool("debug", true, "debug")
 
@@ -45,15 +52,39 @@ func main() {
 		games = append(games, g)
 	}
 
-	hub.AddMessageHandler(hub.ActionList, func(m hub.MessageIn) {
+	hub.AddEventHandler(hub.EventAdd, func(id string) {
+		if id == gameClient {
+			return
+		}
+
+		hub.Send(hub.MessageOut{
+			To:     gameClient,
+			Action: hub.ActionAdd,
+			Data:   id,
+		})
+	})
+
+	hub.AddEventHandler(hub.EventDrop, func(id string) {
+		if id == gameClient {
+			return
+		}
+
+		hub.Send(hub.MessageOut{
+			To:     gameClient,
+			Action: hub.ActionDrop,
+			Data:   id,
+		})
+	})
+
+	hub.AddMessageHandler(actionList, func(m hub.MessageIn) {
 		hub.Send(hub.MessageOut{
 			To:     m.From,
-			Action: hub.ActionList,
+			Action: actionList,
 			Data:   games,
 		})
 	})
 
-	hub.AddMessageHandler(hub.ActionStart, func(m hub.MessageIn) {
+	hub.AddMessageHandler(actionStart, func(m hub.MessageIn) {
 		var data string
 
 		err := json.Unmarshal(m.Data, &data)

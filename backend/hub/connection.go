@@ -95,9 +95,9 @@ func (c *connection) listenRead() {
 
 		log.Println("Recieved message:", msg)
 
-		h.hLock.RLock()
+		h.mLock.RLock()
 
-		for action, cb := range h.handlers {
+		for action, cb := range h.msgHandlers {
 			if action == msg.Action {
 				msg.From = c.id
 
@@ -105,7 +105,7 @@ func (c *connection) listenRead() {
 			}
 		}
 
-		h.hLock.RUnlock()
+		h.mLock.RUnlock()
 
 		switch msg.Action {
 		case ActionPassthrough:

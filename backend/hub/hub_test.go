@@ -11,6 +11,8 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+const gameClient = "game"
+
 type wsHandler struct{ *testing.T }
 
 func (t wsHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
@@ -53,7 +55,7 @@ func wait(ms int) {
 func checkNoneRegistered(t *testing.T, url string) {
 	clients := getClients(t, url)
 
-	assert.Len(t, clients, 1)
+	assert.Len(t, clients, 0)
 }
 
 func checkClientRegistered(t *testing.T, url string, id string) {
@@ -115,17 +117,17 @@ func TestAddClient(t *testing.T) {
 
 	ws.WriteJSON(MessageOut{
 		Action: ActionIdentify,
-		Data:   Game,
+		Data:   gameClient,
 	})
 
-	checkClientRegistered(t, s.URL, Game)
+	checkClientRegistered(t, s.URL, gameClient)
 	sendCloseMessage(t, ws)
 
 	h.send <- MessageOut{
-		To: Game,
+		To: gameClient,
 	}
 
-	checkClientUnregistered(t, s.URL, Game)
+	checkClientUnregistered(t, s.URL, gameClient)
 }
 
 func TestAddClientEmptyId(t *testing.T) {
@@ -156,14 +158,14 @@ func TestReplaceActiveClient(t *testing.T) {
 
 	ws1.WriteJSON(MessageOut{
 		Action: ActionIdentify,
-		Data:   Game,
+		Data:   gameClient,
 	})
 
-	checkClientRegistered(t, s.URL, Game)
+	checkClientRegistered(t, s.URL, gameClient)
 
 	ws2.WriteJSON(MessageOut{
 		Action: ActionIdentify,
-		Data:   Game,
+		Data:   gameClient,
 	})
 
 	wait(20)
@@ -178,7 +180,7 @@ func TestReplaceActiveClient(t *testing.T) {
 
 	sendCloseMessage(t, ws1)
 	sendCloseMessage(t, ws2)
-	checkClientUnregistered(t, s.URL, Game)
+	checkClientUnregistered(t, s.URL, gameClient)
 }
 
 func TestResumeClientWithQueuedMessage(t *testing.T) {
@@ -189,28 +191,28 @@ func TestResumeClientWithQueuedMessage(t *testing.T) {
 
 	ws.WriteJSON(MessageOut{
 		Action: ActionIdentify,
-		Data:   Game,
+		Data:   gameClient,
 	})
 
-	checkClientRegistered(t, s.URL, Game)
+	checkClientRegistered(t, s.URL, gameClient)
 	sendCloseMessage(t, ws)
 
 	ws.Close()
 
 	h.send <- MessageOut{
-		To: Game,
+		To: gameClient,
 	}
 
 	ws = newWs(t, s.URL)
 
 	ws.WriteJSON(MessageOut{
 		Action: ActionIdentify,
-		Data:   Game,
+		Data:   gameClient,
 	})
 
-	checkClientRegistered(t, s.URL, Game)
+	checkClientRegistered(t, s.URL, gameClient)
 	sendCloseMessage(t, ws)
-	checkClientUnregistered(t, s.URL, Game)
+	checkClientUnregistered(t, s.URL, gameClient)
 
 	ws.Close()
 }

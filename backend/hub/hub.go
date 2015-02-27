@@ -8,9 +8,6 @@ import (
 )
 
 const (
-	// Game must identify with this string
-	Game = "game"
-
 	// ActionIdentify should be sent to ask a client to identify itself.
 	// The client should respond with the same action and data: uid.
 	ActionIdentify = "identify"
@@ -26,18 +23,21 @@ const (
 	// ActionDrop is a event sent to the game when a client is dropped
 	ActionDrop = "dropped client"
 
-	ActionList       = "list"
-	ActionStart      = "start"
 	ActionDisconnect = "disconnect"
 	ActionGetClients = "get clients"
+
+	EventAdd    = "add"
+	EventResume = "resume"
+	EventDrop   = "drop"
 )
 
 var h = hub{
-	clients:    make(map[string]*connection),
-	register:   make(chan registration),
-	unregister: make(chan registration),
-	send:       make(chan MessageOut),
-	handlers:   make(map[string]func(MessageIn)),
+	clients:       make(map[string]*connection),
+	register:      make(chan registration),
+	unregister:    make(chan registration),
+	send:          make(chan MessageOut),
+	msgHandlers:   make(map[string]func(MessageIn)),
+	eventHandlers: make(map[string]func(string)),
 }
 
 type hub struct {
@@ -49,8 +49,11 @@ type hub struct {
 	tLock   sync.RWMutex
 	timeout time.Duration
 
-	hLock    sync.RWMutex
-	handlers map[string]func(MessageIn)
+	mLock       sync.RWMutex
+	msgHandlers map[string]func(MessageIn)
+
+	eLock         sync.RWMutex
+	eventHandlers map[string]func(string)
 }
 
 func (h *hub) setTimeout(d time.Duration) {
@@ -96,27 +99,7 @@ func (h *hub) run() {
 
 					r.ok <- true
 
-					var tmpClients []string
-
-					for id := range h.clients {
-						tmpClients = append(tmpClients, id)
-					}
-
-					go func() {
-						if r.conn.id == Game {
-							for _, id := range tmpClients {
-								if id == Game {
-									continue
-								}
-
-								h.send <- MessageOut{
-									To:     Game,
-									Action: ActionAdd,
-									Data:   id,
-								}
-							}
-						}
-					}()
+					go runEventHandler(EventResume, r.conn.id)
 
 					log.Println("Resumed client:", r.conn.id)
 				} else {
@@ -128,33 +111,7 @@ func (h *hub) run() {
 
 					r.ok <- true
 
-					var tmpClients []string
-
-					for id := range h.clients {
-						tmpClients = append(tmpClients, id)
-					}
-
-					go func() {
-						if r.conn.id != Game {
-							h.send <- MessageOut{
-								To:     Game,
-								Action: ActionAdd,
-								Data:   r.conn.id,
-							}
-						} else {
-							for _, id := range tmpClients {
-								if id == Game {
-									continue
-								}
-
-								h.send <- MessageOut{
-									To:     Game,
-									Action: ActionAdd,
-									Data:   id,
-								}
-							}
-						}
-					}()
+					go runEventHandler(EventAdd, r.conn.id)
 
 					log.Println("Added client:", r.conn.id)
 				} else {
@@ -169,15 +126,7 @@ func (h *hub) run() {
 				if !c.isActive() {
 					delete(h.clients, r.conn.id)
 
-					go func() {
-						if c.id != Game {
-							h.send <- MessageOut{
-								To:     Game,
-								Action: ActionDrop,
-								Data:   c.id,
-							}
-						}
-					}()
+					go runEventHandler(EventDrop, r.conn.id)
 
 					log.Println("Dropped client:", r.conn.id)
 				}
@@ -191,6 +140,10 @@ func (h *hub) run() {
 				var clients []string
 
 				for id := range h.clients {
+					if id == m.To {
+						continue
+					}
+
 					clients = append(clients, id)
 				}
 
@@ -226,11 +179,28 @@ func (h *hub) run() {
 	}
 }
 
-func AddMessageHandler(action string, cb func(m MessageIn)) {
-	h.hLock.Lock()
-	defer h.hLock.Unlock()
+func runEventHandler(event string, id string) {
+	h.eLock.RLock()
+	defer h.eLock.RUnlock()
 
-	h.handlers[action] = cb
+	if cb, ok := h.eventHandlers[event]; ok {
+		cb(id)
+	}
+}
+
+func AddMessageHandler(action string, cb func(m MessageIn)) {
+	h.mLock.Lock()
+	defer h.mLock.Unlock()
+
+	h.msgHandlers[action] = cb
+}
+
+func AddEventHandler(event string, cb func(id string)) {
+	h.eLock.Lock()
+	defer h.eLock.Unlock()
+
+	h.eventHandlers[event] = cb
+
 }
 
 func Send(m MessageOut) {
