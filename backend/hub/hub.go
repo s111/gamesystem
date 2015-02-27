@@ -99,27 +99,7 @@ func (h *hub) run() {
 
 					r.ok <- true
 
-					var tmpClients []string
-
-					for id := range h.clients {
-						tmpClients = append(tmpClients, id)
-					}
-
-					go func() {
-						if r.conn.id == Game {
-							for _, id := range tmpClients {
-								if id == Game {
-									continue
-								}
-
-								h.send <- MessageOut{
-									To:     Game,
-									Action: ActionAdd,
-									Data:   id,
-								}
-							}
-						}
-					}()
+					go runEventHandler(EventResume, r.conn.id)
 
 					log.Println("Resumed client:", r.conn.id)
 				} else {
@@ -131,33 +111,7 @@ func (h *hub) run() {
 
 					r.ok <- true
 
-					var tmpClients []string
-
-					for id := range h.clients {
-						tmpClients = append(tmpClients, id)
-					}
-
-					go func() {
-						if r.conn.id != Game {
-							h.send <- MessageOut{
-								To:     Game,
-								Action: ActionAdd,
-								Data:   r.conn.id,
-							}
-						} else {
-							for _, id := range tmpClients {
-								if id == Game {
-									continue
-								}
-
-								h.send <- MessageOut{
-									To:     Game,
-									Action: ActionAdd,
-									Data:   id,
-								}
-							}
-						}
-					}()
+					go runEventHandler(EventAdd, r.conn.id)
 
 					log.Println("Added client:", r.conn.id)
 				} else {
@@ -172,15 +126,7 @@ func (h *hub) run() {
 				if !c.isActive() {
 					delete(h.clients, r.conn.id)
 
-					go func() {
-						if c.id != Game {
-							h.send <- MessageOut{
-								To:     Game,
-								Action: ActionDrop,
-								Data:   c.id,
-							}
-						}
-					}()
+					go runEventHandler(EventDrop, r.conn.id)
 
 					log.Println("Dropped client:", r.conn.id)
 				}
