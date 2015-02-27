@@ -8,9 +8,6 @@ import (
 )
 
 const (
-	// Game must identify with this string
-	Game = "game"
-
 	// ActionIdentify should be sent to ask a client to identify itself.
 	// The client should respond with the same action and data: uid.
 	ActionIdentify = "identify"
@@ -26,10 +23,12 @@ const (
 	// ActionDrop is a event sent to the game when a client is dropped
 	ActionDrop = "dropped client"
 
-	ActionList       = "list"
-	ActionStart      = "start"
 	ActionDisconnect = "disconnect"
 	ActionGetClients = "get clients"
+
+	EventAdd    = "add"
+	EventResume = "resume"
+	EventDrop   = "drop"
 )
 
 var h = hub{
