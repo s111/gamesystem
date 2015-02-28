@@ -1,3 +1,4 @@
+// Package gamescheduler controls which games are run.
 package gamescheduler
 
 import "sync"

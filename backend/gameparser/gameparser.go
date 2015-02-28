@@ -1,3 +1,4 @@
+// Package gameparser allows you to discover games in your game directory.
 package gameparser
 
 import (
