@@ -65,10 +65,13 @@ func (gs *gamescheduler) run() {
 	}
 }
 
+// Run starts the scheduler.
+// No games will be run until they are added with Add and run with Start.
 func Run() {
 	gs.run()
 }
 
+// Add adds a new game to the scheduler.
 func Add(name string, exec []string) {
 	gp := gameProcess{
 		name: name,
@@ -80,18 +83,22 @@ func Add(name string, exec []string) {
 	gs.add <- gp
 }
 
+// Start will stop the current game and start the one provided, if it exists.
 func Start(name string) {
 	gs.start <- name
 }
 
+// OnStart allows you to set a callback function which will be run when a game is started.
 func OnStart(cb func(name string)) {
 	gs.onStart = cb
 }
 
+// OnStop allows you to set a callback function which will be run when a game is stopped.
 func OnStop(cb func(name string, current string)) {
 	gs.onStop = cb
 }
 
+// GetCurrent returns the name of the current running game.
 func GetCurrent() string {
 	gs.cLock.RLock()
 	defer gs.cLock.RUnlock()
@@ -99,6 +106,7 @@ func GetCurrent() string {
 	return gs.current.name
 }
 
+// Quit stops the scheduler
 func Quit() {
 	gs.quit <- true
 }
