@@ -37,6 +37,9 @@ const (
 
 	// EventDrop is the event of dropping a client.
 	EventDrop = "drop"
+
+	// Broadcast is used in the To field of a message to broadcast it to all users except the sender.
+	Broadcast = "all"
 )
 
 var h = hub{
@@ -165,7 +168,7 @@ func (h *hub) run() {
 				}()
 
 			default:
-				if m.To == "all" {
+				if m.To == Broadcast {
 					m.To = ""
 
 					for _, c := range h.clients {

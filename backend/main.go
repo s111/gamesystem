@@ -18,8 +18,9 @@ import (
 const (
 	gameClient = "game"
 
-	actionList  = "list"
-	actionStart = "start"
+	actionRedirect = "redirect"
+	actionList     = "list"
+	actionStart    = "start"
 )
 
 var addr = flag.String("addr", ":3001", "http service address")
@@ -62,6 +63,26 @@ func main() {
 			Action: hub.ActionAdd,
 			Data:   id,
 		})
+
+		hub.Send(hub.MessageOut{
+			From:   gameClient,
+			To:     id,
+			Action: actionRedirect,
+			Data:   gs.GetCurrentGameName(),
+		})
+	})
+
+	hub.AddEventHandler(hub.EventResume, func(id string) {
+		if id == gameClient {
+			return
+		}
+
+		hub.Send(hub.MessageOut{
+			From:   gameClient,
+			To:     id,
+			Action: actionRedirect,
+			Data:   gs.GetCurrentGameName(),
+		})
 	})
 
 	hub.AddEventHandler(hub.EventDrop, func(id string) {
@@ -92,6 +113,13 @@ func main() {
 		if err != nil {
 			return
 		}
+
+		hub.Send(hub.MessageOut{
+			From:   gameClient,
+			To:     hub.Broadcast,
+			Action: actionRedirect,
+			Data:   data,
+		})
 
 		gs.Start(data)
 	})
