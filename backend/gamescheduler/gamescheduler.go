@@ -103,6 +103,10 @@ func GetCurrent() string {
 	gs.cLock.RLock()
 	defer gs.cLock.RUnlock()
 
+	if gs.current == nil {
+		return ""
+	}
+
 	return gs.current.name
 }
 
