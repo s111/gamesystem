@@ -3,9 +3,7 @@ package com.github.s111.bachelor.pong.network;
 import com.github.s111.bachelor.pong.game.Pong;
 import org.glassfish.tyrus.client.ClientManager;
 
-import javax.json.Json;
-import javax.json.JsonObject;
-import javax.json.JsonReader;
+import javax.json.*;
 import javax.websocket.DeploymentException;
 import javax.websocket.EncodeException;
 import javax.websocket.RemoteEndpoint;
@@ -40,7 +38,7 @@ public class GameSession {
                 .build());
     }
 
-    public void onMessage(Session session, String message) throws IOException {
+    public void onMessage(Session session, String message) throws IOException, EncodeException {
         JsonReader jsonReader = Json.createReader(new StringReader(message));
         JsonObject jsonObj = jsonReader.readObject();
         jsonReader.close();
@@ -52,6 +50,32 @@ public class GameSession {
         String action = jsonObj.getString("action");
 
         switch (action) {
+            case "identify": {
+                String data = jsonObj.getString("data");
+
+                if (data.equals("ok")) {
+                    backend.getBasicRemote().sendObject(Json.createObjectBuilder()
+                            .add("action", "get clients")
+                            .build());
+                }
+
+                break;
+            }
+
+            case "get clients": {
+                JsonArray clients = jsonObj.getJsonArray("data");
+
+                for (JsonValue client : clients) {
+                    if (player1 == null) {
+                        player1 = client.toString();
+                    } else if (player2 == null) {
+                        player2 = client.toString();
+                    }
+                }
+
+                break;
+            }
+
             case "added client": {
                 String id = jsonObj.getString("data");
 
