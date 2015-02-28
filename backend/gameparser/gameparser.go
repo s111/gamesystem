@@ -9,21 +9,30 @@ import (
 )
 
 const (
-	GamesDir      = "games"
+	// GamesDir is the name of the directory relative to the working directory of your program, which contains the games.
+	GamesDir = "games"
+
+	// ControllerDir is the name of the directory in the games path where the controller resides.
 	ControllerDir = "controller"
 
 	gameDescription = "game.json"
 )
 
+// Game should contain a games name and how to execute it.
+// Game.Exec should contain [program, args...].
 type Game struct {
 	Name string
 	Exec []string
 }
 
+// GameParser holds the parsed games.
+// It'll be empty until Parse is called.
 type GameParser struct {
 	Games map[string]Game
 }
 
+// Parse will look through the GamesDir and parse the game description.
+// Found games are added to GameParser.Games.
 func (gp *GameParser) Parse() {
 	names, _ := ioutil.ReadDir(GamesDir)
 
