@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"path/filepath"
 	"strings"
+	"sync"
 	"time"
 
 	. "github.com/s111/bachelor/backend/gameparser"
@@ -16,6 +17,8 @@ import (
 )
 
 const (
+	launcher = "Launcher"
+
 	gameClient = "game"
 
 	actionRedirect = "redirect"
@@ -35,8 +38,33 @@ func init() {
 }
 
 func main() {
+	var wg sync.WaitGroup
+	wg.Add(1)
+
 	hub.SetTimeout(time.Second * 10)
 	go hub.Run()
+	go gs.Run()
+
+	gs.OnStart(func(name string) {
+		hub.Send(hub.MessageOut{
+			From:   gameClient,
+			To:     hub.Broadcast,
+			Action: actionRedirect,
+			Data:   name,
+		})
+	})
+
+	gs.OnStop(func(name string, current string) {
+		// If no new game has started
+		if name == current {
+			if name != launcher {
+				gs.Start(launcher)
+			} else {
+				gs.Quit()
+				wg.Done()
+			}
+		}
+	})
 
 	gp := GameParser{
 		Games: make(map[string]Game),
@@ -45,13 +73,17 @@ func main() {
 
 	var games []string
 
-	for g := range gp.Games {
-		if g == gs.Launcher {
+	for name, game := range gp.Games {
+		gs.Add(name, game.Exec)
+
+		if name == launcher {
 			continue
 		}
 
-		games = append(games, g)
+		games = append(games, name)
 	}
+
+	gs.Start(launcher)
 
 	hub.AddEventHandler(hub.EventAdd, func(id string) {
 		if id == gameClient {
@@ -68,7 +100,7 @@ func main() {
 			From:   gameClient,
 			To:     id,
 			Action: actionRedirect,
-			Data:   gs.GetCurrentGameName(),
+			Data:   gs.GetCurrent(),
 		})
 	})
 
@@ -81,7 +113,7 @@ func main() {
 			From:   gameClient,
 			To:     id,
 			Action: actionRedirect,
-			Data:   gs.GetCurrentGameName(),
+			Data:   gs.GetCurrent(),
 		})
 	})
 
@@ -114,13 +146,6 @@ func main() {
 			return
 		}
 
-		hub.Send(hub.MessageOut{
-			From:   gameClient,
-			To:     hub.Broadcast,
-			Action: actionRedirect,
-			Data:   data,
-		})
-
 		gs.Start(data)
 	})
 
@@ -144,7 +169,7 @@ func main() {
 		}
 	}()
 
-	gs.Run(gp.Games)
+	wg.Wait()
 }
 
 func serveController(game Game) {
@@ -154,7 +179,7 @@ func serveController(game Game) {
 }
 
 func redirectToController(w http.ResponseWriter, r *http.Request) {
-	currentGame := gs.GetCurrentGameName()
+	currentGame := gs.GetCurrent()
 
 	if currentGame != "" {
 		http.Redirect(w, r, "/"+strings.ToLower(currentGame), http.StatusFound)
