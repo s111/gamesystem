@@ -59,7 +59,11 @@ func (gs *gamescheduler) run() {
 				}()
 			}
 		case <-gs.quit:
-			gs.current.stop()
+			gs.cLock.Lock()
+			if gs.current != nil {
+				gs.current.stop()
+			}
+			gs.cLock.Unlock()
 
 			return
 		}
