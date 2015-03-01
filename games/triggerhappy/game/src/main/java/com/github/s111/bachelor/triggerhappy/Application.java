@@ -58,6 +58,7 @@ public class Application {
 
             AppGameContainer app = new AppGameContainer(game);
             app.setDisplayMode(width, height, false);
+            app.setTargetFrameRate(60);
             app.setMouseGrabbed(true);
             app.setAlwaysRender(true);
             app.start();
