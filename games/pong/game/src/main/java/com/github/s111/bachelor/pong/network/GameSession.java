@@ -63,6 +63,10 @@ public class GameSession {
             }
 
             case "get clients": {
+                if (jsonObj.isNull("data")) {
+                    break;
+                }
+
                 JsonArray clients = jsonObj.getJsonArray("data");
 
                 for (JsonValue client : clients) {
