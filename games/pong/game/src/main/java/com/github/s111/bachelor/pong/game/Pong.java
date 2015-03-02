@@ -18,8 +18,8 @@ public class Pong extends BasicGame {
     private static final float BALL_SPEED = 1.0f;
     private static final double MAX_BOUNCE_ANGLE = 5 * Math.PI / 12;
 
-    private int width;
-    private int height;
+    public static final int WIDTH = 1280;
+    public static final int HEIGHT = 720;
 
     private int left;
     private int right;
@@ -62,7 +62,7 @@ public class Pong extends BasicGame {
             return;
         }
 
-        player.setCenterY(MARGIN + position * (height - MARGIN * 2));
+        player.setCenterY(MARGIN + position * (HEIGHT - MARGIN * 2));
     }
 
     @Override
@@ -79,14 +79,11 @@ public class Pong extends BasicGame {
     }
 
     private void setBoundaries(GameContainer container) {
-        width = container.getWidth();
-        height = container.getHeight();
-
         left = MARGIN + PADDLE_WIDTH;
-        right = width - MARGIN - PADDLE_WIDTH;
+        right = WIDTH - MARGIN - PADDLE_WIDTH;
 
-        verticalCenter = height / 2;
-        horizontalCenter = width / 2;
+        verticalCenter = HEIGHT / 2;
+        horizontalCenter = WIDTH / 2;
     }
 
     private void instantiatePlayers() {
@@ -141,7 +138,7 @@ public class Pong extends BasicGame {
         boolean ballHittingRight = ball.getMaxX() > right && ballHorizontalDirection != -1;
         boolean ballHittingLeft = ball.getX() < left && ballHorizontalDirection != 1;
         boolean ballHittingTop = ball.getY() < MARGIN && ballVerticalDirection != 1;
-        boolean ballHittingBottom = ball.getMaxY() > height - MARGIN && ballVerticalDirection != -1;
+        boolean ballHittingBottom = ball.getMaxY() > HEIGHT - MARGIN && ballVerticalDirection != -1;
         boolean ballHittingPlayer1 = ball.getMaxY() > player1.getY() && ball.getY() < player1.getMaxY() && ballHorizontalDirection == -1;
         boolean ballHittingPlayer2 = ball.getMaxY() > player2.getY() && ball.getY() < player2.getMaxY() && ballHorizontalDirection == 1;
 
@@ -226,7 +223,7 @@ public class Pong extends BasicGame {
 
         g.fill(ball);
 
-        g.drawLine(horizontalCenter, 0, horizontalCenter, height);
+        g.drawLine(horizontalCenter, 0, horizontalCenter, HEIGHT);
     }
 
     private void drawScore(Graphics g) {

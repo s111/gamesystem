@@ -1,6 +1,7 @@
 package hub
 
 import (
+	"encoding/json"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -9,6 +10,8 @@ import (
 	"github.com/gorilla/websocket"
 	"github.com/stretchr/testify/assert"
 )
+
+const gameClient = "game"
 
 type wsHandler struct{ *testing.T }
 
@@ -49,16 +52,60 @@ func wait(ms int) {
 	<-time.After(time.Millisecond * time.Duration(ms))
 }
 
-func checkClientRegistered(t *testing.T, id string) {
-	wait(20)
+func checkNoneRegistered(t *testing.T, url string) {
+	clients := getClients(t, url)
 
-	assert.NotNil(t, h.clients[id])
+	assert.Len(t, clients, 0)
 }
 
-func checkClientUnregistered(t *testing.T, id string) {
+func checkClientRegistered(t *testing.T, url string, id string) {
+	clients := getClients(t, url)
+
+	assert.Contains(t, clients, id)
+}
+
+func checkClientUnregistered(t *testing.T, url string, id string) {
+	clients := getClients(t, url)
+
+	assert.NotContains(t, clients, id)
+}
+
+func getClients(t *testing.T, url string) []string {
 	wait(40)
 
-	assert.Nil(t, h.clients[id])
+	ws := newWs(t, url)
+	defer ws.Close()
+
+	ws.WriteJSON(MessageOut{
+		Action: ActionIdentify,
+		Data:   "clientcheck",
+	})
+
+	wait(20)
+
+	ws.WriteJSON(MessageOut{
+		Action: ActionGetClients,
+	})
+
+	wait(20)
+
+	msg := &MessageIn{}
+	// identify message
+	ws.ReadJSON(msg)
+	// identify ok message
+	ws.ReadJSON(msg)
+	// get clients message
+	ws.ReadJSON(msg)
+
+	assert.Equal(t, ActionGetClients, msg.Action, "You have probably forgotten to read the buffered messages")
+
+	var clients []string
+	json.Unmarshal(msg.Data, &clients)
+
+	ws.Close()
+	wait(40)
+
+	return clients
 }
 
 func TestAddClient(t *testing.T) {
@@ -70,17 +117,17 @@ func TestAddClient(t *testing.T) {
 
 	ws.WriteJSON(MessageOut{
 		Action: ActionIdentify,
-		Data:   Game,
+		Data:   gameClient,
 	})
 
-	checkClientRegistered(t, Game)
+	checkClientRegistered(t, s.URL, gameClient)
 	sendCloseMessage(t, ws)
 
 	h.send <- MessageOut{
-		To: Game,
+		To: gameClient,
 	}
 
-	checkClientUnregistered(t, Game)
+	checkClientUnregistered(t, s.URL, gameClient)
 }
 
 func TestAddClientEmptyId(t *testing.T) {
@@ -96,7 +143,8 @@ func TestAddClientEmptyId(t *testing.T) {
 	})
 
 	wait(20)
-	assert.Empty(t, h.clients)
+
+	checkNoneRegistered(t, s.URL)
 }
 
 func TestReplaceActiveClient(t *testing.T) {
@@ -110,20 +158,19 @@ func TestReplaceActiveClient(t *testing.T) {
 
 	ws1.WriteJSON(MessageOut{
 		Action: ActionIdentify,
-		Data:   Game,
+		Data:   gameClient,
 	})
 
-	checkClientRegistered(t, Game)
+	checkClientRegistered(t, s.URL, gameClient)
 
 	ws2.WriteJSON(MessageOut{
 		Action: ActionIdentify,
-		Data:   Game,
+		Data:   gameClient,
 	})
 
 	wait(20)
 
 	msg := &MessageIn{}
-
 	// first identify message
 	ws2.ReadJSON(msg)
 	// second identify message
@@ -133,7 +180,7 @@ func TestReplaceActiveClient(t *testing.T) {
 
 	sendCloseMessage(t, ws1)
 	sendCloseMessage(t, ws2)
-	checkClientUnregistered(t, Game)
+	checkClientUnregistered(t, s.URL, gameClient)
 }
 
 func TestResumeClientWithQueuedMessage(t *testing.T) {
@@ -144,28 +191,28 @@ func TestResumeClientWithQueuedMessage(t *testing.T) {
 
 	ws.WriteJSON(MessageOut{
 		Action: ActionIdentify,
-		Data:   Game,
+		Data:   gameClient,
 	})
 
-	checkClientRegistered(t, Game)
+	checkClientRegistered(t, s.URL, gameClient)
 	sendCloseMessage(t, ws)
 
 	ws.Close()
 
 	h.send <- MessageOut{
-		To: Game,
+		To: gameClient,
 	}
 
 	ws = newWs(t, s.URL)
 
 	ws.WriteJSON(MessageOut{
 		Action: ActionIdentify,
-		Data:   Game,
+		Data:   gameClient,
 	})
 
-	checkClientRegistered(t, Game)
+	checkClientRegistered(t, s.URL, gameClient)
 	sendCloseMessage(t, ws)
-	checkClientUnregistered(t, Game)
+	checkClientUnregistered(t, s.URL, gameClient)
 
 	ws.Close()
 }
@@ -176,6 +223,7 @@ func TestPassthrough(t *testing.T) {
 
 	const (
 		c            = "c1"
+		game         = "game1"
 		actionActual = "actual action"
 	)
 
@@ -186,38 +234,39 @@ func TestPassthrough(t *testing.T) {
 
 	gameWs.WriteJSON(MessageOut{
 		Action: ActionIdentify,
-		Data:   Game,
+		Data:   game,
 	})
 
-	checkClientRegistered(t, Game)
+	checkClientRegistered(t, s.URL, game)
 
 	cWs.WriteJSON(MessageOut{
 		Action: ActionIdentify,
 		Data:   c,
 	})
 
-	checkClientRegistered(t, c)
+	checkClientRegistered(t, s.URL, c)
 
 	cWs.WriteMessage(
 		websocket.TextMessage,
-		[]byte(`{"to":"`+Game+`", "action":"`+ActionPassthrough+`", "data":{"action": "`+actionActual+`", "data": ""}}`),
+		[]byte(`{"to":"`+game+`", "action":"`+ActionPassthrough+`", "data":{"action": "`+actionActual+`", "data": ""}}`),
 	)
 
 	wait(20)
 
 	msg := &MessageIn{}
+	// identify message
 	gameWs.ReadJSON(msg)
-	// The second should be a added client message
+	// identify ok message
 	gameWs.ReadJSON(msg)
-	// The third should be the message from c
+	// passthrough message
 	gameWs.ReadJSON(msg)
 
 	assert.Equal(t, msg.Action, actionActual)
 
 	sendCloseMessage(t, gameWs)
 	sendCloseMessage(t, cWs)
-	checkClientUnregistered(t, Game)
-	checkClientUnregistered(t, c)
+	checkClientUnregistered(t, s.URL, game)
+	checkClientUnregistered(t, s.URL, c)
 }
 
 func TestOrigin(t *testing.T) {

@@ -2,10 +2,12 @@ package com.github.s111.bachelor.pong;
 
 import com.github.s111.bachelor.pong.game.Pong;
 import com.github.s111.bachelor.pong.network.GameSession;
+import org.lwjgl.opengl.Display;
 import org.newdawn.slick.AppGameContainer;
+import org.newdawn.slick.ScalableGame;
 import org.newdawn.slick.SlickException;
 
-import javax.websocket.DeploymentException;
+import java.awt.*;
 
 public class Application {
     private static Pong game;
@@ -31,6 +33,10 @@ public class Application {
         System.exit(1);
     }
 
+    public static void main(String[] args) {
+        new Application();
+    }
+
     private void createGameSession() {
         try {
             gameSession = new GameSession(game);
@@ -41,16 +47,23 @@ public class Application {
     }
 
     private void startGame() {
+        GraphicsDevice gd = GraphicsEnvironment.getLocalGraphicsEnvironment().getDefaultScreenDevice();
+        int width = gd.getDisplayMode().getWidth();
+        int height = gd.getDisplayMode().getHeight();
+
+        System.setProperty("org.lwjgl.opengl.Window.undecorated", "true");
+
         try {
-            AppGameContainer app = new AppGameContainer(game);
+            Display.setResizable(false);
+
+            AppGameContainer app = new AppGameContainer(new ScalableGame(game, Pong.WIDTH, Pong.HEIGHT));
+            app.setDisplayMode(width, height, false);
+            app.setTargetFrameRate(60);
+            app.setMouseGrabbed(true);
             app.setAlwaysRender(true);
             app.start();
         } catch (SlickException e) {
             fatalError("Could not start pong: " + e.getMessage());
         }
-    }
-
-    public static void main(String[] args) {
-        new Application();
     }
 }

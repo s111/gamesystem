@@ -1,18 +1,29 @@
 var backend
 
 $(function() {
-  disconnect = $('<button></button>');
-  disconnect.html('Disconnect');
-  disconnect.css('width', '100%');
-  disconnect.css('height', '75px');
-  disconnect.css('font-weight', 'bold');
-
+  disconnect = createButton("Disconnect");
   disconnect.click(function () {
     sendToBackend("disconnect");
   });
 
+  quit = createButton("Quit game");
+  quit.click(function () {
+    sendToBackend("start", "Launcher");
+  });
+
   $("#game").before(disconnect);
+  $("#game").before(quit);
 });
+
+function createButton(text) {
+  button = $('<button></button>');
+  button.html(text);
+  button.css('width', '50%');
+  button.css('height', '75px');
+  button.css('font-weight', 'bold');
+
+  return button;
+}
 
 function addMessageHandler(callback) {
   backend = new WebSocket('ws://' + window.location.hostname + ':3001/ws');
@@ -21,17 +32,35 @@ function addMessageHandler(callback) {
     var msg = JSON.parse(e.data);
 
     if (msg.action === "identify") {
-      var id = localStorage.getItem("id-gsusfcavf");
+      if (!msg.data) {
+        var id = localStorage.getItem("id-gsusfcavf");
 
-      if(id == null) {
-        id = Math.random().toString(36).substring(7);
+        if(id == null) {
+          id = Math.random().toString(36).substring(7);
 
-        localStorage.setItem("id-gsusfcavf", id)
+          localStorage.setItem("id-gsusfcavf", id)
+        }
+
+        sendToBackend("identify", id);
+      } else if (msg.data === "ok") {
+        callback("identified");
+      } else {
+        var id = sessionStorage.getItem("id-gsusfcavf");
+
+        if(id == null) {
+          id = Math.random().toString(36).substring(7);
+
+          sessionStorage.setItem("id-gsusfcavf", id)
+        }
+
+        sendToBackend("identify", id);
       }
+    } else if (msg.action === "redirect") {
+      var gameName = msg.data.toLowerCase()
 
-      sendToBackend("identify", id);
-
-      callback("identified");
+      if (document.location.href.indexOf(gameName) < 0) {
+        document.location.href = "/" + gameName;
+      }
     } else {
       callback(msg);
     }

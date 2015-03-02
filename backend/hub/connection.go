@@ -42,6 +42,7 @@ type connection struct {
 	stop    chan bool
 }
 
+// MessageIn is a struct used to hold incomming messages
 type MessageIn struct {
 	To     string          `json:"to,omitempty"`
 	From   string          `json:"from,omitempty"`
@@ -49,6 +50,7 @@ type MessageIn struct {
 	Data   json.RawMessage `json:"data,omitempty"`
 }
 
+// MessageOut is a struct used to hold outgoing messages
 type MessageOut struct {
 	To     string      `json:"to,omitempty"`
 	From   string      `json:"from,omitempty"`
@@ -95,9 +97,9 @@ func (c *connection) listenRead() {
 
 		log.Println("Recieved message:", msg)
 
-		h.hLock.RLock()
+		h.mLock.RLock()
 
-		for action, cb := range h.handlers {
+		for action, cb := range h.msgHandlers {
 			if action == msg.Action {
 				msg.From = c.id
 
@@ -105,7 +107,7 @@ func (c *connection) listenRead() {
 			}
 		}
 
-		h.hLock.RUnlock()
+		h.mLock.RUnlock()
 
 		switch msg.Action {
 		case ActionPassthrough:
@@ -147,7 +149,9 @@ func (c *connection) listenRead() {
 
 			if !<-r.ok {
 				c.id = ""
-				c.send <- MessageOut{Action: ActionIdentify}
+				c.send <- MessageOut{Action: ActionIdentify, Data: "error"}
+			} else {
+				c.send <- MessageOut{Action: ActionIdentify, Data: "ok"}
 			}
 
 		case ActionDisconnect:

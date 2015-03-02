@@ -59,7 +59,7 @@ public class Launcher extends BasicGame {
     }
 
     private void instantiateFonts() {
-        headerFont = new Font("Arial", Font.BOLD, screenHeight / 20);
+        headerFont = new Font("Arial", Font.BOLD, screenHeight / 30);
         headerTTFont = new TrueTypeFont(headerFont, true);
 
         listFont = new Font("Arial", Font.ROMAN_BASELINE, screenHeight / 30);
@@ -143,10 +143,6 @@ public class Launcher extends BasicGame {
     public void setSelectedGame(String name) {
         selectedGameNr = gameList.indexOf(name);
         selectedBox.setCenterY(selectedBoxStartingY + selectedGameNr * selectedBox.getHeight());
-    }
-
-    public void startGame() {
-        gameSession.startGame(gameList.get(selectedGameNr));
     }
 
     @Override

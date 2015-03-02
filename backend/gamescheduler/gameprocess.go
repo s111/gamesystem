@@ -3,25 +3,23 @@ package gamescheduler
 import (
 	"log"
 	"os/exec"
-
-	. "github.com/s111/bachelor/backend/gameparser"
 )
 
 type gameProcess struct {
-	game Game
+	name string
+	exec []string
 
 	done chan error
 }
 
 func (gp *gameProcess) start() {
-	command := exec.Command(gp.game.Exec[0], gp.game.Exec[1:]...)
-
-	log.Println("Starting:", gp.game.Name)
+	command := exec.Command(gp.exec[0], gp.exec[1:]...)
 
 	err := command.Start()
+	log.Println("Starting:", gp.name)
 
 	if err != nil {
-		log.Println("Done:", gp.game.Name+". Reason:", err)
+		log.Println("Done:", gp.name+". Reason:", err)
 
 		return
 	}
@@ -40,7 +38,7 @@ func (gp *gameProcess) start() {
 			<-gp.done
 		}
 
-		log.Println("Done:", gp.game.Name+". Reason:", err)
+		log.Println("Done:", gp.name+". Reason:", err)
 	}
 }
 
@@ -51,5 +49,5 @@ func (gp *gameProcess) stop() {
 	default:
 	}
 
-	log.Println("Stopping:", gp.game.Name)
+	log.Println("Stopping:", gp.name)
 }
