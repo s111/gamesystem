@@ -3,9 +3,7 @@ package com.github.s111.bachelor.triggerhappy.network;
 import com.github.s111.bachelor.triggerhappy.game.Triggerhappy;
 import org.glassfish.tyrus.client.ClientManager;
 
-import javax.json.Json;
-import javax.json.JsonObject;
-import javax.json.JsonReader;
+import javax.json.*;
 import javax.websocket.DeploymentException;
 import javax.websocket.EncodeException;
 import javax.websocket.Session;
@@ -14,18 +12,20 @@ import java.io.StringReader;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 public class GameSession {
     private final Triggerhappy game;
 
-    private List<Player> players;
+    private Set<Player> players;
 
     private Session backend;
 
     public GameSession(Triggerhappy game) throws DeploymentException {
         this.game = game;
-        players = new ArrayList();
+        players = new HashSet<>();
     }
 
     public void connect() throws URISyntaxException, IOException, DeploymentException {
@@ -41,14 +41,42 @@ public class GameSession {
                 .build());
     }
 
-    public void onMessage(Session session, String message) throws IOException {
+    public void onMessage(Session session, String message) throws IOException, EncodeException {
         JsonReader jsonReader = Json.createReader(new StringReader(message));
         JsonObject jsonObj = jsonReader.readObject();
         jsonReader.close();
 
+        if (!(jsonObj.containsKey("action") && jsonObj.containsKey("data"))) {
+            return;
+        }
+
         String action = jsonObj.getString("action");
 
         switch (action) {
+            case "identify": {
+                String data = jsonObj.getString("data");
+
+                if (data.equals("ok")) {
+                    backend.getBasicRemote().sendObject(Json.createObjectBuilder()
+                            .add("action", "get clients")
+                            .build());
+                }
+
+                break;
+            }
+            case "get clients": {
+                if (jsonObj.isNull("data")) {
+                    break;
+                }
+
+                JsonArray clients = jsonObj.getJsonArray("data");
+
+                for (JsonValue client : clients) {
+                    players.add(new Player(client.toString()));
+                }
+
+                break;
+            }
             case "added client": {
                 String id = jsonObj.getString("data");
 
@@ -120,6 +148,11 @@ public class GameSession {
 
         public int getScore() {
             return score;
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            return ((Player) o).getId() == getId();
         }
     }
 }
