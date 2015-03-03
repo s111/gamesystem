@@ -5,6 +5,7 @@ import com.github.s111.bachelor.quizzer.network.GameSession;
 import org.lwjgl.input.Mouse;
 import org.lwjgl.opengl.Display;
 import org.newdawn.slick.AppGameContainer;
+import org.newdawn.slick.ScalableGame;
 import org.newdawn.slick.SlickException;
 
 import java.awt.*;
@@ -58,7 +59,7 @@ public class Application {
         try {
             Display.setResizable(false);
 
-            AppGameContainer app = new AppGameContainer(game);
+            AppGameContainer app = new AppGameContainer(new ScalableGame(game, Quizzer.WIDTH, Quizzer.HEIGHT));
             app.setDisplayMode(width, height, false);
             app.setTargetFrameRate(60);
             app.setMouseGrabbed(true);
