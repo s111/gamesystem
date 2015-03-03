@@ -3,36 +3,41 @@ var sprite;
 var leftBttn;
 var rightBttn;
 var target;
+var id;
 
 var rightSelected;
 var leftSelected;
-var y = 0;
 
 var movePaddle = function(pos) {};
-var selectPaddle = function(sel) {};
+
+function selectPaddle(sel) {
+  sendToGame("play as", sel);
+}
 
 function preload() {
   addMessageHandler(function(msg) {
     if (msg === "identified") {
+      if (sessionStorage.getItem("id-gsusfcavf")) {
+        id = sessionStorage.getItem("id-gsusfcavf");
+      } else {
+        id = localStorage.getItem("id-gsusfcavf");
+        sessionStorage.setItem("id-gsusfcavf", id);
+      } 
+      console.log(id);
       movePaddle = function(pos) {
         sendToGame("move", pos);
       }
     }
     if (msg.action === "play as") {
-      if (!selectPaddle) {
-        var selectPaddle = function(sel) {
-            sendToGame("play as", sel);
-        }
-      }
-      if (msg.data.left) {
-	leftSelected = false;
+      if (msg.data.left === id) {
+        leftSelected = true;
       } else {
-	  leftSelected = true;
+        leftSelected = false;
       }
-      if (msg.data.right) {
-	rightSelected = false;
+      if (msg.data.right === id) {
+        rightSelected = true;
       } else {
-	rightSelected = true;
+        rightSelected = false;
       }
     }
   });
@@ -76,12 +81,6 @@ function create() {
       game.scale.startFullScreen(false);
     } else if (pointer.targetObject) {
        selectPaddle(pointer.targetObject.sprite.data);
-       switch(pointer.targetObject.sprite.data) {
-         case "right":
-           rightSelected = true;
-         case "left":
-           leftSelected = true;
-      }
     }
     target = pointer.targetObject;
   }, this);
@@ -91,6 +90,7 @@ function update() {
   if (target && target.sprite === sprite && target.isDragged) {
     movePaddle((sprite.y - 32)/(game.stage.height - 32*2 - 128));
   }
+  console.log(leftSelected);
   if (leftSelected) {
     leftBttn.kill();
   }
