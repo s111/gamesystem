@@ -17,8 +17,6 @@ import java.net.URISyntaxException;
 public class GameSession {
     private final Quizzer game;
 
-    private Player player;
-
     private Session backend;
 
     public GameSession(Quizzer game) throws DeploymentException {
@@ -46,21 +44,6 @@ public class GameSession {
         String action = jsonObj.getString("action");
 
         switch (action) {
-            case "added client": {
-                String id = jsonObj.getString("data");
-
-                player = new Player(id);
-
-                break;
-            }
-            case "dropped client": {
-                String id = jsonObj.getString("data");
-
-                if (player.getId() == id) {
-                    player.setId("");
-                }
-                break;
-            }
             case "answer": {
                 String data = jsonObj.getJsonNumber("data").toString();
 
@@ -73,22 +56,6 @@ public class GameSession {
 
                 game.checkIfCorrectAnswer(selection);
             }
-        }
-    }
-
-    private class Player {
-        private String id;
-
-        public Player(String id) {
-            this.id = id;
-        }
-
-        public String getId() {
-            return id;
-        }
-
-        public void setId(String id) {
-            this.id = id;
         }
     }
 }
