@@ -32,6 +32,9 @@ public class GameSession {
 
     public void onOpen(Session session) throws IOException, EncodeException {
         backend = session;
+        player1 = "";
+        player2 = "";
+
         backend.getBasicRemote().sendObject(Json.createObjectBuilder()
                 .add("action", "identify")
                 .add("data", "game")
@@ -83,14 +86,15 @@ public class GameSession {
             case "added client": {
                 String id = jsonObj.getString("data");
                 backend.getBasicRemote().sendObject(Json.createObjectBuilder()
-                .add("action", "passthrough")
-                .add("data", Json.createObjectBuilder()
+                    .add("action", "passthrough")
+                    .add("data", Json.createObjectBuilder()
                         .add("action", "play as")
                         .add("data", Json.createObjectBuilder()
-                                .add("left", true)
-                                .add("right", true)))
-                .add("to", id)
-                .build());
+                                .add("left", player1)
+                                .add("right", player2)))
+                    .add("to", id)
+                    .build());
+
                 break;
             }
 
@@ -98,10 +102,44 @@ public class GameSession {
                 String id = jsonObj.getString("data");
 
                 if (player1 != null && player1.equals(id)) {
-                    player1 = null;
+                    player1 = "";
                 } else if (player2 != null && player2.equals(id)) {
-                    player2 = null;
+                    player2 = "";
                 }
+
+                backend.getBasicRemote().sendObject(Json.createObjectBuilder()
+                        .add("action", "passthrough")
+                        .add("data", Json.createObjectBuilder()
+                                .add("action", "play as")
+                                .add("data", Json.createObjectBuilder()
+                                        .add("left", player1)
+                                        .add("right", player2)))
+                        .add("to", "all")
+                        .build());
+
+                break;
+            }
+
+            case "play as": {
+                String data = jsonObj.getJsonString("data").toString();
+                String id = jsonObj.getString("from");
+                System.out.println(data);
+
+                if (data.equals("left")) {
+                    player1 = id;
+                } else if (data.equals("right")) {
+                    player2 = id;
+                }
+
+                backend.getBasicRemote().sendObject(Json.createObjectBuilder()
+                        .add("action", "passthrough")
+                        .add("data", Json.createObjectBuilder()
+                                .add("action", "play as")
+                                .add("data", Json.createObjectBuilder()
+                                        .add("left", player1)
+                                        .add("right", player2)))
+                        .add("to", "all")
+                        .build());
 
                 break;
             }
