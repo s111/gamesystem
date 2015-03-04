@@ -172,10 +172,5 @@ public class GameSession {
         }
     }
 
-    public void closeConnection(Session session) throws IOException {
-        RemoteEndpoint.Basic remote = session.getBasicRemote();
-        remote.sendText("Already got 2 players");
-
-        session.close();
     }
 }
