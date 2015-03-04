@@ -3,10 +3,11 @@ package com.github.s111.bachelor.pong.network;
 import com.github.s111.bachelor.pong.game.Pong;
 import org.glassfish.tyrus.client.ClientManager;
 
-import javax.json.*;
+import javax.json.Json;
+import javax.json.JsonObject;
+import javax.json.JsonReader;
 import javax.websocket.DeploymentException;
 import javax.websocket.EncodeException;
-import javax.websocket.RemoteEndpoint;
 import javax.websocket.Session;
 import java.io.IOException;
 import java.io.StringReader;
@@ -32,6 +33,9 @@ public class GameSession {
 
     public void onOpen(Session session) throws IOException, EncodeException {
         backend = session;
+        player1 = "";
+        player2 = "";
+
         backend.getBasicRemote().sendObject(Json.createObjectBuilder()
                 .add("action", "identify")
                 .add("data", "game")
@@ -50,56 +54,37 @@ public class GameSession {
         String action = jsonObj.getString("action");
 
         switch (action) {
-            case "identify": {
-                String data = jsonObj.getString("data");
-
-                if (data.equals("ok")) {
-                    backend.getBasicRemote().sendObject(Json.createObjectBuilder()
-                            .add("action", "get clients")
-                            .build());
-                }
-
-                break;
-            }
-
-            case "get clients": {
-                if (jsonObj.isNull("data")) {
-                    break;
-                }
-
-                JsonArray clients = jsonObj.getJsonArray("data");
-
-                for (JsonValue client : clients) {
-                    if (player1 == null) {
-                        player1 = client.toString();
-                    } else if (player2 == null) {
-                        player2 = client.toString();
-                    }
-                }
-
-                break;
-            }
-
-            case "added client": {
-                String id = jsonObj.getString("data");
-
-                if (player1 == null) {
-                    player1 = id;
-                } else if (player2 == null) {
-                    player2 = id;
-                }
-
-                break;
-            }
-
             case "dropped client": {
                 String id = jsonObj.getString("data");
 
-                if (player1 != null && player1.equals(id)) {
-                    player1 = null;
-                } else if (player2 != null && player2.equals(id)) {
-                    player2 = null;
+                if (player1.equals(id)) {
+                    player1 = "";
+                } else if (player2.equals(id)) {
+                    player2 = "";
                 }
+
+                sendAvailablePaddles("all");
+
+                break;
+            }
+
+            case "play as": {
+                String id = jsonObj.getString("from");
+                String data = jsonObj.getString("data");
+
+                if (data.equals("")) {
+                    sendAvailablePaddles(id);
+
+                    break;
+                }
+
+                if (player1.equals("") && data.equals("left")) {
+                    player1 = id;
+                } else if (player2.equals("") && data.equals("right")) {
+                    player2 = id;
+                }
+
+                sendAvailablePaddles("all");
 
                 break;
             }
@@ -132,10 +117,15 @@ public class GameSession {
         }
     }
 
-    public void closeConnection(Session session) throws IOException {
-        RemoteEndpoint.Basic remote = session.getBasicRemote();
-        remote.sendText("Already got 2 players");
-
-        session.close();
+    private void sendAvailablePaddles(String id) throws IOException, EncodeException {
+        backend.getBasicRemote().sendObject(Json.createObjectBuilder()
+                .add("action", "passthrough")
+                .add("data", Json.createObjectBuilder()
+                        .add("action", "play as")
+                        .add("data", Json.createObjectBuilder()
+                                .add("left", player1)
+                                .add("right", player2)))
+                .add("to", id)
+                .build());
     }
 }
