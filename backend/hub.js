@@ -80,3 +80,15 @@ function send(json) {
     backend.send(JSON.stringify(json));
   }
 }
+
+function getId() {
+  var id;
+
+  if (sessionStorage.getItem("id-gsusfcavf")) {
+    id = sessionStorage.getItem("id-gsusfcavf");
+  } else {
+    id = localStorage.getItem("id-gsusfcavf");
+  }
+
+  return id;
+}
