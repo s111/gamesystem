@@ -3,10 +3,10 @@ var sprite;
 var leftBttn;
 var rightBttn;
 var target;
-var id;
 
-var rightSelected;
-var leftSelected;
+var playing = false;
+var leftAvailable = false;
+var rightAvailable = false;
 
 var movePaddle = function(pos) {};
 
@@ -17,28 +17,25 @@ function selectPaddle(sel) {
 function preload() {
   addMessageHandler(function(msg) {
     if (msg === "identified") {
-      if (sessionStorage.getItem("id-gsusfcavf")) {
-        id = sessionStorage.getItem("id-gsusfcavf");
-      } else {
-        id = localStorage.getItem("id-gsusfcavf");
-        sessionStorage.setItem("id-gsusfcavf", id);
-      } 
-      console.log(id);
+      sendToGame("play as", "");
+
       movePaddle = function(pos) {
         sendToGame("move", pos);
       }
     }
+
+    var id = getId();
+
     if (msg.action === "play as") {
-      if (msg.data.left === id) {
-        leftSelected = true;
-      } else {
-        leftSelected = false;
+      var left = msg.data.left;
+      var right = msg.data.right;
+
+      if (left === id || right === id) {
+        playing = true;
       }
-      if (msg.data.right === id) {
-        rightSelected = true;
-      } else {
-        rightSelected = false;
-      }
+
+      leftAvailable = left === "";
+      rightAvailable = right === "";
     }
   });
   game.stage.backgroundColor = '#000000';
@@ -80,7 +77,7 @@ function create() {
     if (!game.scale.isFullScreen) {
       game.scale.startFullScreen(false);
     } else if (pointer.targetObject) {
-       selectPaddle(pointer.targetObject.sprite.data);
+      selectPaddle(pointer.targetObject.sprite.data);
     }
     target = pointer.targetObject;
   }, this);
@@ -90,11 +87,16 @@ function update() {
   if (target && target.sprite === sprite && target.isDragged) {
     movePaddle((sprite.y - 32)/(game.stage.height - 32*2 - 128));
   }
-  console.log(leftSelected);
-  if (leftSelected) {
+
+  if (playing || !leftAvailable) {
     leftBttn.kill();
+  } else {
+    leftBttn.revive();
   }
-  if (rightSelected) {
+
+  if (playing || !rightAvailable) {
     rightBttn.kill();
+  } else {
+    rightBttn.revive();
   }
 }
