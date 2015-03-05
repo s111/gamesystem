@@ -90,6 +90,7 @@ public class GameSession {
                 for (Player player : players) {
                     if (player.getId().equals(id)) {
                         players.remove(player);
+                        break;
                     }
                 }
                 break;
