@@ -152,7 +152,12 @@ public class GameSession {
 
         @Override
         public boolean equals(Object o) {
-            return ((Player) o).getId() == getId();
+            return ((Player) o).getId().equals(getId());
+        }
+
+        @Override
+        public int hashCode() {
+            return getId().hashCode();
         }
     }
 }
