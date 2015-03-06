@@ -4,7 +4,8 @@ var leftBttn;
 var rightBttn;
 var target;
 
-var playing = false;
+var playingSide = "";
+
 var leftAvailable = false;
 var rightAvailable = false;
 
@@ -30,8 +31,10 @@ function preload() {
       var left = msg.data.left;
       var right = msg.data.right;
 
-      if (left === id || right === id) {
-        playing = true;
+      if (left === id) {
+        playingSide = "left";
+      } else if (right === id) {
+        playingSide = "right";
       }
 
       leftAvailable = left === "";
