@@ -4,6 +4,8 @@ var leftBttn;
 var rightBttn;
 var target;
 
+var gameIsFullMsg;
+
 var playingSide = "";
 
 var leftAvailable = false;
@@ -103,6 +105,14 @@ function setupButtons() {
   }
 }
 
+function setupGameIsFullMsg() {
+  gameIsFullMsg = game.add.sprite(0, 0);
+  gameIsFullMsg.kill();
+  var text = game.add.text(game.stage.width / 2, game.stage.height / 2, "THE GAME IS FULL!", {fill: "white"});
+  text.x -= text.width / 2;
+  gameIsFullMsg.addChild(text);
+}
+
 function setupPaddle() {
   paddle = game.add.sprite(32, 32);
   paddle.inputEnabled = true;
@@ -145,16 +155,26 @@ function update() {
     }
 
     else if (selectionState) {
+      if(!gameIsFullMsg) {
+        setupGameIsFullMsg();
+      }
+
       if (leftAvailable) {
         leftBttn.revive();
+        gameIsFullMsg.kill();
       } else {
         leftBttn.kill();
       }
 
       if (rightAvailable) {
         rightBttn.revive();
+        gameIsFullMsg.kill();
       } else {
         rightBttn.kill();
+      }
+
+      if (!leftAvailable && !rightAvailable) {
+        gameIsFullMsg.revive();
       }
 
       pendingStateChange = false;
