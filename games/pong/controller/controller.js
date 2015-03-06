@@ -49,20 +49,7 @@ function create() {
   game.scale.scaleMode = Phaser.ScaleManager.EXACT_FIT;
   game.scale.refresh();
 
-  var btnGraphics1 = game.add.graphics(0, 0);
-  btnGraphics1.beginFill(0xFF2245, 1);
-  btnGraphics1.drawRect(0, game.stage.height/2 - 128, game.stage.width/2, 128);
-  leftBttn = game.add.sprite(0, 0);
-  leftBttn.addChild(btnGraphics1);
-  leftBttn.inputEnabled = true;
-  leftBttn.data = "left";
-  var btnGraphics2 = game.add.graphics(0, 0);
-  btnGraphics2.beginFill(0xFF0000, 1);
-  btnGraphics2.drawRect(game.stage.width/2 + 10, game.stage.height/2 - 128, game.stage.width/2 - 10, 128);
-  rightBttn = game.add.sprite(0, 0);
-  rightBttn.addChild(btnGraphics2);
-  rightBttn.inputEnabled = true;
-  rightBttn.data = "right";
+  setupButtons();
 
   game.input.onDown.add(function(pointer) {
     if (!game.scale.isFullScreen) {
@@ -74,15 +61,35 @@ function create() {
   }, this);
 }
 
-function update() {
-  if (target && target.sprite === sprite && target.isDragged) {
-    movePaddle((sprite.y - 32)/(game.stage.height - 32*2 - 128));
-  }
+function setupButtons() {
+  var bttnWidth = game.stage.width / 2;
+  var bttnHeight = game.stage.height;
 
-  if (playing || !leftAvailable) {
-    leftBttn.kill();
-  } else {
-    leftBttn.revive();
+  for (i = 0; i < 2; i++) {
+    var side = i < 1 ? "left" : "right";
+
+    g = game.add.graphics(0, 0);
+
+    var color = (side === "left" ? "0x22A7F0" : "0xF39C12");
+    g.beginFill(color, 1);
+
+    g.drawRect(0, 0, bttnWidth, bttnHeight);
+
+    s = game.add.sprite(i * bttnWidth, 0);
+    s.kill();
+    s.addChild(g);
+    s.data = side;
+    s.inputEnabled = true;
+
+    var text = game.add.text(bttnWidth / 2, bttnHeight / 2, side.toUpperCase(), {fill: "white"});
+    text.x -= text.width / 2;
+    s.addChild(text);
+f
+    if (side === "left") {
+      leftBttn = s;
+    } else {
+      rightBttn = s;
+    }
   }
 }
 
@@ -94,10 +101,6 @@ function setupPaddle() {
   paddle.input.boundsRect = new Phaser.Rectangle(32, 32, game.stage.width, game.stage.height - 32 - 128);
 }
 
-  if (playing || !rightAvailable) {
-    rightBttn.kill();
-  } else {
-    rightBttn.revive();
 function setPaddleColor(side) {
   var color = (side === "left" ? "0x22A7F0" : "0xF39C12");
 
