@@ -24,9 +24,9 @@ function preload() {
       }
     }
 
-    var id = getId();
-
     if (msg.action === "play as") {
+      var id = getId();
+
       var left = msg.data.left;
       var right = msg.data.right;
 
