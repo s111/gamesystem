@@ -94,7 +94,7 @@ function setupButtons() {
     var text = game.add.text(bttnWidth / 2, bttnHeight / 2, side.toUpperCase(), {fill: "white"});
     text.x -= text.width / 2;
     s.addChild(text);
-f
+
     if (side === "left") {
       leftBttn = s;
     } else {
