@@ -9,6 +9,10 @@ var playingSide = "";
 var leftAvailable = false;
 var rightAvailable = false;
 
+var selectionState;
+var playingState;
+var pendingStateChange = false;
+
 var movePaddle = function(pos) {};
 
 function selectPaddle(sel) {
@@ -36,6 +40,11 @@ function preload() {
       } else if (right === id) {
         playingSide = "right";
       }
+
+      playingState = playingSide !== "";
+      selectionState = !playingState;
+
+      pendingStateChange = true;
 
       leftAvailable = left === "";
       rightAvailable = right === "";
@@ -112,5 +121,42 @@ function setPaddleColor(side) {
   paddle.addChild(paddleGfx);
 }
 
+function update() {
+  if (target && target.sprite === paddle && target.isDragged) {
+    movePaddle((paddle.y - 32)/(game.stage.height - 32*2 - 128));
+  }
+
+  if (pendingStateChange) {
+
+    if (playingState) {
+      if(!paddle) {
+        setupPaddle();
+      } else {
+        paddle.revive();
+      }
+
+      setPaddleColor(playingSide);
+
+      leftBttn.kill();
+      rightBttn.kill();
+
+      pendingStateChange = false;
+    }
+
+    else if (selectionState) {
+      if (leftAvailable) {
+        leftBttn.revive();
+      } else {
+        leftBttn.kill();
+      }
+
+      if (rightAvailable) {
+        rightBttn.revive();
+      } else {
+        rightBttn.kill();
+      }
+
+      pendingStateChange = false;
+    }
   }
 }
