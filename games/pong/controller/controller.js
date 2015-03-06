@@ -50,13 +50,14 @@ function preload() {
       rightAvailable = right === "";
     }
   });
-  game.stage.backgroundColor = '#000000';
 }
 
 function create() {
   game.scale.fullScreenScaleMode = Phaser.ScaleManager.EXACT_FIT;
   game.scale.scaleMode = Phaser.ScaleManager.EXACT_FIT;
   game.scale.refresh();
+
+  game.stage.backgroundColor = '#000000';
 
   setupButtons();
 
