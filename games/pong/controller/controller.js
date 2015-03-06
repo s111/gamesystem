@@ -1,5 +1,5 @@
 var game = new Phaser.Game(800, 600, Phaser.AUTO, 'game', {preload: preload, create: create, update: update});
-var sprite;
+var paddle;
 var leftBttn;
 var rightBttn;
 var target;
@@ -49,18 +49,6 @@ function create() {
   game.scale.scaleMode = Phaser.ScaleManager.EXACT_FIT;
   game.scale.refresh();
 
-  var graphics = game.add.graphics(0, 0);
-
-  graphics.beginFill(0xFFFFFF, 1);
-  graphics.drawRect(0, 0, game.stage.width - 32*2, 128);
-
-  sprite = game.add.sprite(32, 32);
-  sprite.addChild(graphics);
-  sprite.inputEnabled = true;
-  sprite.input.enableDrag();
-  sprite.input.allowHorizontalDrag = false;
-  sprite.input.boundsRect = new Phaser.Rectangle(32, 32, game.stage.width, game.stage.height - 32 - 128);
-
   var btnGraphics1 = game.add.graphics(0, 0);
   btnGraphics1.beginFill(0xFF2245, 1);
   btnGraphics1.drawRect(0, game.stage.height/2 - 128, game.stage.width/2, 128);
@@ -96,10 +84,30 @@ function update() {
   } else {
     leftBttn.revive();
   }
+}
+
+function setupPaddle() {
+  paddle = game.add.sprite(32, 32);
+  paddle.inputEnabled = true;
+  paddle.input.enableDrag();
+  paddle.input.allowHorizontalDrag = false;
+  paddle.input.boundsRect = new Phaser.Rectangle(32, 32, game.stage.width, game.stage.height - 32 - 128);
+}
 
   if (playing || !rightAvailable) {
     rightBttn.kill();
   } else {
     rightBttn.revive();
+function setPaddleColor(side) {
+  var color = (side === "left" ? "0x22A7F0" : "0xF39C12");
+
+  var paddleGfx = game.add.graphics(0, 0);
+
+  paddleGfx.beginFill(color, 1);
+  paddleGfx.drawRect(0, 0, game.stage.width - 32*2, 128);
+
+  paddle.addChild(paddleGfx);
+}
+
   }
 }
