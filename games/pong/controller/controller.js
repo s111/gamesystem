@@ -64,6 +64,9 @@ function create() {
   game.stage.backgroundColor = '#000000';
 
   setupButtons();
+  if(!gameIsFullMsg) {
+    setupGameIsFullMsg();
+  }
 
   game.input.onDown.add(function(pointer) {
     if (!game.scale.isFullScreen) {
@@ -157,10 +160,6 @@ function update() {
     }
 
     else if (selectionState) {
-      if(!gameIsFullMsg) {
-        setupGameIsFullMsg();
-      }
-
       if (leftAvailable) {
         leftBttn.revive();
         gameIsFullMsg.kill();
@@ -170,6 +169,7 @@ function update() {
 
       if (rightAvailable) {
         rightBttn.revive();
+
         gameIsFullMsg.kill();
       } else {
         rightBttn.kill();
