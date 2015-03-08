@@ -17,6 +17,8 @@ var pendingStateChange = false;
 
 var textStyle = {font: "64px Arial", fill: "#fff"};
 
+var numberOfButtons = 0;
+
 var movePaddle = function(pos) {};
 
 function selectPaddle(sel) {
@@ -63,10 +65,12 @@ function create() {
 
   game.stage.backgroundColor = '#000000';
 
-  setupButtons();
   if(!gameIsFullMsg) {
     setupGameIsFullMsg();
   }
+
+  leftBttn = setupButton("left");
+  rightBttn = setupButton("right");
 
   game.input.onDown.add(function(pointer) {
     if (!game.scale.isFullScreen) {
@@ -78,36 +82,38 @@ function create() {
   }, this);
 }
 
-function setupButtons() {
+function setupButton(text) {
+  numberOfButtons++;
+
   var bttnWidth = game.stage.width / 2;
   var bttnHeight = game.stage.height;
 
-  for (i = 0; i < 2; i++) {
-    var side = i < 1 ? "left" : "right";
+  var bttnX = 0;
 
-    g = game.add.graphics(0, 0);
-
-    var color = (side === "left" ? "0x22A7F0" : "0xF39C12");
-    g.beginFill(color, 1);
-
-    g.drawRect(0, 0, bttnWidth, bttnHeight);
-
-    s = game.add.sprite(i * bttnWidth, 0);
-    s.kill();
-    s.addChild(g);
-    s.data = side;
-    s.inputEnabled = true;
-
-    var text = game.add.text(bttnWidth / 2, bttnHeight / 2, side.toUpperCase(), textStyle);
-    text.x -= text.width / 2;
-    s.addChild(text);
-
-    if (side === "left") {
-      leftBttn = s;
-    } else {
-      rightBttn = s;
-    }
+  if (numberOfButtons > 1) {
+      bttnX = bttnWidth;
   }
+
+  g = game.add.graphics(0, 0);
+
+  var color = (text === "left" ? "0x22A7F0" : "0xF39C12");
+  g.beginFill(color, 1);
+
+  g.drawRect(0, 0, bttnWidth, bttnHeight);
+
+  s = game.add.sprite(bttnX, 0);
+
+  s.kill();
+
+  s.addChild(g);
+  s.data = text;
+  s.inputEnabled = true;
+
+  var textGfx = game.add.text(bttnWidth / 2, bttnHeight / 2, text.toUpperCase(), textStyle);
+  textGfx.x -= textGfx.width / 2;
+  s.addChild(textGfx);
+
+  return s;
 }
 
 function setupGameIsFullMsg() {
@@ -162,6 +168,7 @@ function update() {
     else if (selectionState) {
       if (leftAvailable) {
         leftBttn.revive();
+
         gameIsFullMsg.kill();
       } else {
         leftBttn.kill();
