@@ -23,6 +23,7 @@ public class Question {
         options.add(option3);
         options.add(option4);
     }
+
     public String getQuestion() {
         return question;
     }

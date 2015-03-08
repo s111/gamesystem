@@ -2,105 +2,130 @@ package com.github.s111.bachelor.pong.network;
 
 import com.github.s111.bachelor.pong.game.Pong;
 import org.glassfish.tyrus.client.ClientManager;
-import org.glassfish.tyrus.server.Server;
 
 import javax.json.Json;
 import javax.json.JsonObject;
-import javax.websocket.*;
+import javax.json.JsonReader;
+import javax.websocket.DeploymentException;
+import javax.websocket.EncodeException;
+import javax.websocket.Session;
 import java.io.IOException;
+import java.io.StringReader;
 import java.net.URI;
-import java.nio.ByteBuffer;
+import java.net.URISyntaxException;
 
 public class GameSession {
     private final Pong game;
 
-    private Session player1;
-    private Session player2;
+    private Session backend;
+
+    private String player1;
+    private String player2;
 
     public GameSession(Pong game) throws DeploymentException {
         this.game = game;
-
-        Server server = new Server("localhost", 1234, "/", null, WebsocketServer.class);
-        server.start();
-
-        sendReady();
     }
 
-    public void onOpen(Session session) throws IOException {
-        boolean player1NotActive = player1 == null || !player1.isOpen();
-        boolean player2NotActive = player2 == null || !player2.isOpen();
+    public void connect() throws URISyntaxException, IOException, DeploymentException {
+        ClientManager client = ClientManager.createClient();
+        client.connectToServer(WebsocketClient.class, new URI("ws://localhost:3001/ws"));
+    }
 
-        if (player1NotActive) {
-            player1 = session;
-        } else if (player2NotActive) {
-            player2 = session;
-        } else {
-            closeConnection(session);
+    public void onOpen(Session session) throws IOException, EncodeException {
+        backend = session;
+        player1 = "";
+        player2 = "";
 
+        backend.getBasicRemote().sendObject(Json.createObjectBuilder()
+                .add("action", "identify")
+                .add("data", "game")
+                .build());
+    }
+
+    public void onMessage(Session session, String message) throws IOException, EncodeException {
+        JsonReader jsonReader = Json.createReader(new StringReader(message));
+        JsonObject jsonObj = jsonReader.readObject();
+        jsonReader.close();
+
+        if (!(jsonObj.containsKey("action") && jsonObj.containsKey("data"))) {
             return;
         }
 
-        RemoteEndpoint.Basic remote = session.getBasicRemote();
-        remote.sendPing(ByteBuffer.wrap("".getBytes()));
-    }
+        String action = jsonObj.getString("action");
 
-    public void closeConnection(Session session) throws IOException {
-            RemoteEndpoint.Basic remote = session.getBasicRemote();
-            remote.sendText("Already got 2 players");
+        switch (action) {
+            case "dropped client": {
+                String id = jsonObj.getString("data");
 
-            session.close();
-    }
-
-    public void onMessage(Session session, String message) throws IOException {
-        float position;
-
-        try {
-            position = Float.parseFloat(message);
-        } catch (NumberFormatException e) {
-            position = -1;
-        }
-
-        if (player1.equals(session)) {
-            game.movePlayer1(position);
-        } else {
-            game.movePlayer2(position);
-        }
-    }
-
-    private void sendReady() {
-        ClientManager client = ClientManager.createClient();
-        try {
-            client.connectToServer(new Endpoint() {
-                @Override
-                public void onOpen(Session session, EndpointConfig config) {
-                    JsonObject b = Json.createObjectBuilder()
-                            .add("action", "ready")
-                            .build();
-
-                    session.getAsyncRemote().sendObject(b);
+                if (player1.equals(id)) {
+                    player1 = "";
+                } else if (player2.equals(id)) {
+                    player2 = "";
                 }
-            }, new URI("ws://localhost:3001/ws"));
-        } catch (Exception e) {
-            System.out.println("Unable to recover; exiting...");
-            System.exit(1);
+
+                sendAvailablePaddles("all");
+
+                break;
+            }
+
+            case "play as": {
+                String id = jsonObj.getString("from");
+                String data = jsonObj.getString("data");
+
+                if (data.equals("")) {
+                    sendAvailablePaddles(id);
+
+                    break;
+                }
+
+                if (player1.equals("") && data.equals("left")) {
+                    player1 = id;
+                } else if (player2.equals("") && data.equals("right")) {
+                    player2 = id;
+                }
+
+                sendAvailablePaddles("all");
+
+                break;
+            }
+
+            case "move": {
+                String data = jsonObj.getJsonNumber("data").toString();
+
+                float position;
+
+                try {
+                    position = Float.parseFloat(data);
+                } catch (Exception e) {
+                    position = -1;
+                }
+
+                if (!jsonObj.containsKey("from")) {
+                    return;
+                }
+
+                String from = jsonObj.getString("from");
+
+                if (player1 != null && player1.equals(from)) {
+                    game.movePlayer1(position);
+                } else if (player2 != null && player2.equals(from)) {
+                    game.movePlayer2(position);
+                }
+
+                break;
+            }
         }
     }
 
-    public void broadcastScore(int player1score, int player2score) {
-        String score = "[" + player1score + ", " + player2score + "]";
-
-        try {
-            if (player1 != null && player1.isOpen()) {
-                RemoteEndpoint.Basic remote1 = player1.getBasicRemote();
-                remote1.sendText(score);
-            }
-
-            if (player2 != null && player2.isOpen()) {
-                RemoteEndpoint.Basic remote2 = player2.getBasicRemote();
-                remote2.sendText(score);
-            }
-        } catch (IOException e) {
-            // Ignore exception, the score is updated next time and is also displayed on the game screen
-        }
+    private void sendAvailablePaddles(String id) throws IOException, EncodeException {
+        backend.getBasicRemote().sendObject(Json.createObjectBuilder()
+                .add("action", "passthrough")
+                .add("data", Json.createObjectBuilder()
+                        .add("action", "play as")
+                        .add("data", Json.createObjectBuilder()
+                                .add("left", player1)
+                                .add("right", player2)))
+                .add("to", id)
+                .build());
     }
 }

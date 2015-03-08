@@ -3,16 +3,16 @@ package com.github.s111.bachelor.quizzer.game;
 import com.github.s111.bachelor.quizzer.Application;
 import com.github.s111.bachelor.quizzer.network.GameSession;
 import org.newdawn.slick.*;
-import org.newdawn.slick.Graphics;
 import org.newdawn.slick.Color;
+import org.newdawn.slick.Graphics;
 
 import java.awt.Font;
 
 public class Quizzer extends BasicGame {
+    public static final int WIDTH = 1280;
+    public static final int HEIGHT = 720;
 
     private GameSession gameSession;
-    private int width;
-    private int height;
 
     private Font awtFont;
     private TrueTypeFont font;
@@ -38,9 +38,6 @@ public class Quizzer extends BasicGame {
         font = new TrueTypeFont(awtFont, true);
         fontColors = new Color[]{Color.red, Color.yellow, Color.green, Color.blue};
 
-        width = container.getWidth();
-        height = container.getHeight();
-
         initiateQuestions();
         setPositions();
     }
@@ -61,15 +58,15 @@ public class Quizzer extends BasicGame {
     private void setPositions() {
         int questionTextLength = font.getWidth(currentQuestion.getQuestion());
         fontTextHeight = font.getHeight(currentQuestion.getQuestion());
-        questionPosX = width / 2 - questionTextLength / 2;
-        questionPosY = height / 6;
-        optionsPosX =  width / 2 - questionTextLength / 2;
+        questionPosX = WIDTH / 2 - questionTextLength / 2;
+        questionPosY = HEIGHT / 6;
+        optionsPosX = WIDTH / 2 - questionTextLength / 2;
     }
 
     private void setCurrentQuestion() {
         Question question = questionList[(int) (Math.random() * questionList.length)];
 
-        if(currentQuestion == question) {
+        if (currentQuestion == question) {
             setCurrentQuestion();
         } else currentQuestion = question;
     }
@@ -97,7 +94,7 @@ public class Quizzer extends BasicGame {
         g.drawString(currentQuestion.getQuestion(), questionPosX, questionPosY);
         for (int i = 1; i <= 4; i++) {
             g.setColor(fontColors[i - 1]);
-            g.drawString((char)(i + 64) + ". " + currentQuestion.getOption(i),
+            g.drawString((char) (i + 64) + ". " + currentQuestion.getOption(i),
                     optionsPosX, questionPosY + fontTextHeight * i);
         }
     }

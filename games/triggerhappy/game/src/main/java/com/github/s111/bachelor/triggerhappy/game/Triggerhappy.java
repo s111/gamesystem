@@ -13,11 +13,11 @@ import java.util.Random;
 
 public class Triggerhappy extends BasicGame {
 
-    private final int ENEMY_WIDTH = 100;
-    private final int ENEMY_HEIGHT = 100;
+    public static final int WIDTH = 1280;
+    public static final int HEIGHT = 720;
+    private final int ENEMY_WIDTH = 200;
+    private final int ENEMY_HEIGHT = 200;
     private GameSession gameSession;
-    private int width;
-    private int height;
     private float time = 0;
 
     private Rectangle topLeft, topMiddle, topRight, botLeft, botMiddle, botRight;
@@ -50,18 +50,15 @@ public class Triggerhappy extends BasicGame {
         awtFont = new Font(Font.MONOSPACED, Font.BOLD, 24);
         font = new TrueTypeFont(awtFont, true);
 
-        width = container.getWidth();
-        height = container.getHeight();
-
         initiateSpawnPoints();
     }
 
     public void initiateSpawnPoints() {
-        int topY = height / 4 - ENEMY_HEIGHT / 2;
-        int botY = height - ENEMY_HEIGHT * 2;
-        int x1 = width / 4 - ENEMY_WIDTH / 2;
-        int x2 = width / 2 - ENEMY_WIDTH / 2;
-        int x3 = width * 3 / 4 - ENEMY_WIDTH / 2;
+        int topY = HEIGHT / 4 - ENEMY_HEIGHT / 2;
+        int botY = HEIGHT - ENEMY_HEIGHT * 2;
+        int x1 = WIDTH / 4 - ENEMY_WIDTH / 2;
+        int x2 = WIDTH / 2 - ENEMY_WIDTH / 2;
+        int x3 = WIDTH * 3 / 4 - ENEMY_WIDTH / 2;
 
         topLeft = new Rectangle(x1, topY, ENEMY_WIDTH, ENEMY_HEIGHT);
         topMiddle = new Rectangle(x2, topY, ENEMY_WIDTH, ENEMY_HEIGHT);
@@ -167,7 +164,7 @@ public class Triggerhappy extends BasicGame {
     @Override
     public void render(GameContainer container, Graphics g) throws SlickException {
         g.setColor(new Color(44, 62, 89));
-        g.fillRect(0, 0, width, height);
+        g.fillRect(0, 0, WIDTH, HEIGHT);
 
         g.setColor(new Color(231, 76, 60));
         g.fill(enemy);
@@ -175,12 +172,10 @@ public class Triggerhappy extends BasicGame {
         drawScore(g);
     }
 
+
     private void drawScore(Graphics g) {
         g.setFont(font);
-
         List<Integer> scores = gameSession.getScores();
-
         g.drawString("Score: " + scores.toString(), 30, 30);
     }
-
 }

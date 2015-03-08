@@ -56,12 +56,10 @@ public class Launcher extends BasicGame {
         instantiateColors();
         instantiateFonts();
         instantiateGUI();
-
-        createGameList();
     }
 
     private void instantiateFonts() {
-        headerFont = new Font("Arial", Font.BOLD, screenHeight / 20);
+        headerFont = new Font("Arial", Font.BOLD, screenHeight / 30);
         headerTTFont = new TrueTypeFont(headerFont, true);
 
         listFont = new Font("Arial", Font.ROMAN_BASELINE, screenHeight / 30);
@@ -74,8 +72,8 @@ public class Launcher extends BasicGame {
         startButtonTTFont = new TrueTypeFont(startButtonFont, true);
     }
 
-    private void createGameList() {
-        gameList = gameSession.getGames();
+    public void setGameList(List<String> games) {
+        gameList = games;
     }
 
     private void instantiateColors() {
@@ -147,10 +145,6 @@ public class Launcher extends BasicGame {
         selectedBox.setCenterY(selectedBoxStartingY + selectedGameNr * selectedBox.getHeight());
     }
 
-    public void startGame() {
-        gameSession.startGame(gameList.get(selectedGameNr));
-    }
-
     @Override
     public void render(GameContainer container, Graphics g) throws SlickException {
         drawBackground(g);
@@ -207,11 +201,13 @@ public class Launcher extends BasicGame {
     }
 
     private void drawSelectedGameTitle(Graphics g) {
-        selectedGameName = gameList.get(selectedGameNr);
-        selectedGameName = selectedGameName.toUpperCase();
-        int selectedGameFontWidth = selectedGameTTFont.getWidth(selectedGameName);
-        g.setFont(selectedGameTTFont);
-        g.drawString(selectedGameName, middleSeperator.getX() / 2 - selectedGameFontWidth / 2, 5 / 2 * header.getHeight() - MARGIN);
+        if (!gameList.isEmpty()) {
+            selectedGameName = gameList.get(selectedGameNr);
+            selectedGameName = selectedGameName.toUpperCase();
+            int selectedGameFontWidth = selectedGameTTFont.getWidth(selectedGameName);
+            g.setFont(selectedGameTTFont);
+            g.drawString(selectedGameName, middleSeperator.getX() / 2 - selectedGameFontWidth / 2, 5 / 2 * header.getHeight() - MARGIN);
+        }
     }
 
     private void drawGameList(Graphics g) {
