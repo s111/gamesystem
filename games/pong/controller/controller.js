@@ -15,6 +15,8 @@ var selectionState;
 var playingState;
 var pendingStateChange = false;
 
+var textStyle = {font: "64px Arial", fill: "#fff"};
+
 var movePaddle = function(pos) {};
 
 function selectPaddle(sel) {
@@ -93,7 +95,7 @@ function setupButtons() {
     s.data = side;
     s.inputEnabled = true;
 
-    var text = game.add.text(bttnWidth / 2, bttnHeight / 2, side.toUpperCase(), {fill: "white"});
+    var text = game.add.text(bttnWidth / 2, bttnHeight / 2, side.toUpperCase(), textStyle);
     text.x -= text.width / 2;
     s.addChild(text);
 
@@ -108,7 +110,7 @@ function setupButtons() {
 function setupGameIsFullMsg() {
   gameIsFullMsg = game.add.sprite(0, 0);
   gameIsFullMsg.kill();
-  var text = game.add.text(game.stage.width / 2, game.stage.height / 2, "THE GAME IS FULL!", {fill: "white"});
+  var text = game.add.text(game.stage.width / 2, game.stage.height / 2, "THE GAME IS FULL!", textStyle);
   text.x -= text.width / 2;
   gameIsFullMsg.addChild(text);
 }
