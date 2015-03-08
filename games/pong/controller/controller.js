@@ -82,7 +82,7 @@ function create() {
   }, this);
 }
 
-function setupButton(leftOrRight, fullscreen) {
+function setupButton(leftOrRight) {
   var bttnX = game.stage.width / 2;
   var bttnWidth = game.stage.width / 2;
   var bttnHeight = game.stage.height;
@@ -91,15 +91,15 @@ function setupButton(leftOrRight, fullscreen) {
     bttnX = 0;
   }
 
+  if (onlyOneAvailable) {
+    bttnX = 0;
+    bttnWidth *= 2;
+  }
+
   g = game.add.graphics(0, 0);
 
   var color = (leftOrRight === "left" ? "0x22A7F0" : "0xF39C12");
   g.beginFill(color, 1);
-
-  if (fullscreen) {
-    bttnX = 0;
-    bttnWidth *= 2;
-  }
 
   g.drawRect(0, 0, bttnWidth, bttnHeight);
 
@@ -166,15 +166,15 @@ function update() {
       var twoAvailable = leftAvailable && rightAvailable;
 
       if (twoAvailable) {
-        leftBttn = setupButton("left", false);
-        rightBttn = setupButton("right", false);
+        leftBttn = setupButton("left");
+        rightBttn = setupButton("right");
       } else if (onlyOneAvailable) {
         if (leftAvailable) {
-          leftBttn = setupButton("left", true);
+          leftBttn = setupButton("left");
 
           gameIsFullMsg.kill();
         } else if (rightAvailable) {
-          rightBttn = setupButton("right", true);
+          rightBttn = setupButton("right");
 
           gameIsFullMsg.kill();
         }
