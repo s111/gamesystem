@@ -160,7 +160,10 @@ function update() {
 
     if (playingState) {
 
-      setupPaddle();
+      if (!paddle) {
+        setupPaddle();
+      }
+
       setPaddleColor(playingSide);
     }
 
