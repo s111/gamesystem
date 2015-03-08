@@ -1,16 +1,14 @@
 var game = new Phaser.Game(800, 600, Phaser.AUTO, 'game', {preload: preload, create: create, update: update});
 var paddle;
-var leftBttn;
-var rightBttn;
+var leftButton;
+var rightButton;
 var target;
-
-var gameIsFullMsg;
 
 var playingSide = "";
 
-var leftAvailable = false;
-var rightAvailable = false;
-var onlyOneAvailable;
+var leftPaddleAvailable = false;
+var rightPaddleAvailable = false;
+var onlyOnePaddleAvailable;
 
 var selectionState;
 var playingState;
@@ -19,6 +17,8 @@ var pendingStateChange = false;
 var textStyle = {font: "48px Arial", fill: "#fff"};
 
 var numberOfButtonsLeftToRender;
+
+var gameIsFullMessage;
 
 var movePaddle = function(pos) {};
 
@@ -53,12 +53,12 @@ function preload() {
 
       pendingStateChange = true;
 
-      leftAvailable = left === "";
-      rightAvailable = right === "";
+      leftPaddleAvailable = left === "";
+      rightPaddleAvailable = right === "";
 
-      onlyOneAvailable = (leftAvailable && !rightAvailable) || (!leftAvailable && rightAvailable);
+      onlyOnePaddleAvailable = (leftPaddleAvailable && !rightPaddleAvailable) || (!leftPaddleAvailable && rightPaddleAvailable);
 
-      numberOfButtonsLeftToRender = (onlyOneAvailable ? 1 : 2);
+      numberOfButtonsLeftToRender = (onlyOnePaddleAvailable ? 1 : 2);
     }
   });
 }
@@ -70,8 +70,6 @@ function create() {
 
   game.stage.backgroundColor = '#000000';
 
-  setupGameIsFullMsg();
-
   game.input.onDown.add(function(pointer) {
     if (!game.scale.isFullScreen) {
       game.scale.startFullScreen(false);
@@ -82,18 +80,36 @@ function create() {
   }, this);
 }
 
-function setupButton(leftOrRight) {
-  var bttnX = game.stage.width / 2;
-  var bttnWidth = game.stage.width / 2;
-  var bttnHeight = game.stage.height;
+function createPaddleSprite(playingSide) {
+  var color = (playingSide === "left" ? "0x22A7F0" : "0xF39C12");
+
+  var g = game.add.graphics(0, 0);
+  g.beginFill(color, 1);
+  g.drawRect(0, 0, game.stage.width, 128);
+
+  s = game.add.sprite(0, 32);
+  s.addChild(g);
+
+  s.inputEnabled = true;
+  s.input.enableDrag();
+  s.input.allowHorizontalDrag = false;
+  s.input.boundsRect = new Phaser.Rectangle(0, 32, game.stage.width, game.stage.height - 32 - 128);
+
+  paddle = s;
+}
+
+function createButtonSprites(leftOrRight) {
+  var buttonX = game.stage.width / 2;
+  var buttonWidth = game.stage.width / 2;
+  var buttonHeight = game.stage.height;
 
   if (numberOfButtonsLeftToRender === 2) {
-    bttnX = 0;
+    buttonX = 0;
   }
 
-  if (onlyOneAvailable) {
-    bttnX = 0;
-    bttnWidth *= 2;
+  if (onlyOnePaddleAvailable) {
+    buttonX = 0;
+    buttonWidth *= 2;
   }
 
   g = game.add.graphics(0, 0);
@@ -101,15 +117,15 @@ function setupButton(leftOrRight) {
   var color = (leftOrRight === "left" ? "0x22A7F0" : "0xF39C12");
   g.beginFill(color, 1);
 
-  g.drawRect(0, 0, bttnWidth, bttnHeight);
+  g.drawRect(0, 0, buttonWidth, buttonHeight);
 
-  s = game.add.sprite(bttnX, 0);
+  s = game.add.sprite(buttonX, 0);
 
   s.addChild(g);
   s.data = leftOrRight;
   s.inputEnabled = true;
 
-  var text = game.add.text(bttnWidth / 2, bttnHeight / 2, "", textStyle);
+  var text = game.add.text(buttonWidth / 2, buttonHeight / 2, "", textStyle);
   text.setText("PLAY AS " + leftOrRight.toUpperCase());
   text.x -= text.width / 2;
   s.addChild(text);
@@ -119,28 +135,14 @@ function setupButton(leftOrRight) {
   return s;
 }
 
-function setupGameIsFullMsg() {
-  gameIsFullMsg = game.add.sprite(0, 0);
-  gameIsFullMsg.kill();
+function createGameIsFullSprite() {
+  var s = game.add.sprite(0, 0);
+  s.kill();
   var text = game.add.text(game.stage.width / 2, game.stage.height / 2, "THE GAME IS FULL!", textStyle);
   text.x -= text.width / 2;
-  gameIsFullMsg.addChild(text);
-}
+  s.addChild(text);
 
-function setupPaddle(playingSide) {
-  var color = (playingSide === "left" ? "0x22A7F0" : "0xF39C12");
-
-  var paddleGfx = game.add.graphics(0, 0);
-  paddleGfx.beginFill(color, 1);
-  paddleGfx.drawRect(0, 0, game.stage.width - 32*2, 128);
-
-  paddle = game.add.sprite(32, 32);
-  paddle.addChild(paddleGfx);
-
-  paddle.inputEnabled = true;
-  paddle.input.enableDrag();
-  paddle.input.allowHorizontalDrag = false;
-  paddle.input.boundsRect = new Phaser.Rectangle(32, 32, game.stage.width, game.stage.height - 32 - 128);
+  gameIsFullMessage = s;
 }
 
 function update() {
@@ -149,37 +151,39 @@ function update() {
   }
 
   if (pendingStateChange) {
-
-    destroy(leftBttn);
-    destroy(rightBttn);
-
     pendingStateChange = false;
 
-    if (playingState) {
+    destroy(leftButton);
+    destroy(rightButton);
 
+    if (playingState) {
       if (!paddle) {
-        setupPaddle(playingSide);
+        createPaddleSprite(playingSide);
       }
     }
 
     else if (selectionState) {
-      var twoAvailable = leftAvailable && rightAvailable;
+      if (!gameIsFullMessage) {
+        createGameIsFullSprite();
+      }
 
-      if (twoAvailable) {
-        leftBttn = setupButton("left");
-        rightBttn = setupButton("right");
-      } else if (onlyOneAvailable) {
-        if (leftAvailable) {
-          leftBttn = setupButton("left");
+      var twoPaddlesAvailable = leftPaddleAvailable && rightPaddleAvailable;
 
-          gameIsFullMsg.kill();
-        } else if (rightAvailable) {
-          rightBttn = setupButton("right");
+      if (twoPaddlesAvailable) {
+        leftButton = createButtonSprites("left");
+        rightButton = createButtonSprites("right");
+      } else if (onlyOnePaddleAvailable) {
+        if (leftPaddleAvailable) {
+          leftButton = createButtonSprites("left");
 
-          gameIsFullMsg.kill();
+          gameIsFullMessage.kill();
+        } else if (rightPaddleAvailable) {
+          rightButton = createButtonSprites("right");
+
+          gameIsFullMessage.kill();
         }
       } else {
-        gameIsFullMsg.revive();
+        gameIsFullMessage.revive();
       }
     }
   }
