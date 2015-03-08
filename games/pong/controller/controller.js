@@ -162,9 +162,7 @@ function update() {
       if (!paddle) {
         createPaddleSprite(playingSide);
       }
-    }
-
-    else if (selectionState) {
+    } else if (selectionState) {
       if (!gameIsFullMessage) {
         createGameIsFullSprite();
       }
