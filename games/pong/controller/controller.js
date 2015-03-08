@@ -71,10 +71,12 @@ function create() {
   game.stage.backgroundColor = '#000000';
 
   game.input.onDown.add(function(pointer) {
+    var data = pointer.targetObject.sprite.data;
+
     if (!game.scale.isFullScreen) {
       game.scale.startFullScreen(false);
-    } else if (pointer.targetObject) {
-      selectPaddle(pointer.targetObject.sprite.data);
+    } else if (data === "left" || data === "right") {
+      selectPaddle(data);
     }
     target = pointer.targetObject;
   }, this);
