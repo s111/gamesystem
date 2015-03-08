@@ -127,23 +127,20 @@ function setupGameIsFullMsg() {
   gameIsFullMsg.addChild(text);
 }
 
-function setupPaddle() {
+function setupPaddle(playingSide) {
+  var color = (playingSide === "left" ? "0x22A7F0" : "0xF39C12");
+
+  var paddleGfx = game.add.graphics(0, 0);
+  paddleGfx.beginFill(color, 1);
+  paddleGfx.drawRect(0, 0, game.stage.width - 32*2, 128);
+
   paddle = game.add.sprite(32, 32);
+  paddle.addChild(paddleGfx);
+
   paddle.inputEnabled = true;
   paddle.input.enableDrag();
   paddle.input.allowHorizontalDrag = false;
   paddle.input.boundsRect = new Phaser.Rectangle(32, 32, game.stage.width, game.stage.height - 32 - 128);
-}
-
-function setPaddleColor(side) {
-  var color = (side === "left" ? "0x22A7F0" : "0xF39C12");
-
-  var paddleGfx = game.add.graphics(0, 0);
-
-  paddleGfx.beginFill(color, 1);
-  paddleGfx.drawRect(0, 0, game.stage.width - 32*2, 128);
-
-  paddle.addChild(paddleGfx);
 }
 
 function update() {
@@ -161,10 +158,8 @@ function update() {
     if (playingState) {
 
       if (!paddle) {
-        setupPaddle();
+        setupPaddle(playingSide);
       }
-
-      setPaddleColor(playingSide);
     }
 
     else if (selectionState) {
