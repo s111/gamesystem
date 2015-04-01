@@ -1,9 +1,0 @@
-{
-    "name": "Launcher",
-    "exec": [
-        "java",
-        "-Djava.library.path=games/launcher/lib",
-        "-jar",
-        "games/launcher/bin/launcher.jar"
-    ]
-}
