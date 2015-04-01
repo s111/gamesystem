@@ -1,0 +1,6 @@
+{
+    "name": "Launcher",
+    "exec": [
+        "games/launcher/bin/launcher"
+    ]
+}
