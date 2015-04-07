@@ -7,6 +7,8 @@ import org.newdawn.slick.Color;
 import org.newdawn.slick.Graphics;
 
 import java.awt.Font;
+import java.util.ArrayList;
+import java.util.Arrays;
 
 public class Quizzer extends BasicGame {
     public static final int WIDTH = 1280;
@@ -23,7 +25,7 @@ public class Quizzer extends BasicGame {
     private int questionPosY;
     private int optionsPosX;
 
-    private Question[] questionList;
+    private ArrayList<Question> questionList;
     private Question currentQuestion;
 
     public Quizzer(String title) {
@@ -43,6 +45,7 @@ public class Quizzer extends BasicGame {
     }
 
     private void initiateQuestions() {
+        questionList = new ArrayList<>();
         Question question1 = new Question("What is the Capital of China?", "Beijing");
         question1.addOptions("Beijing", "Washington", "Storhaug", "Hong Kong");
         Question question2 = new Question("What is the tallest mountain in Norway?", "Galdhøpiggen");
@@ -51,7 +54,10 @@ public class Quizzer extends BasicGame {
         question3.addOptions("42", "589", "0", "201");
         Question question4 = new Question("What is the approximate value of pi?", "3.14");
         question4.addOptions("2.7", "6.28", "144", "3.14");
-        questionList = new Question[]{question1, question2, question3, question4};
+        questionList.add(question1);
+        questionList.add(question2);
+        questionList.add(question3);
+        questionList.add(question4);
         setCurrentQuestion();
     }
 
@@ -64,11 +70,10 @@ public class Quizzer extends BasicGame {
     }
 
     private void setCurrentQuestion() {
-        Question question = questionList[(int) (Math.random() * questionList.length)];
-
-        if (currentQuestion == question) {
-            setCurrentQuestion();
-        } else currentQuestion = question;
+        int number = (int) (Math.random() * questionList.size());
+        Question question = questionList.get(number);
+        currentQuestion = question;
+        questionList.remove(number);
     }
 
     @Override
