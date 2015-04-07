@@ -4,10 +4,12 @@ import "testing"
 import "github.com/stretchr/testify/assert"
 
 const (
-	gameName = "Pong"
+	gameName    = "Pong"
+	description = "game description"
+	timeout     = 20
 )
 
-var gameExec = []string{"java", "-Djava.library.path=games/pong/lib", "-jar", "games/pong/bin/pong.jar"}
+var gameExec = exec{"java", "-Djava.library.path=games/pong/lib", "-jar", "games/pong/bin/pong.jar"}
 
 func TestParse(t *testing.T) {
 	gp := GameParser{
@@ -18,6 +20,18 @@ func TestParse(t *testing.T) {
 
 	assert.Len(t, gp.Games, 1)
 	assert.NotNil(t, gp.Games[gameName])
-	assert.Equal(t, gp.Games[gameName].Name, gameName)
-	assert.Equal(t, gp.Games[gameName].Exec, gameExec)
+
+	game := gp.Games[gameName]
+
+	assert.Equal(t, gameName, game.Name)
+	assert.Equal(t, description, game.Description)
+	assert.Equal(t, timeout, game.Timeout)
+
+	cmd, err := game.GetCmd()
+
+	if err != nil {
+		assert.Fail(t, "should be platform independet")
+	}
+
+	assert.Equal(t, gameExec, cmd)
 }

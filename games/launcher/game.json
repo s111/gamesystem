@@ -1,6 +1,15 @@
 {
     "name": "Launcher",
-    "exec": [
-        "games/launcher/bin/launcher"
-    ]
+    "launch-options": {
+        "os-specific": {
+            "linux": {
+                "386": ["games/launcher/bin/launcher"],
+                "amd64": ["games/launcher/bin/launcher"]
+            },
+            "windows": {
+                "386": ["games/launcher/bin/launcher.exe"],
+                "amd64": ["games/launcher/bin/launcher.exe"]
+            }
+        }
+    }
 }

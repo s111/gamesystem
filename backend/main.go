@@ -74,7 +74,13 @@ func main() {
 	var games []string
 
 	for name, game := range gp.Games {
-		gs.Add(name, game.Exec)
+		cmd, err := game.GetCmd()
+
+		if err != nil {
+			continue
+		}
+
+		gs.Add(name, cmd)
 
 		if name == launcher {
 			continue

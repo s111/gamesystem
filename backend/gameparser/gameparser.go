@@ -3,10 +3,12 @@ package gameparser
 
 import (
 	"encoding/json"
+	"errors"
 	"io/ioutil"
 	"log"
 	"os"
 	"path/filepath"
+	"runtime"
 )
 
 const (
@@ -19,17 +21,49 @@ const (
 	gameDescription = "game.json"
 )
 
-// Game should contain a games name and how to execute it.
-// Game.Exec should contain [program, args...].
-type Game struct {
-	Name string
-	Exec []string
-}
+// ErrNotSupported is used when a game is not supported on the current system
+var ErrNotSupported = errors.New("gameparser: Game is not supported on this system")
+
+type exec []string
+type arch map[string]exec
 
 // GameParser holds the parsed games.
 // It'll be empty until Parse is called.
 type GameParser struct {
 	Games map[string]Game
+}
+
+// Game should contain a games name and how to execute it.
+// LaunchOptions describes how to execute the game on different systems
+// Description is a short description of the game
+// Timeout is the amount of time before a client is considered dropped
+type Game struct {
+	Name          string
+	Description   string
+	LaunchOptions launchOptions `json:"launch-options"`
+	Timeout       int
+}
+
+type launchOptions struct {
+	All        []string
+	OsSpecific map[string]arch `json:"os-specific"`
+}
+
+// GetCmd first tries to return the most specific command, then the platform independent one, if none are found a error is returned
+func (g *Game) GetCmd() (exec, error) {
+	if len(g.LaunchOptions.OsSpecific) > 0 {
+		if o, ok := g.LaunchOptions.OsSpecific[runtime.GOOS]; ok {
+			if a, ok := o[runtime.GOARCH]; ok {
+				return a, nil
+			}
+		}
+	}
+
+	if len(g.LaunchOptions.All) > 0 {
+		return g.LaunchOptions.All, nil
+	}
+
+	return nil, ErrNotSupported
 }
 
 // Parse will look through the GamesDir and parse the game description.
