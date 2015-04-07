@@ -29,6 +29,7 @@ const (
 )
 
 var addr = flag.String("addr", ":3001", "http service address")
+var scheduler = flag.Bool("scheduler", true, "enable/disable the scheduler")
 var debug = flag.Bool("debug", true, "debug")
 
 func init() {
@@ -91,7 +92,9 @@ func main() {
 		games = append(games, name)
 	}
 
-	gs.Start(launcher)
+	if *scheduler {
+		gs.Start(launcher)
+	}
 
 	hub.AddEventHandler(hub.EventAdd, func(id string) {
 		if id == gameClient {
