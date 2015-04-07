@@ -9,10 +9,12 @@ import org.newdawn.slick.Graphics;
 import java.awt.Font;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 
 public class Quizzer extends BasicGame {
     public static final int WIDTH = 1280;
     public static final int HEIGHT = 720;
+    private float time = 0;
 
     private GameSession gameSession;
 
@@ -78,6 +80,7 @@ public class Quizzer extends BasicGame {
 
     @Override
     public void update(GameContainer container, int delta) throws SlickException {
+        time += delta;
         Input input = container.getInput();
 
         if (input.isKeyPressed(Input.KEY_Q)) {
@@ -85,10 +88,10 @@ public class Quizzer extends BasicGame {
         }
     }
 
-    public void checkIfCorrectAnswer(int choice) {
+    public boolean checkIfCorrectAnswer(int choice) {
         if (currentQuestion.correctAnswer(currentQuestion.getOption(choice))) {
-            setCurrentQuestion();
-        }
+            return true;
+        } else return false;
     }
 
     @Override
@@ -102,5 +105,13 @@ public class Quizzer extends BasicGame {
             g.drawString((char) (i + 64) + ". " + currentQuestion.getOption(i),
                     optionsPosX, questionPosY + fontTextHeight * i);
         }
+
+        drawScore(g);
+    }
+
+    private void drawScore(Graphics g) {
+        g.setFont(font);
+        List<Integer> scores = gameSession.getScores();
+        g.drawString("Score: " + scores.toString(), 30, 30);
     }
 }
