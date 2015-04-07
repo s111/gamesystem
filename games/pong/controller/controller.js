@@ -3,6 +3,7 @@ var game = new Phaser.Game(800, 600, Phaser.AUTO, 'game', {
     create: create,
     update: update
 });
+
 var paddle;
 var leftButton;
 var rightButton;
@@ -17,6 +18,8 @@ var onlyOnePaddleAvailable;
 var selectionState;
 var playingState;
 var pendingStateChange = false;
+
+var oldPos;
 
 var textStyle = {
     font: "48px Arial",
@@ -78,13 +81,18 @@ function create() {
     game.stage.backgroundColor = '#000000';
 
     game.input.onDown.add(function(pointer) {
-        var data = pointer.targetObject.sprite.data;
+        var data;
+
+        if (pointer.targetObject) {
+            data = pointer.targetObject.sprite.data;
+        }
 
         if (!game.scale.isFullScreen) {
             game.scale.startFullScreen(false);
         } else if (data === "left" || data === "right") {
             selectPaddle(data);
         }
+
         target = pointer.targetObject;
     }, this);
 }
@@ -156,7 +164,12 @@ function createGameIsFullSprite() {
 
 function update() {
     if (target && target.sprite === paddle && target.isDragged) {
-        movePaddle((paddle.y - 32) / (game.stage.height - 32 * 2 - 128));
+        var newPos = ((paddle.y - 32) / (game.stage.height - 32 * 2 - 128) * 2000) | 0;
+
+        if (newPos != oldPos) {
+            oldPos = newPos;
+            movePaddle(newPos / 2000);
+        }
     }
 
     if (pendingStateChange) {

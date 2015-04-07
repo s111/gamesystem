@@ -1,9 +1,11 @@
 {
     "name": "TriggerHappy",
-    "exec": [
-        "java",
-        "-Djava.library.path=games/triggerhappy/lib",
-        "-jar",
-        "games/triggerhappy/bin/triggerhappy.jar"
-    ]
+    "launch-options": {
+        "all": [
+            "java",
+            "-Djava.library.path=games/triggerhappy/lib",
+            "-jar",
+            "games/triggerhappy/bin/triggerhappy.jar"
+        ]
+    }
 }
