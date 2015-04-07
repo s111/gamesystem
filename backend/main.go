@@ -21,9 +21,11 @@ const (
 
 	gameClient = "game"
 
-	actionRedirect = "redirect"
-	actionList     = "list"
-	actionStart    = "start"
+	actionRedirect    = "redirect"
+	actionList        = "list"
+	actionStart       = "start"
+	actionDescription = "get description"
+	actionPlayers     = "get players"
 )
 
 var addr = flag.String("addr", ":3001", "http service address")
@@ -153,6 +155,54 @@ func main() {
 		}
 
 		gs.Start(data)
+	})
+
+	hub.AddMessageHandler(actionDescription, func(m hub.MessageIn) {
+		var data string
+
+		err := json.Unmarshal(m.Data, &data)
+
+		if err != nil {
+			return
+		}
+
+		description := ""
+
+		if game, ok := gp.Games[data]; ok {
+			if len(game.Description) > 0 {
+				description = game.Description
+			}
+		}
+
+		hub.Send(hub.MessageOut{
+			To:     m.From,
+			Action: actionDescription,
+			Data:   description,
+		})
+	})
+
+	hub.AddMessageHandler(actionPlayers, func(m hub.MessageIn) {
+		var data string
+
+		err := json.Unmarshal(m.Data, &data)
+
+		if err != nil {
+			return
+		}
+
+		players := 0
+
+		if game, ok := gp.Games[data]; ok {
+			if game.Players > 0 {
+				players = game.Players
+			}
+		}
+
+		hub.Send(hub.MessageOut{
+			To:     m.From,
+			Action: actionPlayers,
+			Data:   players,
+		})
 	})
 
 	for _, game := range gp.Games {
