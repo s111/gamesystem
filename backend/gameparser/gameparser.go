@@ -40,6 +40,7 @@ type GameParser struct {
 type Game struct {
 	Name          string
 	Description   string
+	Players       int
 	LaunchOptions launchOptions `json:"launch-options"`
 	Timeout       int
 }

@@ -1,11 +1,12 @@
-{
-    "name": "Pong",
-    "launch-options": {
-        "all": [
-            "java",
-            "-Djava.library.path=games/pong/lib",
-            "-jar",
-            "games/pong/bin/pong.jar"
-        ]
-    }
-}
+ {
+     "name": "Pong",
+     "players": 2,
+     "launch-options": {
+         "all": [
+             "java",
+             "-Djava.library.path=games/pong/lib",
+             "-jar",
+             "games/pong/bin/pong.jar"
+         ]
+     }
+ }

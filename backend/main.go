@@ -25,6 +25,7 @@ const (
 	actionList        = "list"
 	actionStart       = "start"
 	actionDescription = "get description"
+	actionPlayers     = "get players"
 )
 
 var addr = flag.String("addr", ":3001", "http service address")
@@ -177,6 +178,30 @@ func main() {
 			To:     m.From,
 			Action: actionDescription,
 			Data:   description,
+		})
+	})
+
+	hub.AddMessageHandler(actionPlayers, func(m hub.MessageIn) {
+		var data string
+
+		err := json.Unmarshal(m.Data, &data)
+
+		if err != nil {
+			return
+		}
+
+		players := 0
+
+		if game, ok := gp.Games[data]; ok {
+			if game.Players > 0 {
+				players = game.Players
+			}
+		}
+
+		hub.Send(hub.MessageOut{
+			To:     m.From,
+			Action: actionPlayers,
+			Data:   players,
 		})
 	})
 
