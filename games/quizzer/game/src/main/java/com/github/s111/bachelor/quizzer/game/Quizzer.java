@@ -14,6 +14,7 @@ import java.util.List;
 public class Quizzer extends BasicGame {
     public static final int WIDTH = 1280;
     public static final int HEIGHT = 720;
+    private static final int QUESTION_TIME = 10;
     private float time = 0;
 
     private GameSession gameSession;
@@ -83,6 +84,12 @@ public class Quizzer extends BasicGame {
         time += delta;
         Input input = container.getInput();
 
+        if (winner == null && time / 1000 >= QUESTION_TIME) {
+            gameSession.updateScores();
+            setCurrentQuestion();
+            time = 0;
+        }
+
         if (input.isKeyPressed(Input.KEY_Q)) {
             container.exit();
         }
@@ -99,19 +106,25 @@ public class Quizzer extends BasicGame {
         g.setFont(font);
         g.setBackground(Color.darkGray);
         g.setColor(Color.white);
-        g.drawString(currentQuestion.getQuestion(), questionPosX, questionPosY);
-        for (int i = 1; i <= 4; i++) {
-            g.setColor(fontColors[i - 1]);
-            g.drawString((char) (i + 64) + ". " + currentQuestion.getOption(i),
-                    optionsPosX, questionPosY + fontTextHeight * i);
-        }
 
-        drawScore(g);
+        if (winner == null) {
+            g.drawString(currentQuestion.getQuestion(), questionPosX, questionPosY);
+            for (int i = 1; i <= 4; i++) {
+                g.setColor(fontColors[i - 1]);
+                g.drawString((char) (i + 64) + ". " + currentQuestion.getOption(i),
+                        optionsPosX, questionPosY + fontTextHeight * i);
+            }
+
+            drawScoreAndTime(g);
+        } else {
+            drawWinner(g);
+        }
     }
 
-    private void drawScore(Graphics g) {
-        g.setFont(font);
+    private void drawScoreAndTime(Graphics g) {
         List<Integer> scores = gameSession.getScores();
         g.drawString("Score: " + scores.toString(), 30, 30);
+        g.drawString("Time left: " + (int) Math.ceil(QUESTION_TIME - time / 1000), WIDTH - 200, HEIGHT - 200);
+    }
     }
 }
