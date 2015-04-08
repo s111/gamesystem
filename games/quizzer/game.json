@@ -1,5 +1,6 @@
 {
     "name": "Quizzer",
+    "description": "In this game the players compete for points by answering questions. They have a limited amount of time to answer the questions where they get more points according to how fast they  answer correctly.",
     "launch-options": {
         "all": [
             "java",

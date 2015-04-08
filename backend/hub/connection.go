@@ -35,11 +35,12 @@ type connection struct {
 	aLock  sync.RWMutex
 	active bool
 
-	id      string
-	timeout *time.Timer
-	ws      *websocket.Conn
-	send    chan MessageOut
-	stop    chan bool
+	id       string
+	username string
+	timeout  *time.Timer
+	ws       *websocket.Conn
+	send     chan MessageOut
+	stop     chan bool
 }
 
 // MessageIn is a struct used to hold incomming messages
@@ -109,25 +110,7 @@ func (c *connection) listenRead() {
 
 		h.mLock.RUnlock()
 
-		switch msg.Action {
-		case ActionPassthrough:
-			data := MessageOut{}
-			err := json.Unmarshal(msg.Data, &data)
-
-			if err != nil {
-				log.Println("Dropping client:", err)
-
-				return
-			}
-
-			h.send <- MessageOut{
-				To:     msg.To,
-				From:   c.id,
-				Action: data.Action,
-				Data:   data.Data,
-			}
-
-		case ActionIdentify:
+		if msg.Action == ActionIdentify {
 			if c.id != "" {
 				break
 			}
@@ -153,6 +136,29 @@ func (c *connection) listenRead() {
 			} else {
 				c.send <- MessageOut{Action: ActionIdentify, Data: "ok"}
 			}
+		}
+
+		if c.id == "" {
+			continue
+		}
+
+		switch msg.Action {
+		case ActionPassthrough:
+			data := MessageOut{}
+			err := json.Unmarshal(msg.Data, &data)
+
+			if err != nil {
+				log.Println("Dropping client:", err)
+
+				return
+			}
+
+			h.send <- MessageOut{
+				To:     msg.To,
+				From:   c.id,
+				Action: data.Action,
+				Data:   data.Data,
+			}
 
 		case ActionDisconnect:
 			go func() { c.stop <- true }()
@@ -163,6 +169,25 @@ func (c *connection) listenRead() {
 			h.send <- MessageOut{
 				To:     c.id,
 				Action: msg.Action,
+			}
+
+		case ActionSetUsername:
+			fallthrough
+		case ActionGetUsername:
+			var data string
+
+			err := json.Unmarshal(msg.Data, &data)
+
+			if err != nil {
+				log.Println("Dropping client:", err)
+
+				return
+			}
+
+			h.send <- MessageOut{
+				From:   c.id,
+				Action: msg.Action,
+				Data:   data,
 			}
 		}
 	}
