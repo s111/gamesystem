@@ -1,16 +1,26 @@
 var backend
+var username
 
 $(function() {
+    user = createButton("Set username");
+    user.click(function() {
+        setUsername();
+    });
+    user.css('float', 'left');
+
     disconnect = createButton("Disconnect");
     disconnect.click(function() {
         sendToBackend("disconnect");
     });
+    disconnect.css('margin', '0 20% 0 20%');
 
     quit = createButton("Quit game");
     quit.click(function() {
         sendToBackend("start", "Launcher");
     });
+    quit.css('float', 'right');
 
+    $("#game").before(user);
     $("#game").before(disconnect);
     $("#game").before(quit);
 });
@@ -18,7 +28,7 @@ $(function() {
 function createButton(text) {
     button = $('<button></button>');
     button.html(text);
-    button.css('width', '50%');
+    button.css('width', '20%');
     button.css('height', '75px');
     button.css('font-weight', 'bold');
 
@@ -43,6 +53,8 @@ function addMessageHandler(callback) {
 
                 sendToBackend("identify", id);
             } else if (msg.data === "ok") {
+                sendToBackend("get username", getId());
+
                 callback("identified");
             } else {
                 var id = sessionStorage.getItem("id-gsusfcavf");
@@ -61,6 +73,12 @@ function addMessageHandler(callback) {
             if (document.location.href.indexOf(gameName) < 0) {
                 document.location.href = "/" + gameName;
             }
+        } else if (msg.action === "set username") {
+            if (msg.data === "error") {
+                alert("Username already in use")
+            }
+        } else if (msg.action === "get username") {
+            username = msg.data;
         } else {
             callback(msg);
         }
@@ -101,4 +119,10 @@ function getId() {
     }
 
     return id;
+}
+
+function setUsername() {
+    username = prompt("Please enter your name", username);
+
+    sendToBackend("set username", username);
 }
