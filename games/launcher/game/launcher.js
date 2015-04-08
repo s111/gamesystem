@@ -65,6 +65,10 @@ function addMessageHandler(callback) {
             callback(msg);
         }
     }
+
+    backend.onclose = function(e) {
+        gui.App.quit();
+    }
 }
 
 function sendToBackend(action, data) {
