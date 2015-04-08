@@ -29,6 +29,12 @@ const (
 	// ActionGetClients is a action used when asking for the hubs current list of clients.
 	ActionGetClients = "get clients"
 
+	// ActionSetUsername is a action used to set a username for the client
+	ActionSetUsername = "set username"
+
+	// ActionGetUsername is a action used to get the username of a client id
+	ActionGetUsername = "get username"
+
 	// EventAdd is the event of adding a client.
 	EventAdd = "add"
 
@@ -44,6 +50,7 @@ const (
 
 var h = hub{
 	clients:       make(map[string]*connection),
+	usernames:     make(map[string]string),
 	register:      make(chan registration),
 	unregister:    make(chan registration),
 	send:          make(chan MessageOut),
@@ -52,10 +59,13 @@ var h = hub{
 }
 
 type hub struct {
-	clients    map[string]*connection
+	clients   map[string]*connection
+	usernames map[string]string
+
 	register   chan registration
 	unregister chan registration
-	send       chan MessageOut
+
+	send chan MessageOut
 
 	tLock   sync.RWMutex
 	timeout time.Duration
@@ -87,6 +97,9 @@ func (h *hub) run() {
 		case r := <-h.register:
 			if c, ok := h.clients[r.conn.id]; ok {
 				if !c.isActive() {
+					// Transfer username
+					r.conn.username = c.username
+
 					// Speed up the closing of the old connection
 					select {
 					case c.stop <- true:
@@ -136,6 +149,7 @@ func (h *hub) run() {
 			if c, ok := h.clients[r.conn.id]; ok {
 				if !c.isActive() {
 					delete(h.clients, r.conn.id)
+					delete(h.usernames, c.username)
 
 					go runEventHandler(EventDrop, r.conn.id)
 
@@ -166,6 +180,44 @@ func (h *hub) run() {
 						}
 					}
 				}()
+
+			case ActionSetUsername:
+				c := h.clients[m.From]
+				username := m.Data.(string)
+
+				if _, ok := h.usernames[username]; ok {
+					c.send <- MessageOut{
+						Action: m.Action,
+						Data:   "error",
+					}
+				} else {
+					h.usernames[username] = m.From
+					c.username = username
+
+					c.send <- MessageOut{
+						Action: m.Action,
+						Data:   "ok",
+					}
+				}
+
+			case ActionGetUsername:
+				id := m.Data.(string)
+
+				if c, ok := h.clients[id]; ok {
+					if c.username != "" {
+						h.clients[m.From].send <- MessageOut{
+							Action: m.Action,
+							Data:   c.username,
+						}
+
+						break
+					}
+				}
+
+				h.clients[m.From].send <- MessageOut{
+					Action: m.Action,
+					Data:   "user-" + m.From,
+				}
 
 			default:
 				if m.To == Broadcast {
