@@ -216,7 +216,7 @@ func (h *hub) run() {
 
 				h.clients[m.From].send <- MessageOut{
 					Action: m.Action,
-					Data:   "user-" + m.From,
+					Data:   "user-" + id,
 				}
 
 			default:
