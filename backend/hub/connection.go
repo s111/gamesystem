@@ -109,25 +109,7 @@ func (c *connection) listenRead() {
 
 		h.mLock.RUnlock()
 
-		switch msg.Action {
-		case ActionPassthrough:
-			data := MessageOut{}
-			err := json.Unmarshal(msg.Data, &data)
-
-			if err != nil {
-				log.Println("Dropping client:", err)
-
-				return
-			}
-
-			h.send <- MessageOut{
-				To:     msg.To,
-				From:   c.id,
-				Action: data.Action,
-				Data:   data.Data,
-			}
-
-		case ActionIdentify:
+		if msg.Action == ActionIdentify {
 			if c.id != "" {
 				break
 			}
@@ -152,6 +134,29 @@ func (c *connection) listenRead() {
 				c.send <- MessageOut{Action: ActionIdentify, Data: "error"}
 			} else {
 				c.send <- MessageOut{Action: ActionIdentify, Data: "ok"}
+			}
+		}
+
+		if c.id == "" {
+			continue
+		}
+
+		switch msg.Action {
+		case ActionPassthrough:
+			data := MessageOut{}
+			err := json.Unmarshal(msg.Data, &data)
+
+			if err != nil {
+				log.Println("Dropping client:", err)
+
+				return
+			}
+
+			h.send <- MessageOut{
+				To:     msg.To,
+				From:   c.id,
+				Action: data.Action,
+				Data:   data.Data,
 			}
 
 		case ActionDisconnect:
