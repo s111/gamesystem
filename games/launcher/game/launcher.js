@@ -15,16 +15,10 @@ $(function() {
                 break;
             case "select":
                 $("#games li").each(function(index) {
-                    $(this).css({
-                        "color": "black",
-                        "font-weight": "normal"
-                    });
+                    $(this).removeClass("selected");
                 });
 
-                $("#lst" + msg.data).css({
-                    "color": "blue",
-                    "font-weight": "bold"
-                });
+                $("#lst" + msg.data).addClass("selected");
 
                 break;
             case "start":
