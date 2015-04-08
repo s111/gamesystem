@@ -11,21 +11,20 @@ import java.io.IOException;
 import java.io.StringReader;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 public class GameSession {
     private final Quizzer game;
 
     private Set<Player> players;
+    private Set<Player> correctPlayers;
 
     private Session backend;
 
     public GameSession(Quizzer game) throws DeploymentException {
         this.game = game;
         players = new HashSet<>();
+        correctPlayers = new HashSet<>();
     }
 
     public void connect() throws URISyntaxException, IOException, DeploymentException {
@@ -61,12 +60,12 @@ public class GameSession {
                             .add("action", "get clients")
                             .build());
                 }
+                break;
             }
             case "get clients": {
                 if (jsonObj.isNull("data")) {
                     break;
                 }
-
                 JsonArray clients = jsonObj.getJsonArray("data");
 
                 for (JsonValue client : clients) {
@@ -110,13 +109,15 @@ public class GameSession {
                 String from = jsonObj.getString("from");
 
                 for (Player player : players) {
-                    if (player.getId().equals(from)) {
+                    if (player.getId().equals(from) && !player.hasAnswered()) {
+                        player.setAnswered(true);
                         if (game.checkIfCorrectAnswer(selection)) {
-                            player.increaseScore();
+                            if (correctPlayers.size() < 4) {
+                                correctPlayers.add(player);
+                            }
                         }
                     }
                 }
-                game.checkIfCorrectAnswer(selection);
             }
         }
     }
@@ -129,20 +130,54 @@ public class GameSession {
         return scores;
     }
 
-    private class Player {
+    public void updateScores() {
+        int multiplier = 0;
+        for (Player player : correctPlayers) {
+            player.increaseScore(10 - 2 * multiplier);
+            multiplier++;
+        }
+        correctPlayers.clear();
+
+        for (Player player : players) {
+            player.setAnswered(false);
+        }
+    }
+
+    public Player getWinner() {
+        Player winner = new Player("No winner!");
+
+        int maxScore = 0;
+
+        for (Player player : players) {
+            if (player.getScore() > maxScore) {
+                winner = player;
+                maxScore = player.getScore();
+            }
+        }
+
+        return winner;
+    }
+
+    public class Player {
         private String id;
+        private boolean hasAnswered;
         private int score = 0;
 
         private Player(String id) {
             this.id = id;
+            this.hasAnswered = false;
         }
 
         public String getId() {
             return id;
         }
 
-        public void increaseScore() {
-            score++;
+        public void increaseScore(int number) {
+                score += number;
+        }
+
+        public boolean hasAnswered() {
+            return hasAnswered;
         }
 
         public int getScore() {
@@ -157,6 +192,10 @@ public class GameSession {
         @Override
         public int hashCode() {
             return getId().hashCode();
+        }
+
+        public void setAnswered(boolean bool) {
+            hasAnswered = bool;
         }
     }
 }

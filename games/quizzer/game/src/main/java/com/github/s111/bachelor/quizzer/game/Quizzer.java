@@ -31,6 +31,8 @@ public class Quizzer extends BasicGame {
     private ArrayList<Question> questionList;
     private Question currentQuestion;
 
+    private GameSession.Player winner;
+
     public Quizzer(String title) {
         super(title);
     }
@@ -77,6 +79,9 @@ public class Quizzer extends BasicGame {
         Question question = questionList.get(number);
         currentQuestion = question;
         questionList.remove(number);
+        if (questionList.size() <= 0) {
+            winner = gameSession.getWinner();
+        }
     }
 
     @Override
@@ -126,5 +131,8 @@ public class Quizzer extends BasicGame {
         g.drawString("Score: " + scores.toString(), 30, 30);
         g.drawString("Time left: " + (int) Math.ceil(QUESTION_TIME - time / 1000), WIDTH - 200, HEIGHT - 200);
     }
+
+    private void drawWinner(Graphics g) {
+        g.drawString("Winner: " + winner.getId() + " | Score: " + winner.getScore() +"!", WIDTH/2, HEIGHT/2);
     }
 }
