@@ -11,9 +11,7 @@ import java.io.IOException;
 import java.io.StringReader;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.util.ArrayList;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
 
 public class GameSession {
@@ -22,6 +20,8 @@ public class GameSession {
     private Set<Player> players;
 
     private Session backend;
+
+    private Player leadingPlayer;
 
     public GameSession(Triggerhappy game) throws DeploymentException {
         this.game = game;
@@ -35,9 +35,13 @@ public class GameSession {
 
     public void onOpen(Session session) throws IOException, EncodeException {
         backend = session;
+        sendToBackend("identify", "game");
+    }
+
+    private void sendToBackend(String action, String data) throws IOException, EncodeException {
         backend.getBasicRemote().sendObject(Json.createObjectBuilder()
-                .add("action", "identify")
-                .add("data", "game")
+                .add("action", action)
+                .add("data", data)
                 .build());
     }
 
@@ -72,7 +76,11 @@ public class GameSession {
                 JsonArray clients = jsonObj.getJsonArray("data");
 
                 for (JsonValue client : clients) {
-                    players.add(new Player(client.toString()));
+                    String id = client.toString();
+
+                    players.add(new Player(id));
+
+                    sendToBackend("get username", id);
                 }
 
                 break;
@@ -81,6 +89,8 @@ public class GameSession {
                 String id = jsonObj.getString("data");
 
                 players.add(new Player(id));
+
+                sendToBackend("get username", id);
 
                 break;
             }
@@ -93,6 +103,22 @@ public class GameSession {
                         break;
                     }
                 }
+                break;
+            }
+            case "get username": {
+                JsonArray client = jsonObj.getJsonArray("data");
+
+                String id = client.get(0).toString();
+                String username = client.get(1).toString();
+
+                for (Player player : players) {
+                    if (player.getId().equals(id)) {
+                        player.setUsername(username);
+
+                        break;
+                    }
+                }
+
                 break;
             }
             case "shoot": {
@@ -116,6 +142,10 @@ public class GameSession {
                     if (player.getId().equals(from)) {
                         if (game.checkIfHit(position)) {
                             player.increaseScore();
+
+                            if (leadingPlayer == null || player.getScore() > leadingPlayer.getScore()) {
+                                leadingPlayer = player;
+                            }
                         }
                     }
                 }
@@ -123,16 +153,17 @@ public class GameSession {
         }
     }
 
-    public List<Integer> getScores() {
-        List<Integer> scores = new ArrayList<Integer>();
-        for (Player player : players) {
-            scores.add(player.getScore());
+    public Player gameover() {
+        if (leadingPlayer != null && leadingPlayer.getScore() >= Triggerhappy.MAX_SCORE) {
+            return leadingPlayer;
         }
-        return scores;
+
+        return null;
     }
 
-    private class Player {
+    public class Player {
         private String id;
+        private String username;
         private int score = 0;
 
         private Player(String id) {
@@ -141,6 +172,10 @@ public class GameSession {
 
         public String getId() {
             return id;
+        }
+
+        public String getUsername() {
+            return username;
         }
 
         public void increaseScore() {
@@ -159,6 +194,10 @@ public class GameSession {
         @Override
         public int hashCode() {
             return getId().hashCode();
+        }
+
+        public void setUsername(String username) {
+            this.username = username;
         }
     }
 }

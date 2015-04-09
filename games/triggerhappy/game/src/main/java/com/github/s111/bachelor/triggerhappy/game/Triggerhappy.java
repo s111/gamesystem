@@ -8,15 +8,17 @@ import org.newdawn.slick.Graphics;
 import org.newdawn.slick.geom.Rectangle;
 
 import java.awt.Font;
-import java.util.List;
 import java.util.Random;
 
 public class Triggerhappy extends BasicGame {
 
     public static final int WIDTH = 1280;
     public static final int HEIGHT = 720;
-    private final int ENEMY_WIDTH = 200;
-    private final int ENEMY_HEIGHT = 200;
+    private static final int ENEMY_WIDTH = 200;
+    private static final int ENEMY_HEIGHT = 200;
+
+    public static final int MAX_SCORE = 15;
+
     private GameSession gameSession;
     private float time = 0;
 
@@ -26,8 +28,9 @@ public class Triggerhappy extends BasicGame {
     private boolean enemyAlive = false;
     private int enemyPosition = 0;
 
-    private Font awtFont;
-    private TrueTypeFont font;
+    private TrueTypeFont ttfFont;
+
+    private GameSession.Player winner;
 
     public Triggerhappy(String title) {
         super(title);
@@ -47,8 +50,8 @@ public class Triggerhappy extends BasicGame {
     public void init(GameContainer container) throws SlickException {
         gameSession = Application.getGameSession();
 
-        awtFont = new Font(Font.MONOSPACED, Font.BOLD, 24);
-        font = new TrueTypeFont(awtFont, true);
+        Font font = new Font("Arial", Font.BOLD, 48);
+        ttfFont = new TrueTypeFont(font, true);
 
         initiateSpawnPoints();
     }
@@ -80,12 +83,14 @@ public class Triggerhappy extends BasicGame {
             container.exit();
         }
 
-        if (time / 1000 >= 2) {
-            spawnEnemy();
-            time = 0;
-        }
+        winner = gameSession.gameover();
 
-        shootEnemy(input, delta);
+        if (winner == null) {
+            if (time / 1000 >= 2) {
+                spawnEnemy();
+                time = 0;
+            }
+        }
     }
 
     private void spawnEnemy() {
@@ -121,44 +126,9 @@ public class Triggerhappy extends BasicGame {
         enemyAlive = true;
     }
 
-
-    private void shootEnemy(Input input, int delta) {
-        if (enemyAlive) {
-            if (input.isKeyDown(Input.KEY_NUMPAD1)) {
-                if (hit(botLeft)) {
-                    resetEnemy();
-                }
-            } else if (input.isKeyDown(Input.KEY_NUMPAD2)) {
-                if (hit(botMiddle)) {
-                    resetEnemy();
-                }
-            } else if (input.isKeyDown(Input.KEY_NUMPAD3)) {
-                if (hit(botRight)) {
-                    resetEnemy();
-                }
-            } else if (input.isKeyDown(Input.KEY_NUMPAD4)) {
-                if (hit(topLeft)) {
-                    resetEnemy();
-                }
-            } else if (input.isKeyDown(Input.KEY_NUMPAD5)) {
-                if (hit(topMiddle)) {
-                    resetEnemy();
-                }
-            } else if (input.isKeyDown(Input.KEY_NUMPAD6)) {
-                if (hit(topRight)) {
-                    resetEnemy();
-                }
-            }
-        }
-    }
-
     private void resetEnemy() {
         enemy.setSize(0, 0);
         enemyAlive = false;
-    }
-
-    private boolean hit(Rectangle hit) {
-        return (enemy.getX() == hit.getX() && enemy.getY() == hit.getY());
     }
 
     @Override
@@ -169,13 +139,18 @@ public class Triggerhappy extends BasicGame {
         g.setColor(new Color(231, 76, 60));
         g.fill(enemy);
 
-        drawScore(g);
+        if (winner != null) {
+            drawWinScreen(g);
+        }
     }
 
+    private void drawWinScreen(Graphics g) {
+        g.setFont(ttfFont);
 
-    private void drawScore(Graphics g) {
-        g.setFont(font);
-        List<Integer> scores = gameSession.getScores();
-        g.drawString("Score: " + scores.toString(), 30, 30);
+        String text = "The winner is " + winner.getUsername();
+        int textWidth = ttfFont.getWidth(text);
+        int textHeight = ttfFont.getLineHeight();
+
+        g.drawString(text, (WIDTH - textWidth) / 2, (HEIGHT - textHeight) / 2);
     }
 }
