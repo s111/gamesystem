@@ -7,10 +7,15 @@ import org.newdawn.slick.Color;
 import org.newdawn.slick.Graphics;
 
 import java.awt.Font;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
 public class Quizzer extends BasicGame {
     public static final int WIDTH = 1280;
     public static final int HEIGHT = 720;
+    private static final int QUESTION_TIME = 10;
+    private float time = 0;
 
     private GameSession gameSession;
 
@@ -23,8 +28,10 @@ public class Quizzer extends BasicGame {
     private int questionPosY;
     private int optionsPosX;
 
-    private Question[] questionList;
+    private ArrayList<Question> questionList;
     private Question currentQuestion;
+
+    private GameSession.Player winner;
 
     public Quizzer(String title) {
         super(title);
@@ -43,6 +50,7 @@ public class Quizzer extends BasicGame {
     }
 
     private void initiateQuestions() {
+        questionList = new ArrayList<>();
         Question question1 = new Question("What is the Capital of China?", "Beijing");
         question1.addOptions("Beijing", "Washington", "Storhaug", "Hong Kong");
         Question question2 = new Question("What is the tallest mountain in Norway?", "Galdhøpiggen");
@@ -51,7 +59,10 @@ public class Quizzer extends BasicGame {
         question3.addOptions("42", "589", "0", "201");
         Question question4 = new Question("What is the approximate value of pi?", "3.14");
         question4.addOptions("2.7", "6.28", "144", "3.14");
-        questionList = new Question[]{question1, question2, question3, question4};
+        questionList.add(question1);
+        questionList.add(question2);
+        questionList.add(question3);
+        questionList.add(question4);
         setCurrentQuestion();
     }
 
@@ -64,26 +75,35 @@ public class Quizzer extends BasicGame {
     }
 
     private void setCurrentQuestion() {
-        Question question = questionList[(int) (Math.random() * questionList.length)];
-
-        if (currentQuestion == question) {
-            setCurrentQuestion();
-        } else currentQuestion = question;
+        int number = (int) (Math.random() * questionList.size());
+        Question question = questionList.get(number);
+        currentQuestion = question;
+        questionList.remove(number);
+        if (questionList.size() <= 0) {
+            winner = gameSession.getWinner();
+        }
     }
 
     @Override
     public void update(GameContainer container, int delta) throws SlickException {
+        time += delta;
         Input input = container.getInput();
+
+        if (winner == null && time / 1000 >= QUESTION_TIME) {
+            gameSession.updateScores();
+            setCurrentQuestion();
+            time = 0;
+        }
 
         if (input.isKeyPressed(Input.KEY_Q)) {
             container.exit();
         }
     }
 
-    public void checkIfCorrectAnswer(int choice) {
+    public boolean checkIfCorrectAnswer(int choice) {
         if (currentQuestion.correctAnswer(currentQuestion.getOption(choice))) {
-            setCurrentQuestion();
-        }
+            return true;
+        } else return false;
     }
 
     @Override
@@ -91,11 +111,28 @@ public class Quizzer extends BasicGame {
         g.setFont(font);
         g.setBackground(Color.darkGray);
         g.setColor(Color.white);
-        g.drawString(currentQuestion.getQuestion(), questionPosX, questionPosY);
-        for (int i = 1; i <= 4; i++) {
-            g.setColor(fontColors[i - 1]);
-            g.drawString((char) (i + 64) + ". " + currentQuestion.getOption(i),
-                    optionsPosX, questionPosY + fontTextHeight * i);
+
+        if (winner == null) {
+            g.drawString(currentQuestion.getQuestion(), questionPosX, questionPosY);
+            for (int i = 1; i <= 4; i++) {
+                g.setColor(fontColors[i - 1]);
+                g.drawString((char) (i + 64) + ". " + currentQuestion.getOption(i),
+                        optionsPosX, questionPosY + fontTextHeight * i);
+            }
+
+            drawScoreAndTime(g);
+        } else {
+            drawWinner(g);
         }
+    }
+
+    private void drawScoreAndTime(Graphics g) {
+        List<Integer> scores = gameSession.getScores();
+        g.drawString("Score: " + scores.toString(), 30, 30);
+        g.drawString("Time left: " + (int) Math.ceil(QUESTION_TIME - time / 1000), WIDTH - 200, HEIGHT - 200);
+    }
+
+    private void drawWinner(Graphics g) {
+        g.drawString("Winner: " + winner.getId() + " | Score: " + winner.getScore() +"!", WIDTH/2, HEIGHT/2);
     }
 }

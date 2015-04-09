@@ -15,7 +15,7 @@ public class WebsocketClient {
     }
 
     @OnMessage
-    public void onMessage(Session session, String message) throws IOException {
+    public void onMessage(Session session, String message) throws IOException, EncodeException {
         gameSession.onMessage(session, message);
     }
 }
