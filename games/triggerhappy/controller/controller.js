@@ -4,6 +4,7 @@ var game = new Phaser.Game(800, 600, Phaser.AUTO, 'game', {
 });
 
 var pos;
+var score;
 
 var shootEnemy = function(pos) {}
 
@@ -14,6 +15,10 @@ function preload() {
             shootEnemy = function(pos) {
                 sendToGame("shoot", pos);
             }
+        }
+
+        if (msg.action === "update score") {
+            score.setText("SCORE: " + msg.data);
         }
     });
 
@@ -27,6 +32,19 @@ function create() {
 
     var bttnWidth = game.stage.width / 3;
     var bttnHeight = game.stage.height / 2;
+
+    var sprite = game.add.sprite(game.stage.width / 2, game.stage.height / 2);
+
+    var textStyle = {
+        font: "48px Arial",
+        fill: "#fff"
+    };
+
+    score = game.add.text(0, 0, "", textStyle);
+    score.setText("SCORE: 0");
+    score.x -= score.width / 2;
+    score.y -= score.height / 2;
+    sprite.addChild(score);
 
     for (i = 0; i < 6; i++) {
         g = game.add.graphics(0, 0);

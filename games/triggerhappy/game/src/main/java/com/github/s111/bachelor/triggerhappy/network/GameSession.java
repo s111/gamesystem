@@ -143,14 +143,27 @@ public class GameSession {
                         if (game.checkIfHit(position)) {
                             player.increaseScore();
 
+                            sendScoreToController(player.getId(), player.getScore());
+
                             if (leadingPlayer == null || player.getScore() > leadingPlayer.getScore()) {
                                 leadingPlayer = player;
                             }
                         }
+
                     }
                 }
             }
         }
+    }
+
+    private void sendScoreToController(String id, int score) throws IOException, EncodeException {
+        backend.getBasicRemote().sendObject(Json.createObjectBuilder()
+                .add("action", "passthrough")
+                .add("data", Json.createObjectBuilder()
+                        .add("action", "update score")
+                        .add("data", score))
+                .add("to", id)
+                .build());
     }
 
     public Player gameover() {
