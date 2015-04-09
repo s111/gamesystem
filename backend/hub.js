@@ -122,7 +122,12 @@ function getId() {
 }
 
 function setUsername() {
-    username = prompt("Please enter your name", username);
+    newUsername = prompt("Please enter your name", username);
 
+    if (newUsername == "") {
+        return
+    }
+
+    username = newUsername;
     sendToBackend("set username", username);
 }
