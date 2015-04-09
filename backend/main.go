@@ -140,6 +140,18 @@ func main() {
 		})
 	})
 
+	hub.AddEventHandler(hub.EventUsernameChange, func(id string) {
+		if id == gameClient {
+			return
+		}
+
+		hub.Send(hub.MessageOut{
+			To:     gameClient,
+			Action: hub.ActionGetUsername,
+			Data:   id,
+		})
+	})
+
 	hub.AddMessageHandler(actionList, func(m hub.MessageIn) {
 		hub.Send(hub.MessageOut{
 			To:     m.From,

@@ -78,7 +78,7 @@ function addMessageHandler(callback) {
                 alert("Username already in use")
             }
         } else if (msg.action === "get username") {
-            username = msg.data;
+            username = msg.data[1];
         } else {
             callback(msg);
         }
