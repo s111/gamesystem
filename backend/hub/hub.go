@@ -38,6 +38,9 @@ const (
 	// EventDrop is the event of dropping a client.
 	EventDrop = "dropped client"
 
+	// EventUsernameChange is the event of a client changing username.
+	EventUsernameChange = "changed username"
+
 	// Broadcast is used in the To field of a message to broadcast it to all users except the sender.
 	Broadcast = "all"
 )
@@ -192,23 +195,30 @@ func (h *hub) run() {
 						Action: m.Action,
 						Data:   "ok",
 					}
+
+					go runEventHandler(EventUsernameChange, c.id)
 				}
 
 			case ActionGetUsername:
 				id := m.Data.(string)
+				to := m.From
+
+				if m.To != "" {
+					to = m.To
+				}
 
 				if c, ok := h.clients[id]; ok {
 					if c.username != "" {
-						h.clients[m.From].send <- MessageOut{
+						h.clients[to].send <- MessageOut{
 							Action: m.Action,
-							Data:   c.username,
+							Data:   []string{id, c.username},
 						}
 
 						break
 					}
 				}
 
-				h.clients[m.From].send <- MessageOut{
+				h.clients[to].send <- MessageOut{
 					Action: m.Action,
 					Data:   "user-" + id,
 				}
