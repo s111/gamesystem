@@ -17,12 +17,6 @@ const (
 	// {to: receiver, action: passthrough, data: {action: actual action, data: actual data}}
 	ActionPassthrough = "passthrough"
 
-	// ActionAdd is a action used to notify when a client is added.
-	ActionAdd = "added client"
-
-	// ActionDrop is a action used to notify when a client is dropped.
-	ActionDrop = "dropped client"
-
 	// ActionDisconnect is a action used when a client wishes to immeaditaly terminate its connection.
 	ActionDisconnect = "disconnect"
 
@@ -36,13 +30,13 @@ const (
 	ActionGetUsername = "get username"
 
 	// EventAdd is the event of adding a client.
-	EventAdd = "add"
+	EventAdd = "added client"
 
 	// EventResume is the event of resuming a connection before it is dropped.
-	EventResume = "resume"
+	EventResume = "resumed client"
 
 	// EventDrop is the event of dropping a client.
-	EventDrop = "drop"
+	EventDrop = "dropped client"
 
 	// Broadcast is used in the To field of a message to broadcast it to all users except the sender.
 	Broadcast = "all"

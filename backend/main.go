@@ -103,7 +103,7 @@ func main() {
 
 		hub.Send(hub.MessageOut{
 			To:     gameClient,
-			Action: hub.ActionAdd,
+			Action: hub.EventAdd,
 			Data:   id,
 		})
 
@@ -135,7 +135,7 @@ func main() {
 
 		hub.Send(hub.MessageOut{
 			To:     gameClient,
-			Action: hub.ActionDrop,
+			Action: hub.EventDrop,
 			Data:   id,
 		})
 	})
