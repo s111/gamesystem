@@ -49,6 +49,10 @@ func main() {
 	for _, game := range games {
 		gameName := game.Name()
 
+		if gameName == "launcher" {
+			continue
+		}
+
 		gamePath := filepath.Join(gamesDir, gameName)
 		gameDir := filepath.Join(gamePath, "game")
 
