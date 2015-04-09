@@ -22,7 +22,7 @@ $(function() {
                 $("#lst" + msg.data).addClass("selected");
 
                 $("#title").html(msg.data);
-                $("#screenshot-src").attr("src", "http://localhost:3001/img/" + msg.data + ".png");
+                $("#screenshot-src").attr("src", "http://localhost:3001/img/" + msg.data.toLowerCase() + ".png");
 
                 sendToBackend("get players", msg.data);
                 sendToBackend("get description", msg.data);

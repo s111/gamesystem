@@ -210,6 +210,12 @@ func main() {
 
 	for _, game := range gp.Games {
 		serveController(game)
+
+		func(name string) {
+			http.HandleFunc("/img/"+name+".png", func(w http.ResponseWriter, r *http.Request) {
+				http.ServeFile(w, r, filepath.Join(GamesDir, name, "screenshot.png"))
+			})
+		}(strings.ToLower(game.Name))
 	}
 
 	http.HandleFunc("/ws", hub.ServeWs)
