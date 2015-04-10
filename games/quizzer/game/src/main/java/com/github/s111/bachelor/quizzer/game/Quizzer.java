@@ -6,9 +6,10 @@ import org.newdawn.slick.*;
 import org.newdawn.slick.Color;
 import org.newdawn.slick.Graphics;
 
+import javax.websocket.EncodeException;
 import java.awt.Font;
+import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 public class Quizzer extends BasicGame {
@@ -31,7 +32,7 @@ public class Quizzer extends BasicGame {
     private ArrayList<Question> questionList;
     private Question currentQuestion;
 
-    private GameSession.Player winner;
+    private List<GameSession.Player> topThree;
 
     public Quizzer(String title) {
         super(title);
@@ -79,8 +80,15 @@ public class Quizzer extends BasicGame {
         Question question = questionList.get(number);
         currentQuestion = question;
         questionList.remove(number);
+        try {
+            gameSession.nextQuestionMessage();
+        } catch (IOException e) {
+            e.printStackTrace();
+        } catch (EncodeException e) {
+            e.printStackTrace();
+        }
         if (questionList.size() <= 0) {
-            winner = gameSession.getWinner();
+            topThree = gameSession.getTopThree();
         }
     }
 
@@ -89,7 +97,7 @@ public class Quizzer extends BasicGame {
         time += delta;
         Input input = container.getInput();
 
-        if (winner == null && time / 1000 >= QUESTION_TIME) {
+        if (topThree == null && time / 1000 >= QUESTION_TIME) {
             gameSession.updateScores();
             setCurrentQuestion();
             time = 0;
@@ -112,14 +120,13 @@ public class Quizzer extends BasicGame {
         g.setBackground(Color.darkGray);
         g.setColor(Color.white);
 
-        if (winner == null) {
+        if (topThree == null) {
             g.drawString(currentQuestion.getQuestion(), questionPosX, questionPosY);
             for (int i = 1; i <= 4; i++) {
                 g.setColor(fontColors[i - 1]);
                 g.drawString((char) (i + 64) + ". " + currentQuestion.getOption(i),
                         optionsPosX, questionPosY + fontTextHeight * i);
             }
-
             drawScoreAndTime(g);
         } else {
             drawWinner(g);
@@ -133,6 +140,11 @@ public class Quizzer extends BasicGame {
     }
 
     private void drawWinner(Graphics g) {
-        g.drawString("Winner: " + winner.getId() + " | Score: " + winner.getScore() +"!", WIDTH/2, HEIGHT/2);
+        g.drawString("1st: " + topThree.get(0).getUserName() + " | Score: " + topThree.get(0).getScore(),
+                WIDTH/2, HEIGHT/2);
+        g.drawString("2nd: " + topThree.get(1).getUserName() + " | Score: " + topThree.get(1).getScore(), 
+                WIDTH/2, HEIGHT/2 + fontTextHeight);
+        g.drawString("3rd: " + topThree.get(2).getUserName() + " | Score: " + topThree.get(2).getScore(),
+                WIDTH/2, HEIGHT/2 + 2*fontTextHeight);
     }
 }
