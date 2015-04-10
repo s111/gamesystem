@@ -3,6 +3,7 @@ package com.github.s111.bachelor.pong.game;
 import com.github.s111.bachelor.pong.Application;
 import com.github.s111.bachelor.pong.network.GameSession;
 import org.newdawn.slick.*;
+import org.newdawn.slick.Color;
 import org.newdawn.slick.Graphics;
 import org.newdawn.slick.geom.Circle;
 import org.newdawn.slick.geom.Rectangle;
@@ -13,12 +14,21 @@ import java.awt.Font;
 public class Pong extends BasicGame {
     public static final int WIDTH = 1280;
     public static final int HEIGHT = 720;
+
     private static final int MARGIN = 32;
     private static final int PADDLE_WIDTH = 32;
     private static final int PADDLE_HEIGHT = 128;
     private static final int BALL_RADIUS = 8;
     private static final float BALL_SPEED = 1.0f;
     private static final double MAX_BOUNCE_ANGLE = 5 * Math.PI / 12;
+
+    private static final Color RED = new Color(255, 3, 115);
+    private static final Color GREEN = new Color(0, 252, 140);
+    private static final Color BLUE = new Color(0, 156, 255);
+    private static final Color YELLOW = new Color(252, 255, 2);
+    private static final Color BLACK = new Color(17, 18, 19);
+    private static final Color WHITE = new Color(238, 239, 239);
+
     private int left;
     private int right;
 
@@ -225,11 +235,23 @@ public class Pong extends BasicGame {
         drawScore(g);
 
         if (!gameover) {
+            g.setBackground(BLACK);
+            g.clear();
+
+            g.setColor(WHITE);
+            drawScore(g);
+
+            g.setColor(RED);
             g.fill(player1);
+
+            g.setColor(GREEN);
             g.fill(player2);
 
+            g.setColor(YELLOW);
             g.fill(ball);
 
+            g.setColor(BLUE);
+            g.setLineWidth(4);
             g.drawLine(horizontalCenter, 0, horizontalCenter, HEIGHT);
         } else {
             String message = (player1Score > player2Score ? gameSession.getPlayer1Username() : gameSession.getPlayer2Username()) + " wins!";

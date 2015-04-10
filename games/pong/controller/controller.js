@@ -21,9 +21,15 @@ var pendingStateChange = false;
 
 var oldPos;
 
+var RED = "0xff0373";
+var GREEN = "0x00fc8c";
+var BLACK = "0x111213";
+
 var textStyle = {
-    font: "48px Arial",
-    fill: "#fff"
+    font: "38px Arial",
+    fill: "#eeefef",
+    strokeThickness: 5,
+    stroke: "#111213"
 };
 
 var numberOfButtonsLeftToRender;
@@ -78,7 +84,7 @@ function create() {
     game.scale.scaleMode = Phaser.ScaleManager.EXACT_FIT;
     game.scale.refresh();
 
-    game.stage.backgroundColor = '#000000';
+    game.stage.backgroundColor = BLACK;
 
     game.input.onDown.add(function(pointer) {
         var data;
@@ -98,7 +104,7 @@ function create() {
 }
 
 function createPaddleSprite(playingSide) {
-    var color = (playingSide === "left" ? "0x22A7F0" : "0xF39C12");
+    var color = (playingSide === "left" ? RED : GREEN);
 
     var g = game.add.graphics(0, 0);
     g.beginFill(color, 1);
@@ -129,12 +135,17 @@ function createButtonSprites(leftOrRight) {
         buttonWidth *= 2;
     }
 
+    var x = 32;
+    if (leftOrRight === "right") {
+        x = 0;
+    }
+
     g = game.add.graphics(0, 0);
 
-    var color = (leftOrRight === "left" ? "0x22A7F0" : "0xF39C12");
+    var color = (leftOrRight === "left" ? RED : GREEN);
     g.beginFill(color, 1);
 
-    g.drawRect(0, 0, buttonWidth, buttonHeight);
+    g.drawRoundedRect(x, 32, buttonWidth - 32 - x, buttonHeight - 64, 64);
 
     s = game.add.sprite(buttonX, 0);
 
@@ -142,9 +153,10 @@ function createButtonSprites(leftOrRight) {
     s.data = leftOrRight;
     s.inputEnabled = true;
 
-    var text = game.add.text(buttonWidth / 2, buttonHeight / 2, "", textStyle);
+    var text = game.add.text((buttonWidth - ((buttonX > 0) ? 32 : 0)) / 2, buttonHeight / 2, "", textStyle);
     text.setText("PLAY AS " + leftOrRight.toUpperCase());
     text.x -= text.width / 2;
+    text.y -= text.height / 2;
     s.addChild(text);
 
     numberOfButtonsLeftToRender--;
