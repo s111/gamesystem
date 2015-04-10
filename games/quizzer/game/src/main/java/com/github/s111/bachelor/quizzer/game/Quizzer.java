@@ -17,6 +17,13 @@ public class Quizzer extends BasicGame {
     private static final int QUESTION_TIME = 10;
     private float time = 0;
 
+    private static final Color RED = new Color(255, 3, 115);
+    private static final Color GREEN = new Color(0, 252, 140);
+    private static final Color BLUE = new Color(0, 156, 255);
+    private static final Color YELLOW = new Color(252, 255, 2);
+    private static final Color BLACK = new Color(17, 18, 19);
+    private static final Color WHITE = new Color(238, 239, 239);
+
     private GameSession gameSession;
 
     private Font awtFont;
@@ -43,7 +50,7 @@ public class Quizzer extends BasicGame {
 
         awtFont = new Font(Font.MONOSPACED, Font.BOLD, 16);
         font = new TrueTypeFont(awtFont, true);
-        fontColors = new Color[]{Color.red, Color.yellow, Color.green, Color.blue};
+        fontColors = new Color[]{RED, YELLOW, GREEN, BLUE};
 
         initiateQuestions();
         setPositions();
@@ -108,11 +115,13 @@ public class Quizzer extends BasicGame {
 
     @Override
     public void render(GameContainer container, Graphics g) throws SlickException {
+        g.setBackground(BLACK);
+        g.clear();
         g.setFont(font);
-        g.setBackground(Color.darkGray);
-        g.setColor(Color.white);
+        g.setColor(WHITE);
 
         if (winner == null) {
+            g.setBackground(WHITE);
             g.drawString(currentQuestion.getQuestion(), questionPosX, questionPosY);
             for (int i = 1; i <= 4; i++) {
                 g.setColor(fontColors[i - 1]);
@@ -128,6 +137,7 @@ public class Quizzer extends BasicGame {
 
     private void drawScoreAndTime(Graphics g) {
         List<Integer> scores = gameSession.getScores();
+        g.setColor(WHITE);
         g.drawString("Score: " + scores.toString(), 30, 30);
         g.drawString("Time left: " + (int) Math.ceil(QUESTION_TIME - time / 1000), WIDTH - 200, HEIGHT - 200);
     }
