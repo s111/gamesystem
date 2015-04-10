@@ -11,16 +11,14 @@ import org.newdawn.slick.geom.Vector2f;
 import java.awt.Font;
 
 public class Pong extends BasicGame {
+    public static final int WIDTH = 1280;
+    public static final int HEIGHT = 720;
     private static final int MARGIN = 32;
     private static final int PADDLE_WIDTH = 32;
     private static final int PADDLE_HEIGHT = 128;
     private static final int BALL_RADIUS = 8;
     private static final float BALL_SPEED = 1.0f;
     private static final double MAX_BOUNCE_ANGLE = 5 * Math.PI / 12;
-
-    public static final int WIDTH = 1280;
-    public static final int HEIGHT = 720;
-
     private int left;
     private int right;
 
@@ -41,6 +39,8 @@ public class Pong extends BasicGame {
 
     private int player1Score;
     private int player2Score;
+
+    private boolean gameover;
 
     private Font awtFont;
     private TrueTypeFont font;
@@ -113,9 +113,13 @@ public class Pong extends BasicGame {
             container.exit();
         }
 
-        movePaddles(input, delta);
-        checkBallCollision();
-        moveBall(delta);
+        gameover = player1Score >= 11 || player2Score >= 11;
+
+        if (!gameover) {
+            movePaddles(input, delta);
+            checkBallCollision();
+            moveBall(delta);
+        }
     }
 
     private void movePaddles(Input input, int delta) {
@@ -216,22 +220,34 @@ public class Pong extends BasicGame {
 
     @Override
     public void render(GameContainer container, Graphics g) throws SlickException {
+        g.setFont(font);
+
         drawScore(g);
 
-        g.fill(player1);
-        g.fill(player2);
+        if (!gameover) {
+            g.fill(player1);
+            g.fill(player2);
 
-        g.fill(ball);
+            g.fill(ball);
 
-        g.drawLine(horizontalCenter, 0, horizontalCenter, HEIGHT);
+            g.drawLine(horizontalCenter, 0, horizontalCenter, HEIGHT);
+        } else {
+            String message = (player1Score > player2Score ? gameSession.getPlayer1Username() : gameSession.getPlayer2Username()) + " wins!";
+
+            int messageWidth = font.getWidth(message);
+            int messageHeight = font.getHeight(message);
+
+            g.drawString(message, (WIDTH - messageWidth) / 2, (HEIGHT - messageHeight) / 2);
+        }
     }
 
     private void drawScore(Graphics g) {
-        int score1Width = font.getWidth("" + player1Score);
-        int score2Width = font.getWidth("" + player2Score);
+        String score1 = gameSession.getPlayer1Username() + ": " + player1Score;
+        String score2 = gameSession.getPlayer2Username() + ": " + player2Score;
 
-        g.setFont(font);
-        g.drawString("" + player1Score, horizontalCenter - score1Width / 2 - MARGIN * 2, MARGIN);
-        g.drawString("" + player2Score, horizontalCenter - score2Width / 2 + MARGIN * 2, MARGIN);
+        int score1Width = font.getWidth(score1);
+
+        g.drawString(score1, horizontalCenter - score1Width - MARGIN * 2, MARGIN);
+        g.drawString(score2, horizontalCenter + MARGIN * 2, MARGIN);
     }
 }
