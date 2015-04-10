@@ -52,8 +52,10 @@ public class Pong extends BasicGame {
 
     private boolean gameover;
 
-    private Font awtFont;
-    private TrueTypeFont font;
+    private Font scoreFont;
+    private Font winFont;
+    private TrueTypeFont scoreTTF;
+    private TrueTypeFont winTTF;
 
     public Pong(String title) {
         super(title);
@@ -79,8 +81,10 @@ public class Pong extends BasicGame {
     public void init(GameContainer container) throws SlickException {
         gameSession = Application.getGameSession();
 
-        awtFont = new Font(Font.MONOSPACED, Font.BOLD, 48);
-        font = new TrueTypeFont(awtFont, true);
+        scoreFont = new Font(Font.MONOSPACED, Font.BOLD, 24);
+        winFont = new Font(Font.MONOSPACED, Font.BOLD, 48);
+        scoreTTF = new TrueTypeFont(scoreFont, true);
+        winTTF = new TrueTypeFont(winFont, true);
 
         setBoundaries(container);
         instantiatePlayers();
@@ -230,14 +234,15 @@ public class Pong extends BasicGame {
 
     @Override
     public void render(GameContainer container, Graphics g) throws SlickException {
-        g.setFont(font);
+        g.setFont(scoreTTF);
 
+        g.setBackground(BLACK);
+        g.clear();
+
+        g.setColor(WHITE);
         drawScore(g);
 
         if (!gameover) {
-            g.setBackground(BLACK);
-            g.clear();
-
             g.setColor(WHITE);
             drawScore(g);
 
@@ -256,9 +261,11 @@ public class Pong extends BasicGame {
         } else {
             String message = (player1Score > player2Score ? gameSession.getPlayer1Username() : gameSession.getPlayer2Username()) + " wins!";
 
-            int messageWidth = font.getWidth(message);
-            int messageHeight = font.getHeight(message);
+            int messageWidth = winTTF.getWidth(message);
+            int messageHeight = winTTF.getHeight(message);
 
+            g.setFont(winTTF);
+            g.setColor(WHITE);
             g.drawString(message, (WIDTH - messageWidth) / 2, (HEIGHT - messageHeight) / 2);
         }
     }
@@ -267,7 +274,7 @@ public class Pong extends BasicGame {
         String score1 = gameSession.getPlayer1Username() + ": " + player1Score;
         String score2 = gameSession.getPlayer2Username() + ": " + player2Score;
 
-        int score1Width = font.getWidth(score1);
+        int score1Width = scoreTTF.getWidth(score1);
 
         g.drawString(score1, horizontalCenter - score1Width - MARGIN * 2, MARGIN);
         g.drawString(score2, horizontalCenter + MARGIN * 2, MARGIN);
