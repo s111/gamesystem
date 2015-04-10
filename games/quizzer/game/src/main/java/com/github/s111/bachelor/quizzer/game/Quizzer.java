@@ -6,7 +6,9 @@ import org.newdawn.slick.*;
 import org.newdawn.slick.Color;
 import org.newdawn.slick.Graphics;
 
+import javax.websocket.EncodeException;
 import java.awt.Font;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -78,6 +80,13 @@ public class Quizzer extends BasicGame {
         Question question = questionList.get(number);
         currentQuestion = question;
         questionList.remove(number);
+        try {
+            gameSession.nextQuestionMessage();
+        } catch (IOException e) {
+            e.printStackTrace();
+        } catch (EncodeException e) {
+            e.printStackTrace();
+        }
         if (questionList.size() <= 0) {
             topThree = gameSession.getTopThree();
         }

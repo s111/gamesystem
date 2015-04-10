@@ -15,10 +15,14 @@ function preload() {
         if (msg === "identified") {
             selection = function(sel) {
                 sendToGame("answer", sel);
+                createSelectedOptionSprite(sel);
             }
         }
+        console.log(msg);
+        if (msg.action === "next") {
+            selectOptionSprite.kill();
+        }
     });
-
     game.stage.backgroundColor = '#000000';
 }
 
@@ -29,7 +33,6 @@ function create() {
 
     bttnWidth = game.stage.width / 2;
     bttnHeight = game.stage.height / 2;
-
     for (i = 1; i <= 4; i++) {
         g = game.add.graphics(0, 0);
         g.beginFill(colours[i - 1], 1);
@@ -47,4 +50,12 @@ function create() {
             selection(pointer.targetObject.sprite.data);
         }
     }, this);
+}
+
+function createSelectedOptionSprite(selection) {
+    g = game.add.graphics(0, 0);
+    g.beginFill(colours[selection - 1], 1);
+    g.drawRect(0, 0, game.stage.width, game.stage.height);
+    selectOptionSprite = game.add.sprite(0, 0);
+    selectOptionSprite.addChild(g);
 }

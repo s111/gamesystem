@@ -139,6 +139,15 @@ public class GameSession {
         }
     }
 
+    public void nextQuestionMessage() throws IOException, EncodeException {
+        backend.getBasicRemote().sendObject(Json.createObjectBuilder()
+                .add("action", "passthrough")
+                .add("data", Json.createObjectBuilder()
+                        .add("action", "next"))
+                .add("to", "all")
+                .build());
+    }
+
     public List<Integer> getScores() {
         List<Integer> scores = new ArrayList<Integer>();
         for (Player player : players) {
@@ -235,7 +244,7 @@ public class GameSession {
 
     class PlayerScoreComparator implements Comparator<Player> {
         public int compare(Player player1, Player player2) {
-            return player1.getScore() - player2.getScore();
+            return  player2.getScore() - player1.getScore();
         }
     }
 }
