@@ -18,6 +18,7 @@ public class GameSession {
 
     private Set<Player> players;
     private Set<Player> correctPlayers;
+    private List<Player> sortedPlayers;
 
     private Session backend;
 
@@ -143,19 +144,26 @@ public class GameSession {
         }
     }
 
-    public Player getWinner() {
-        Player winner = new Player("No winner!");
-
-        int maxScore = 0;
-
-        for (Player player : players) {
-            if (player.getScore() > maxScore) {
-                winner = player;
-                maxScore = player.getScore();
-            }
+    public List<Player> getTopThree() {
+        sortedPlayers = new ArrayList<>(players);
+        Collections.sort(sortedPlayers, new PlayerScoreComparator());
+        if (sortedPlayers.size() > 3) {
+            sortedPlayers.subList(3, sortedPlayers.size() - 1);
+            return sortedPlayers;
+        } else if (sortedPlayers.size() == 2) {
+            sortedPlayers.add(new Player("No 3rd!"));
+        } else if (sortedPlayers.size() == 1) {
+            sortedPlayers.add(new Player("No 2nd!"));
+            sortedPlayers.add(new Player("No 3rd!"));
+            return sortedPlayers;
+        } else if (sortedPlayers.isEmpty()) {
+            sortedPlayers.add(new Player("No 1st!"));
+            sortedPlayers.add(new Player("No 2nd!"));
+            sortedPlayers.add(new Player("No 3rd!"));
+        } else {
+            return sortedPlayers;
         }
-
-        return winner;
+        return sortedPlayers;
     }
 
     public class Player {
@@ -196,6 +204,12 @@ public class GameSession {
 
         public void setAnswered(boolean bool) {
             hasAnswered = bool;
+        }
+    }
+
+    class PlayerScoreComparator implements Comparator<Player> {
+        public int compare(Player player1, Player player2) {
+            return player1.getScore() - player2.getScore();
         }
     }
 }
