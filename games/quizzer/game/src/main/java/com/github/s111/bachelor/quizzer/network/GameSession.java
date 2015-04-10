@@ -93,6 +93,22 @@ public class GameSession {
                 }
                 break;
             }
+            case "get username": {
+                JsonArray client = jsonObj.getJsonArray("data");
+
+                String id = client.get(0).toString();
+                String username = client.get(1).toString();
+
+                for (Player player : players) {
+                    if (player.getId().equals(id)) {
+                        player.setUserName(username);
+
+                        break;
+                    }
+                }
+
+                break;
+            }
             case "answer": {
                 String data = jsonObj.getJsonNumber("data").toString();
 
@@ -168,11 +184,13 @@ public class GameSession {
 
     public class Player {
         private String id;
+        private String userName;
         private boolean hasAnswered;
         private int score = 0;
 
         private Player(String id) {
             this.id = id;
+            this.userName = id;
             this.hasAnswered = false;
         }
 
@@ -190,6 +208,14 @@ public class GameSession {
 
         public int getScore() {
             return score;
+        }
+
+        public String getUserName() {
+            return userName;
+        }
+
+        public void setUserName(String name) {
+            this.userName = name;
         }
 
         @Override

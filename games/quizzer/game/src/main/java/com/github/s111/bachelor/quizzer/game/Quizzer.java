@@ -131,8 +131,11 @@ public class Quizzer extends BasicGame {
     }
 
     private void drawWinner(Graphics g) {
-        g.drawString("1st: " + topThree.get(0).getId() + " | Score: " + topThree.get(0).getScore(), WIDTH/2, HEIGHT/2);
-        g.drawString("2nd: " + topThree.get(1).getId() + " | Score: " + topThree.get(1).getScore(), WIDTH/2, HEIGHT/2 + fontTextHeight);
-        g.drawString("3rd: " + topThree.get(2).getId() + " | Score: " + topThree.get(2).getScore(), WIDTH/2, HEIGHT/2 + 2*fontTextHeight);
+        g.drawString("1st: " + topThree.get(0).getUserName() + " | Score: " + topThree.get(0).getScore(),
+                WIDTH/2, HEIGHT/2);
+        g.drawString("2nd: " + topThree.get(1).getUserName() + " | Score: " + topThree.get(1).getScore(), 
+                WIDTH/2, HEIGHT/2 + fontTextHeight);
+        g.drawString("3rd: " + topThree.get(2).getUserName() + " | Score: " + topThree.get(2).getScore(),
+                WIDTH/2, HEIGHT/2 + 2*fontTextHeight);
     }
 }
