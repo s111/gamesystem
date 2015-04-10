@@ -17,6 +17,10 @@ public class Triggerhappy extends BasicGame {
     private static final int ENEMY_WIDTH = 200;
     private static final int ENEMY_HEIGHT = 200;
 
+    private static final Color RED = new Color(255, 3, 115);
+    private static final Color BLACK = new Color(17, 18, 19);
+    private static final Color WHITE = new Color(238, 239, 239);
+
     public static final int MAX_SCORE = 15;
 
     private GameSession gameSession;
@@ -133,10 +137,10 @@ public class Triggerhappy extends BasicGame {
 
     @Override
     public void render(GameContainer container, Graphics g) throws SlickException {
-        g.setColor(new Color(44, 62, 89));
+        g.setColor(BLACK);
         g.fillRect(0, 0, WIDTH, HEIGHT);
 
-        g.setColor(new Color(231, 76, 60));
+        g.setColor(RED);
         g.fill(enemy);
 
         if (winner != null) {
@@ -145,6 +149,7 @@ public class Triggerhappy extends BasicGame {
     }
 
     private void drawWinScreen(Graphics g) {
+        g.setColor(WHITE);
         g.setFont(ttfFont);
 
         String text = "The winner is " + winner.getUsername();

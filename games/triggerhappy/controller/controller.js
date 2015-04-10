@@ -6,6 +6,10 @@ var game = new Phaser.Game(800, 600, Phaser.AUTO, 'game', {
 var pos;
 var score;
 
+var RED = "0xff0373";
+var BLACK = "0x111213";
+var WHITE = "#eeefef";
+
 var shootEnemy = function(pos) {}
 
 
@@ -22,7 +26,7 @@ function preload() {
         }
     });
 
-    game.stage.backgroundColor = '#2C3E59';
+    game.stage.backgroundColor = BLACK;
 }
 
 function create() {
@@ -37,7 +41,7 @@ function create() {
 
     var textStyle = {
         font: "48px Arial",
-        fill: "#fff"
+        fill: WHITE
     };
 
     score = game.add.text(0, 0, "", textStyle);
@@ -48,7 +52,7 @@ function create() {
 
     for (i = 0; i < 6; i++) {
         g = game.add.graphics(0, 0);
-        g.beginFill(0xE74C3C, 1);
+        g.beginFill(RED, 1);
         g.drawRect((i % 3) * bttnWidth + 32, (i > 2 ? 1 : 0) * bttnHeight + 32, bttnWidth - 64, bttnHeight - 64);
 
         s = game.add.sprite(0, 0);
