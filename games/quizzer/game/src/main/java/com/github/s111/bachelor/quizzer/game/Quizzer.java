@@ -16,8 +16,13 @@ public class Quizzer extends BasicGame {
     public static final int WIDTH = 1280;
     public static final int HEIGHT = 720;
     private static final int QUESTION_TIME = 10;
+    private static final Color RED = new Color(255, 3, 115);
+    private static final Color GREEN = new Color(0, 252, 140);
+    private static final Color BLUE = new Color(0, 156, 255);
+    private static final Color YELLOW = new Color(252, 255, 2);
+    private static final Color BLACK = new Color(17, 18, 19);
+    private static final Color WHITE = new Color(238, 239, 239);
     private float time = 0;
-
     private GameSession gameSession;
 
     private Font awtFont;
@@ -44,7 +49,7 @@ public class Quizzer extends BasicGame {
 
         awtFont = new Font(Font.MONOSPACED, Font.BOLD, 16);
         font = new TrueTypeFont(awtFont, true);
-        fontColors = new Color[]{Color.red, Color.yellow, Color.green, Color.blue};
+        fontColors = new Color[]{RED, YELLOW, GREEN, BLUE};
 
         initiateQuestions();
         setPositions();
@@ -116,9 +121,10 @@ public class Quizzer extends BasicGame {
 
     @Override
     public void render(GameContainer container, Graphics g) throws SlickException {
+        g.setBackground(BLACK);
+        g.clear();
         g.setFont(font);
-        g.setBackground(Color.darkGray);
-        g.setColor(Color.white);
+        g.setColor(WHITE);
 
         if (topThree == null) {
             g.drawString(currentQuestion.getQuestion(), questionPosX, questionPosY);
@@ -135,16 +141,17 @@ public class Quizzer extends BasicGame {
 
     private void drawScoreAndTime(Graphics g) {
         List<Integer> scores = gameSession.getScores();
+        g.setColor(WHITE);
         g.drawString("Score: " + scores.toString(), 30, 30);
         g.drawString("Time left: " + (int) Math.ceil(QUESTION_TIME - time / 1000), WIDTH - 200, HEIGHT - 200);
     }
 
     private void drawWinner(Graphics g) {
         g.drawString("1st: " + topThree.get(0).getUserName() + " | Score: " + topThree.get(0).getScore(),
-                WIDTH/2, HEIGHT/2);
-        g.drawString("2nd: " + topThree.get(1).getUserName() + " | Score: " + topThree.get(1).getScore(), 
-                WIDTH/2, HEIGHT/2 + fontTextHeight);
+                WIDTH / 2, HEIGHT / 2);
+        g.drawString("2nd: " + topThree.get(1).getUserName() + " | Score: " + topThree.get(1).getScore(),
+                WIDTH / 2, HEIGHT / 2 + fontTextHeight);
         g.drawString("3rd: " + topThree.get(2).getUserName() + " | Score: " + topThree.get(2).getScore(),
-                WIDTH/2, HEIGHT/2 + 2*fontTextHeight);
+                WIDTH / 2, HEIGHT / 2 + 2 * fontTextHeight);
     }
 }

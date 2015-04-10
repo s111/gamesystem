@@ -6,7 +6,7 @@ var data;
 
 var bttnWidth;
 var bttnHeight;
-var colours = [0xFF0000, 0xFFFF00, 0x00FF00, 0x0000FF];
+var colours = [0xFF0373, 0xFCFF02, 0x00FC8C, 0x009CFF];
 
 var selection = function(sel) {};
 
@@ -23,7 +23,8 @@ function preload() {
             selectOptionSprite.kill();
         }
     });
-    game.stage.backgroundColor = '#000000';
+
+    game.stage.backgroundColor = '#111213';
 }
 
 function create() {
