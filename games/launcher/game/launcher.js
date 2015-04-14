@@ -17,6 +17,9 @@ $(function() {
 
             $("#title").html(game);
             $("#screenshot-src").attr("src", "http://localhost:3001/img/" + game.toLowerCase() + ".png");
+
+            sendToBackend("get players", game);
+            sendToBackend("get description", game);
           }
         });
 
@@ -46,9 +49,9 @@ $(function() {
               break;
               case "get players":
                 if (msg.data === 0) {
-                  $("#players").html(" Unlimited");
+                  $("#players").html(" Unlimited players");
                 } else {
-                  $("#players").html(" " + msg.data);
+                  $("#players").html(" " + msg.data + " players");
                 }
 
                 break;

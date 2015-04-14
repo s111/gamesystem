@@ -2,7 +2,6 @@ body {
     overflow: hidden;
     margin: 0;
     background-image: url("gfx/bg.png");
-    background-position: left center;
     color: #eeefef;
     font-family: arial;
     font-size: 50px;
