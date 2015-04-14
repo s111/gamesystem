@@ -2,84 +2,91 @@ var gui = require('nw.gui');
 var backend
 
 $(function() {
-    addMessageHandler(function(msg) {
-        if (msg === "identified") {
-            sendToBackend("list");
-        }
+  addMessageHandler(function(msg) {
+    if (msg === "identified") {
+      sendToBackend("list");
+    }
 
-        switch (msg.action) {
-            case "list":
-                $.each(msg.data, function(index, game) {
-                    $("#games").append("<li id=\"lst" + game + "\">" + game + "</li>");
-                });
+    switch (msg.action) {
+      case "list":
+        $.each(msg.data, function(index, game) {
+          $("#games").append("<li id=\"lst" + game + "\">" + game + "</li>");
 
-                break;
-            case "select":
-                $("#games li").each(function(index) {
-                    $(this).removeClass("selected");
-                });
+          if (index === 0) {
+            $("#lst" + game).addClass("selected");
 
-                $("#lst" + msg.data).addClass("selected");
+            $("#title").html(game);
+            $("#screenshot-src").attr("src", "http://localhost:3001/img/" + game.toLowerCase() + ".png");
+          }
+        });
 
-                $("#title").html(msg.data);
-                $("#screenshot-src").attr("src", "http://localhost:3001/img/" + msg.data.toLowerCase() + ".png");
+        break;
+        case "select":
+          $("#games li").each(function(index) {
+            $(this).removeClass("selected");
+          });
 
-                sendToBackend("get players", msg.data);
-                sendToBackend("get description", msg.data);
+          $("#lst" + msg.data).addClass("selected");
 
-                break;
-            case "start":
-                sendToBackend("start", msg.data);
-                gui.App.quit();
+          $("#title").html(msg.data);
+          $("#screenshot-src").attr("src", "http://localhost:3001/img/" + msg.data.toLowerCase() + ".png");
 
-                break;
+          sendToBackend("get players", msg.data);
+          sendToBackend("get description", msg.data);
+
+          break;
+          case "start":
+            sendToBackend("start", msg.data);
+            gui.App.quit();
+
+            break;
             case "get description":
-                $("#desc-text").html(msg.data);
+              $("#desc-text").html(msg.data);
 
-                break;
-            case "get players":
+              break;
+              case "get players":
                 if (msg.data === 0) {
-                    $("#players").html(" Unlimited");
+                  $("#players").html(" Unlimited");
                 } else {
-                    $("#players").html(" " + msg.data);
+                  $("#players").html(" " + msg.data);
                 }
 
                 break;
-        }
-    });
-});
+              }
+            });
+          });
 
-function addMessageHandler(callback) {
-    backend = new WebSocket('ws://localhost:3001/ws');
+          function addMessageHandler(callback) {
+            backend = new WebSocket('ws://localhost:3001/ws');
 
-    backend.onmessage = function(e) {
-        var msg = JSON.parse(e.data);
+            backend.onmessage = function(e) {
+              var msg = JSON.parse(e.data);
 
-        if (msg.action === "identify") {
-            if (!msg.data) {
-                sendToBackend("identify", "game");
-            } else if (msg.data === "ok") {
-                callback("identified");
+              if (msg.action === "identify") {
+                if (!msg.data) {
+                  sendToBackend("identify", "game");
+                } else if (msg.data === "ok") {
+                  callback("identified");
+                }
+              } else {
+                callback(msg);
+              }
             }
-        } else {
-            callback(msg);
-        }
-    }
 
-    backend.onclose = function(e) {
-        gui.App.quit();
-    }
-}
+            backend.onclose = function(e) {
+              gui.App.quit();
+            }
+          }
 
-function sendToBackend(action, data) {
-    send({
-        "action": action,
-        "data": data
-    });
-}
+          function sendToBackend(action, data) {
+            send({
+              "action": action,
+              "data": data
+            });
+          }
 
-function send(json) {
-    if (backend) {
-        backend.send(JSON.stringify(json));
-    }
-}
+          function send(json) {
+            if (backend) {
+              backend.send(JSON.stringify(json));
+            }
+          }
