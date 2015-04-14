@@ -7,7 +7,7 @@
     "main": "index.html",
     "window": {
         "fullscreen": true,
-        "toolbar": false,
+        "toolbar": true,
         "frame": false
     }
 }
