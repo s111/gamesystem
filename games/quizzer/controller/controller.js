@@ -4,6 +4,8 @@ var game = new Phaser.Game(800, 600, Phaser.AUTO, 'game', {
 });
 var data;
 
+var optionSprite = [];
+
 var bttnWidth;
 var bttnHeight;
 var colours = [0xFF0373, 0xFCFF02, 0x00FC8C, 0x009CFF];
@@ -20,6 +22,10 @@ function preload() {
         }
         if (msg.action === "next") {
             selectOptionSprite.kill();
+
+            for (i = 0; i <= 3; i++) {
+                optionSprite[i].revive();
+            }
         }
     });
 
@@ -37,10 +43,10 @@ function create() {
         g = game.add.graphics(0, 0);
         g.beginFill(colours[i - 1], 1);
         g.drawRect(((i == 2 || i == 4) ? 1 : 0) * bttnWidth + 32, (i > 2 ? 1 : 0) * bttnHeight + 32, bttnWidth - 64, bttnHeight - 64);
-        s = game.add.sprite(0, 0);
-        s.addChild(g);
-        s.data = i;
-        s.inputEnabled = true;
+        optionSprite[i - 1] = game.add.sprite(0, 0);
+        optionSprite[i - 1].addChild(g);
+        optionSprite[i - 1].data = i;
+        optionSprite[i - 1].inputEnabled = true;
     }
 
     game.input.onDown.add(function(pointer) {
@@ -58,4 +64,8 @@ function createSelectedOptionSprite(selection) {
     g.drawRect(0, 0, game.stage.width, game.stage.height);
     selectOptionSprite = game.add.sprite(0, 0);
     selectOptionSprite.addChild(g);
+
+    for (i = 0; i <= 3; i++) {
+        optionSprite[i].kill();
+    }
 }
