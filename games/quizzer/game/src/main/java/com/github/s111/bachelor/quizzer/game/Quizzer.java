@@ -15,7 +15,7 @@ import java.util.List;
 public class Quizzer extends BasicGame {
     public static final int WIDTH = 1280;
     public static final int HEIGHT = 720;
-    private static final int QUESTION_TIME = 10;
+    private static final int QUESTION_TIME = 2;
     private static final Color RED = new Color(255, 3, 115);
     private static final Color GREEN = new Color(0, 252, 140);
     private static final Color BLUE = new Color(0, 156, 255);
@@ -147,11 +147,15 @@ public class Quizzer extends BasicGame {
     }
 
     private void drawWinner(Graphics g) {
-        g.drawString("1st: " + topThree.get(0).getUserName() + " | Score: " + topThree.get(0).getScore(),
-                WIDTH / 2, HEIGHT / 2);
-        g.drawString("2nd: " + topThree.get(1).getUserName() + " | Score: " + topThree.get(1).getScore(),
-                WIDTH / 2, HEIGHT / 2 + fontTextHeight);
-        g.drawString("3rd: " + topThree.get(2).getUserName() + " | Score: " + topThree.get(2).getScore(),
-                WIDTH / 2, HEIGHT / 2 + 2 * fontTextHeight);
+        int textLength;
+        String firstString = "1st: " + topThree.get(0).getUserName() + " | Score: " + topThree.get(0).getScore();
+        String secondString = "2nd: " + topThree.get(1).getUserName() + " | Score: " + topThree.get(1).getScore();
+        String thirdString = "3rd: " + topThree.get(2).getUserName() + " | Score: " + topThree.get(2).getScore();
+        textLength = font.getWidth(firstString);
+        g.drawString(firstString, WIDTH / 2 - textLength / 2, HEIGHT / 2 - fontTextHeight);
+        textLength = font.getWidth(secondString);
+        g.drawString(secondString, WIDTH / 2 - textLength / 2, HEIGHT / 2);
+        textLength = font.getWidth(thirdString);
+        g.drawString(thirdString, WIDTH / 2 - textLength / 2, HEIGHT / 2 + fontTextHeight);
     }
 }
