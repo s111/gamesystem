@@ -2,9 +2,11 @@ package main
 
 import (
 	"encoding/json"
+	"errors"
 	"flag"
 	"io/ioutil"
 	"log"
+	"net"
 	"net/http"
 	"path/filepath"
 	"strings"
@@ -21,6 +23,7 @@ const (
 
 	gameClient = "game"
 
+	actionGetIp       = "get ip"
 	actionRedirect    = "redirect"
 	actionList        = "list"
 	actionStart       = "start"
@@ -152,6 +155,35 @@ func main() {
 		})
 	})
 
+	hub.AddMessageHandler(actionGetIp, func(m hub.MessageIn) {
+		host, port, err := net.SplitHostPort(*addr)
+
+		if err != nil {
+			log.Println("get ip:", err)
+
+			return
+		}
+
+		if host == "" || host == "localhost" {
+			host, err = externalIP()
+
+			if err != nil {
+				log.Println("get ip:", err)
+
+				return
+			}
+		}
+
+		displayAddr := net.JoinHostPort(host, port)
+
+		hub.Send(hub.MessageOut{
+			To:     m.From,
+			Action: actionGetIp,
+			Data:   displayAddr,
+		})
+
+	})
+
 	hub.AddMessageHandler(actionList, func(m hub.MessageIn) {
 		hub.Send(hub.MessageOut{
 			To:     m.From,
@@ -261,4 +293,42 @@ func redirectToController(w http.ResponseWriter, r *http.Request) {
 	if currentGame != "" {
 		http.Redirect(w, r, "/"+strings.ToLower(currentGame), http.StatusFound)
 	}
+}
+
+// taken from https://code.google.com/p/whispering-gophers/source/browse/util/helper.go
+func externalIP() (string, error) {
+	ifaces, err := net.Interfaces()
+	if err != nil {
+		return "", err
+	}
+	for _, iface := range ifaces {
+		if iface.Flags&net.FlagUp == 0 {
+			continue // interface down
+		}
+		if iface.Flags&net.FlagLoopback != 0 {
+			continue // loopback interface
+		}
+		addrs, err := iface.Addrs()
+		if err != nil {
+			return "", err
+		}
+		for _, addr := range addrs {
+			var ip net.IP
+			switch v := addr.(type) {
+			case *net.IPNet:
+				ip = v.IP
+			case *net.IPAddr:
+				ip = v.IP
+			}
+			if ip == nil || ip.IsLoopback() {
+				continue
+			}
+			ip = ip.To4()
+			if ip == nil {
+				continue // not an ipv4 address
+			}
+			return ip.String(), nil
+		}
+	}
+	return "", errors.New("are you connected to the network?")
 }
