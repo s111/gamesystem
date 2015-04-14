@@ -243,9 +243,6 @@ public class Pong extends BasicGame {
         drawScore(g);
 
         if (!gameover) {
-            g.setColor(WHITE);
-            drawScore(g);
-
             g.setColor(RED);
             g.fill(player1);
 
