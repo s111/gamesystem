@@ -213,12 +213,10 @@ func main() {
 			return
 		}
 
-		description := ""
+		var description string
 
 		if game, ok := gp.Games[data]; ok {
-			if len(game.Description) > 0 {
-				description = game.Description
-			}
+			description = game.Description
 		}
 
 		hub.Send(hub.MessageOut{
@@ -237,12 +235,10 @@ func main() {
 			return
 		}
 
-		players := 0
+		var players int
 
 		if game, ok := gp.Games[data]; ok {
-			if game.Players > 0 {
-				players = game.Players
-			}
+			players = game.Players
 		}
 
 		hub.Send(hub.MessageOut{
