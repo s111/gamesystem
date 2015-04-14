@@ -15,7 +15,7 @@ import java.util.List;
 public class Quizzer extends BasicGame {
     public static final int WIDTH = 1280;
     public static final int HEIGHT = 720;
-    private static final int QUESTION_TIME = 2;
+    private static final int QUESTION_TIME = 10;
     private static final Color RED = new Color(255, 3, 115);
     private static final Color GREEN = new Color(0, 252, 140);
     private static final Color BLUE = new Color(0, 156, 255);
