@@ -41,6 +41,13 @@ public class GameSession {
                 .build());
     }
 
+    private void sendToBackend(String action, String data) throws IOException, EncodeException {
+        backend.getBasicRemote().sendObject(Json.createObjectBuilder()
+                .add("action", action)
+                .add("data", data)
+                .build());
+    }
+
     public void onMessage(Session session, String message) throws IOException, EncodeException {
         JsonReader jsonReader = Json.createReader(new StringReader(message));
         JsonObject jsonObj = jsonReader.readObject();
@@ -70,7 +77,10 @@ public class GameSession {
                 JsonArray clients = jsonObj.getJsonArray("data");
 
                 for (JsonValue client : clients) {
-                    players.add(new Player(client.toString()));
+                    String id = client.toString();
+                    players.add(new Player(id));
+
+                    sendToBackend("get username", id);
                 }
 
                 break;
@@ -79,6 +89,8 @@ public class GameSession {
                 String id = jsonObj.getString("data");
 
                 players.add(new Player(id));
+
+                sendToBackend("get username", id);
 
                 break;
             }
@@ -172,21 +184,20 @@ public class GameSession {
     public List<Player> getTopThree() {
         sortedPlayers = new ArrayList<>(players);
         Collections.sort(sortedPlayers, new PlayerScoreComparator());
-        if (sortedPlayers.size() > 3) {
-            sortedPlayers.subList(3, sortedPlayers.size() - 1);
-            return sortedPlayers;
-        } else if (sortedPlayers.size() == 2) {
+        if (sortedPlayers.size() == 2) {
             sortedPlayers.add(new Player("No 3rd!"));
         } else if (sortedPlayers.size() == 1) {
             sortedPlayers.add(new Player("No 2nd!"));
             sortedPlayers.add(new Player("No 3rd!"));
-            return sortedPlayers;
-        } else if (sortedPlayers.isEmpty()) {
+        } else if (sortedPlayers.size() == 0) {
             sortedPlayers.add(new Player("No 1st!"));
             sortedPlayers.add(new Player("No 2nd!"));
             sortedPlayers.add(new Player("No 3rd!"));
-        } else {
-            return sortedPlayers;
+        }
+        for (Player player : sortedPlayers) {
+            if (player.getUserName() == null) {
+                player.setUserName(player.getId());
+            }
         }
         return sortedPlayers;
     }
@@ -199,7 +210,6 @@ public class GameSession {
 
         private Player(String id) {
             this.id = id;
-            this.userName = id;
             this.hasAnswered = false;
         }
 
