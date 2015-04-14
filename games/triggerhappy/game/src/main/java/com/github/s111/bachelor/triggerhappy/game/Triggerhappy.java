@@ -54,7 +54,7 @@ public class Triggerhappy extends BasicGame {
     public void init(GameContainer container) throws SlickException {
         gameSession = Application.getGameSession();
 
-        Font font = new Font("Arial", Font.BOLD, 48);
+        Font font = new Font(Font.MONOSPACED, Font.BOLD, 48);
         ttfFont = new TrueTypeFont(font, true);
 
         initiateSpawnPoints();
