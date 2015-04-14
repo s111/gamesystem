@@ -272,6 +272,8 @@ func main() {
 		if err != nil {
 			log.Fatal("ListenAndServe: ", err)
 		}
+
+		wg.Done()
 	}()
 
 	wg.Wait()
