@@ -25,7 +25,6 @@ public class Quizzer extends BasicGame {
     private float time = 0;
     private GameSession gameSession;
 
-    private Font awtFont;
     private TrueTypeFont font;
     private int fontTextHeight;
     private Color[] fontColors;
@@ -47,7 +46,7 @@ public class Quizzer extends BasicGame {
     public void init(GameContainer container) throws SlickException {
         gameSession = Application.getGameSession();
 
-        awtFont = new Font(Font.MONOSPACED, Font.BOLD, 16);
+        Font awtFont = new Font(Font.MONOSPACED, Font.BOLD, 36);
         font = new TrueTypeFont(awtFont, true);
         fontColors = new Color[]{RED, YELLOW, GREEN, BLUE};
 
@@ -140,22 +139,24 @@ public class Quizzer extends BasicGame {
     }
 
     private void drawScoreAndTime(Graphics g) {
-        List<Integer> scores = gameSession.getScores();
         g.setColor(WHITE);
-        g.drawString("Score: " + scores.toString(), 30, 30);
-        g.drawString("Time left: " + (int) Math.ceil(QUESTION_TIME - time / 1000), WIDTH - 200, HEIGHT - 200);
+
+        String timeString = "Time left: " + (int) Math.ceil(QUESTION_TIME - time / 1000);
+
+        int textWidth = font.getWidth(timeString);
+        g.drawString(timeString, (WIDTH - textWidth) / 2, (HEIGHT - 200));
     }
 
     private void drawWinner(Graphics g) {
-        int textLength;
         String firstString = "1st: " + topThree.get(0).getUserName() + " | Score: " + topThree.get(0).getScore();
         String secondString = "2nd: " + topThree.get(1).getUserName() + " | Score: " + topThree.get(1).getScore();
         String thirdString = "3rd: " + topThree.get(2).getUserName() + " | Score: " + topThree.get(2).getScore();
-        textLength = font.getWidth(firstString);
-        g.drawString(firstString, WIDTH / 2 - textLength / 2, HEIGHT / 2 - fontTextHeight);
-        textLength = font.getWidth(secondString);
-        g.drawString(secondString, WIDTH / 2 - textLength / 2, HEIGHT / 2);
-        textLength = font.getWidth(thirdString);
-        g.drawString(thirdString, WIDTH / 2 - textLength / 2, HEIGHT / 2 + fontTextHeight);
+
+        int textWidth = font.getWidth(firstString);
+        g.drawString(firstString, WIDTH / 2 - textWidth / 2, HEIGHT / 2 - fontTextHeight);
+        textWidth = font.getWidth(secondString);
+        g.drawString(secondString, WIDTH / 2 - textWidth / 2, HEIGHT / 2);
+        textWidth = font.getWidth(thirdString);
+        g.drawString(thirdString, WIDTH / 2 - textWidth / 2, HEIGHT / 2 + fontTextHeight);
     }
 }
