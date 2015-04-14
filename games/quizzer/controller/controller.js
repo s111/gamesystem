@@ -18,7 +18,6 @@ function preload() {
                 createSelectedOptionSprite(sel);
             }
         }
-        console.log(msg);
         if (msg.action === "next") {
             selectOptionSprite.kill();
         }
