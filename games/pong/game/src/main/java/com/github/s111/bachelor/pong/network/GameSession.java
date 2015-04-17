@@ -135,7 +135,7 @@ public class GameSession {
 
     private void sendAvailablePaddles(String id) throws IOException, EncodeException {
         backend.getBasicRemote().sendObject(Json.createObjectBuilder()
-                .add("action", "passthrough")
+                .add("action", "pass through")
                 .add("data", Json.createObjectBuilder()
                         .add("action", "play as")
                         .add("data", Json.createObjectBuilder()

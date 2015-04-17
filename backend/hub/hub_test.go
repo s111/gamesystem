@@ -258,7 +258,7 @@ func TestPassthrough(t *testing.T) {
 	gameWs.ReadJSON(msg)
 	// identify ok message
 	gameWs.ReadJSON(msg)
-	// passthrough message
+	// pass through message
 	gameWs.ReadJSON(msg)
 
 	assert.Equal(t, msg.Action, actionActual)

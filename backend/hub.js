@@ -88,7 +88,7 @@ function addMessageHandler(callback) {
 function sendToGame(action, data) {
     send({
         "to": "game",
-        "action": "passthrough",
+        "action": "pass through",
         "data": {
             "action": action,
             "data": data

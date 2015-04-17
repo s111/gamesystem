@@ -153,7 +153,7 @@ public class GameSession {
 
     public void nextQuestionMessage() throws IOException, EncodeException {
         backend.getBasicRemote().sendObject(Json.createObjectBuilder()
-                .add("action", "passthrough")
+                .add("action", "pass through")
                 .add("data", Json.createObjectBuilder()
                         .add("action", "next"))
                 .add("to", "all")

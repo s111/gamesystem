@@ -14,8 +14,8 @@ const (
 
 	// ActionPassthrough should be used when the message is not directly for the hub.
 	// Message should be on the format:
-	// {to: receiver, action: passthrough, data: {action: actual action, data: actual data}}
-	ActionPassthrough = "passthrough"
+	// {to: receiver, action: pass through, data: {action: actual action, data: actual data}}
+	ActionPassthrough = "pass through"
 
 	// ActionDisconnect is a action used when a client wishes to immeaditaly terminate its connection.
 	ActionDisconnect = "disconnect"

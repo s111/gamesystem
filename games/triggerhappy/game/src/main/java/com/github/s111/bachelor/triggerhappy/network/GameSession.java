@@ -158,7 +158,7 @@ public class GameSession {
 
     private void sendScoreToController(String id, int score) throws IOException, EncodeException {
         backend.getBasicRemote().sendObject(Json.createObjectBuilder()
-                .add("action", "passthrough")
+                .add("action", "pass through")
                 .add("data", Json.createObjectBuilder()
                         .add("action", "update score")
                         .add("data", score))
