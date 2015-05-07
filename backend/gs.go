@@ -1,8 +1,8 @@
-package main
+package backend
 
 import (
-	gs "github.com/s111/bachelor/backend/gamescheduler"
-	"github.com/s111/bachelor/backend/hub"
+	gs "github.com/s111/gamesystem/gamescheduler"
+	"github.com/s111/gamesystem/hub"
 )
 
 func setupSchedulerCallbacks() {

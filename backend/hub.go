@@ -1,13 +1,13 @@
-package main
+package backend
 
 import (
 	"encoding/json"
 	"log"
 	"net"
 
-	gp "github.com/s111/bachelor/backend/gameparser"
-	gs "github.com/s111/bachelor/backend/gamescheduler"
-	"github.com/s111/bachelor/backend/hub"
+	gp "github.com/s111/gamesystem/gameparser"
+	gs "github.com/s111/gamesystem/gamescheduler"
+	"github.com/s111/gamesystem/hub"
 )
 
 func setupHubEventHandlers() {

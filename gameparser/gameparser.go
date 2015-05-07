@@ -21,7 +21,7 @@ const (
 	gameDescription = "game.json"
 )
 
-// ErrNotSupported is used when a game is not supported on the current system
+// ErrNotSupported is used when a game is not supported on the current system.
 var ErrNotSupported = errors.New("gameparser: Game is not supported on this system")
 
 type exec []string
@@ -34,15 +34,16 @@ type GameParser struct {
 }
 
 // Game should contain a games name and how to execute it.
-// LaunchOptions describes how to execute the game on different systems
-// Description is a short description of the game
-// Timeout is the amount of time before a client is considered dropped
 type Game struct {
-	Name          string
-	Description   string
-	Players       int
+	Name        string
+	Description string
+	Players     int
+
+	// LaunchOptions describes how to execute the game on different systems.
 	LaunchOptions launchOptions `json:"launch-options"`
-	Timeout       int
+
+	// Timeout is the amount of time before a client is considered dropped.
+	Timeout int
 }
 
 type launchOptions struct {
@@ -50,7 +51,7 @@ type launchOptions struct {
 	OsSpecific map[string]arch `json:"os-specific"`
 }
 
-// GetCmd first tries to return the most specific command, then the platform independent one, if none are found a error is returned
+// GetCmd first tries to return the most specific command, then the platform independent one, if none are found a error is returned.
 func (g *Game) GetCmd() (exec, error) {
 	if len(g.LaunchOptions.OsSpecific) > 0 {
 		if o, ok := g.LaunchOptions.OsSpecific[runtime.GOOS]; ok {

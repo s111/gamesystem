@@ -115,7 +115,7 @@ func GetCurrent() string {
 	return gs.current.name
 }
 
-// Quit stops the scheduler
+// Quit stops the scheduler.
 func Quit() {
 	gs.quit <- true
 }

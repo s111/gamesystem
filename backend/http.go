@@ -1,13 +1,13 @@
-package main
+package backend
 
 import (
 	"net/http"
 	"path/filepath"
 	"strings"
 
-	gp "github.com/s111/bachelor/backend/gameparser"
-	gs "github.com/s111/bachelor/backend/gamescheduler"
-	"github.com/s111/bachelor/backend/hub"
+	gp "github.com/s111/gamesystem/gameparser"
+	gs "github.com/s111/gamesystem/gamescheduler"
+	"github.com/s111/gamesystem/hub"
 )
 
 func setupHTTPHandlers(games map[string]gp.Game) {
@@ -22,12 +22,23 @@ func setupHTTPHandlers(games map[string]gp.Game) {
 	}
 
 	http.HandleFunc("/ws", hub.ServeWs)
+
 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		redirectToController(w, r)
 	})
+
 	http.HandleFunc("/hub.js", func(w http.ResponseWriter, r *http.Request) {
 		http.ServeFile(w, r, "hub.js")
 	})
+
+	http.HandleFunc("/jquery.js", func(w http.ResponseWriter, r *http.Request) {
+		http.ServeFile(w, r, "jquery.js")
+	})
+
+	http.HandleFunc("/phaser.js", func(w http.ResponseWriter, r *http.Request) {
+		http.ServeFile(w, r, "phaser.js")
+	})
+
 }
 
 func serveController(game gp.Game) {

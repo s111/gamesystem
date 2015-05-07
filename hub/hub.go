@@ -23,10 +23,10 @@ const (
 	// ActionGetClients is a action used when asking for the hubs current list of clients.
 	ActionGetClients = "get clients"
 
-	// ActionSetUsername is a action used to set a username for the client
+	// ActionSetUsername is a action used to set a username for the client.
 	ActionSetUsername = "set username"
 
-	// ActionGetUsername is a action used to get the username of a client id
+	// ActionGetUsername is a action used to get the username of a client id.
 	ActionGetUsername = "get username"
 
 	// EventAdd is the event of adding a client.

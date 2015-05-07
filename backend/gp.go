@@ -1,8 +1,8 @@
-package main
+package backend
 
 import (
-	gp "github.com/s111/bachelor/backend/gameparser"
-	gs "github.com/s111/bachelor/backend/gamescheduler"
+	gp "github.com/s111/gamesystem/gameparser"
+	gs "github.com/s111/gamesystem/gamescheduler"
 )
 
 func getAvailableGames() map[string]gp.Game {
