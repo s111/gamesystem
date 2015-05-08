@@ -55,10 +55,14 @@ func Run() {
 
 	exists := false
 
-	for _, g := range names {
-		if g == *game {
-			exists = true
+	if *game != launcher {
+		for _, g := range names {
+			if g == *game {
+				exists = true
+			}
 		}
+	} else {
+		exists = true
 	}
 
 	if *scheduler {
