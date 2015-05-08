@@ -90,6 +90,10 @@ func setupHubMessageHandlers(games map[string]gp.Game, names []string) {
 
 		displayAddr := net.JoinHostPort(host, port)
 
+		if port == "80" {
+			displayAddr = host
+		}
+
 		hub.Send(hub.MessageOut{
 			To:     m.From,
 			Action: actionGetIP,
