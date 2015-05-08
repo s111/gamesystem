@@ -124,7 +124,7 @@ function getId() {
 function setUsername() {
     newUsername = prompt("Please enter your name", username);
 
-    if (newUsername == "") {
+    if (newUsername == "" || newUsername == username || newUsername == null) {
         return
     }
 
