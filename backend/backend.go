@@ -61,7 +61,7 @@ func Run() {
 				exists = true
 			}
 		}
-	} else {
+	} else if _, ok := games[launcher]; ok {
 		exists = true
 	}
 
