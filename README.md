@@ -1,4 +1,14 @@
 # Game system
+For this thesis we have developed a game system for couch multiplayer PC games to be played in social gatherings.
+The main feature is to enable the use of smartphones as the game controllers.
+It consists of the back end and a front end application enabling users to choose between games to play.
+Sample games are included to ease the learning curve for developers seeking to create or adapt games for it.
+
+The development was carried out using web technologies like HTML5 and JavaScript.
+For all communication within the system the WebSocket protocol was used.
+For developing the back end of the system the programming language Go was utilized.
+
+The system is designed using the common client-server architecture, where the back end acts as the server and both the game and the smartphone controllers acts as clients.
 
 ## Table of Contents
 
