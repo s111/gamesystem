@@ -37,7 +37,7 @@ cd $GOPATH/src/github.com/s111/gamesystem
 go run main.go
 ```
 
-For specifics on how to develop a game for the system, checkout the [manual pages](http://godoc.org/github.com/s111/gamesystem) and the sample games [Pong](https://github.com/s111/gs-pong), [TriggerHappy](https://github.com/s111/gs-triggerhappy) and [Quizzer](https://github.com/s111/gs-quizzer).
+For specifics on how to develop a game for the system, checkout the [documentation](http://godoc.org/github.com/s111/gamesystem) and the sample games [Pong](https://github.com/s111/gs-pong), [TriggerHappy](https://github.com/s111/gs-triggerhappy) and [Quizzer](https://github.com/s111/gs-quizzer).
 
 While developing a game for the system, you might want to run the game system in the background without the launcher:
 ```
