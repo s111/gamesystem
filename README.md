@@ -1,14 +1,13 @@
 # Game system
 
-**Table of Contents**
+## Table of Contents
 
-- [Game system](#game-system)
-	- [Precompiled](#precompiled)
-	- [Develop](#develop)
-	- [Compile and package](#compile-and-package)
-	- [Screenshots](#screenshots)
-		- [Launcher](#launcher)
-		- [Controller](#controller)
+- [Precompiled](#precompiled)
+- [Develop](#develop)
+- [Compile and package](#compile-and-package)
+- [Screenshots](#screenshots)
+	- [Launcher](#launcher)
+	- [Controller](#controller)
 
 ## Precompiled
 The game system packaged together with some sample game.  
