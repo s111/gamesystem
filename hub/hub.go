@@ -207,6 +207,10 @@ func (h *hub) run() {
 					to = m.To
 				}
 
+				if _, ok := h.clients[to]; !ok {
+					break
+				}
+
 				if c, ok := h.clients[id]; ok {
 					if c.username != "" {
 						h.clients[to].send <- MessageOut{
